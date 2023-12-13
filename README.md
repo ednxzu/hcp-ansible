@@ -1,3 +1,3 @@
-# hashistack
+# Ansible Collection - ednxzu.hashistack
 
-A complete ansible collection to deploy and manage Hashicorp Vault, Consul, and Nomad clusters.
+Documentation for the collection.

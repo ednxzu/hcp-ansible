@@ -1,0 +1,8 @@
+---
+warn_list:
+  - experimental  # all rules tagged as experimental
+  - yaml  # violations reported by yamllint
+  - meta-no-info
+
+skip_list:
+  - jinja[spacing]  # Rule that looks inside jinja2 templates.
