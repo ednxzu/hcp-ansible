@@ -1,6 +1,0 @@
----
-# defaults file for manage_apt_packages
-manage_apt_packages_list:
-  - name: vim
-    version: latest
-    state: present

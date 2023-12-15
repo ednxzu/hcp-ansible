@@ -1,6 +1,0 @@
----
-# handlers file for manage_repositories
-- name: "Update repositories caches"
-  ansible.builtin.apt:
-    update_cache: true
-  listen: "debian-based-cache-update"

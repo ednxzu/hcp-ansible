@@ -1,8 +1,0 @@
----
-- name: Converge
-  hosts: all
-  become: true
-  tasks:
-    - name: "Include ednxzu.manage_apt_packages"
-      ansible.builtin.include_role:
-        name: "ednxzu.manage_apt_packages"
