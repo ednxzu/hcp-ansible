@@ -1,0 +1,12 @@
+---
+- name: Prepare
+  hosts: all
+  tasks:
+    - name: "Install pip3 packages"
+      ansible.builtin.include_role:
+        name: ednxzu.manage_apt_packages
+      vars:
+        manage_apt_packages_list:
+          - name: python3-pip
+            version: latest
+            state: present

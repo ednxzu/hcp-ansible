@@ -1,0 +1,11 @@
+---
+# manage_apt_packages_list:
+#   - name: nginx
+#     version: 1.18.0-6ubuntu14
+#     state: present
+#   - name: apache2
+#     version: 2.4.52-1ubuntu4.4
+#     state: present
+#   - name:
+#     version:
+#     state:

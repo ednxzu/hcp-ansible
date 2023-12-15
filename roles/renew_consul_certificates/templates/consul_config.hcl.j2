@@ -1,0 +1,33 @@
+vault {
+  address      = "{{ renew_consul_certificates_vault_addr }}"
+  token        = "{{ renew_consul_certificates_vault_token }}"
+  unwrap_token = {{ renew_consul_certificates_vault_token_unwrap|lower }}
+  renew_token  = {{ renew_consul_certificates_vault_token_renew|lower }}
+}
+
+template {
+  source      = "{{ renew_consul_certificates_config_dir }}/templates/consul_ca.pem.tpl"
+  destination = "{{ renew_consul_certificates_ca_dest }}"
+  perms       = 0700
+  user        = "{{ renew_consul_certificates_consul_user }}"
+  group       = "{{ renew_consul_certificates_consul_group }}"
+  command     = "sh -c 'echo \"$(date) Update certificate and key file for {{ renew_consul_certificates_info['common_name'] }}\" && consul reload '"
+}
+
+template {
+  source      = "{{ renew_consul_certificates_config_dir }}/templates/consul_cert.pem.tpl"
+  destination = "{{ renew_consul_certificates_cert_dest }}"
+  perms       = 0700
+  user        = "{{ renew_consul_certificates_consul_user }}"
+  group       = "{{ renew_consul_certificates_consul_group }}"
+  command     = "sh -c 'echo \"$(date) Update certificate and key file for {{ renew_consul_certificates_info['common_name'] }}\" && consul reload '"
+}
+
+template {
+  source      = "{{ renew_consul_certificates_config_dir }}/templates/consul_key.pem.tpl"
+  destination = "{{ renew_consul_certificates_key_dest }}"
+  perms       = 0700
+  user        = "{{ renew_consul_certificates_consul_user }}"
+  group       = "{{ renew_consul_certificates_consul_group }}"
+  command     = "sh -c 'echo \"$(date) Update certificate and key file for {{ renew_consul_certificates_info['common_name'] }}\" && consul reload '"
+}

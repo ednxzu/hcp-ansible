@@ -1,0 +1,24 @@
+---
+# task/main file for install_docker
+- name: "Import prerequisites.yml"
+  ansible.builtin.include_tasks: prerequisites.yml
+
+- name: "Import install.yml"
+  ansible.builtin.include_tasks: install.yml
+
+- name: "Import install_compose.yml"
+  ansible.builtin.include_tasks: install_compose.yml
+  when: install_docker_compose
+
+- name: "Import install_python_docker.yml"
+  ansible.builtin.include_tasks: install_python_docker.yml
+  when: install_docker_python_packages
+
+- name: "Import configure.yml"
+  ansible.builtin.include_tasks: configure.yml
+
+- name: "Start docker service"
+  ansible.builtin.service:
+    name: docker
+    state: started
+  when: install_docker_start_service

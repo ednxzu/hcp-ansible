@@ -1,0 +1,5 @@
+---
+import_vault_root_ca_certificate_force_download: false
+import_vault_root_ca_certificate_list:
+  - url: "https://letsencrypt.org/certs/isrg-root-x2.pem"
+    cert_name: "isrg_root"

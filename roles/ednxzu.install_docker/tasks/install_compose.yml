@@ -1,0 +1,46 @@
+---
+# task/install_compose file for install_docker
+- name: "Get release for compose:{{ install_docker_compose_version }}"
+  vars:
+    _docker_compose_url_ext: "{% if install_docker_compose_version == 'latest'%}releases{% else %}releases/tags{% endif %}"
+  ansible.builtin.uri:
+    url: "{{ install_docker_compose_github_api }}/{{ _docker_compose_url_ext }}/{{ install_docker_compose_version }}"
+    return_content: true
+  register: _docker_compose_new_release
+
+- name: "Check current compose version"
+  ansible.builtin.command: "{{ install_docker_compose_path }} --version --short"
+  register: _docker_compose_old_release
+  check_mode: false
+  changed_when: false
+  failed_when: false
+
+- name: "Set facts for wanted compose release"
+  ansible.builtin.set_fact:
+    install_docker_compose_wanted_version: "{{ _docker_compose_new_release.json['tag_name']|regex_replace('v', '') }}"
+  when: _docker_compose_new_release.json is defined
+    and (_docker_compose_new_release.json | length > 0)
+
+- name: "Set facts for current compose release"
+  ansible.builtin.set_fact:
+    install_docker_compose_current_version: "{{ _docker_compose_old_release.stdout | regex_replace('v', '') }}"
+  when: _docker_compose_old_release.stdout is defined
+    and (_docker_compose_old_release.stdout | length > 0)
+
+- name: "Remove old compose binary if different"
+  ansible.builtin.file:
+    path: "{{ install_docker_compose_path }}"
+    state: absent
+  register: _docker_compose_binary_removed
+  when: install_docker_compose_current_version is defined
+    and install_docker_compose_wanted_version not in install_docker_compose_current_version
+
+- name: "Download and install compose:{{ install_docker_compose_version }}"
+  ansible.builtin.get_url:
+    url: "{{ install_docker_compose_github_url }}/releases/download/v{{ install_docker_compose_wanted_version }}/docker-compose-linux-{{ ansible_architecture  }}"
+    dest: "{{ install_docker_compose_path }}"
+    owner: root
+    group: root
+    mode: '0755'
+  when: (install_docker_compose_current_version is not defined)
+    or (_docker_compose_binary_removed.changed)

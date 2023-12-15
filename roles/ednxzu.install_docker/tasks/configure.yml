@@ -1,0 +1,19 @@
+---
+# task/configure file for install_docker
+- name: "Add specified users to group {{ install_docker_group }}"
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: "{{ install_docker_group }}"
+    append: true
+  loop: "{{ install_docker_users }}"
+
+- name: "Copy daemon.json template"
+  ansible.builtin.template:
+    src: daemon.json.j2
+    dest: "{{ install_docker_daemon_dir }}/daemon.json"
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - "systemctl-enable-docker"
+    - "systemctl-reload-docker"

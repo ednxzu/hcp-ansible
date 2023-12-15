@@ -1,0 +1,20 @@
+---
+# handlers file for hashicorp_vault
+- name: "Reload systemd file"
+  ansible.builtin.systemd:
+    daemon_reload: true
+  listen: "systemctl-daemon-reload"
+
+- name: "Enable vault service"
+  ansible.builtin.service:
+    name: vault
+    enabled: true
+  listen: "systemctl-enable-vault"
+
+- name: "Start vault service"
+  ansible.builtin.service:
+    name: vault
+    state: restarted
+  listen: "systemctl-restart-vault"
+  throttle: 1
+  when: hashi_vault_start_service

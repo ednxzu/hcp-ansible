@@ -1,0 +1,7 @@
+---
+# task/prerequisites file for manage_repositories
+- name: "Install python dependencies"
+  ansible.builtin.include_role:
+    name: ednxzu.manage_apt_packages
+  vars:
+    manage_apt_packages_list: "{{ manage_repositories_required_packages }}"

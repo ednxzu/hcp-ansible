@@ -1,0 +1,10 @@
+---
+# vars file for manage_repositories
+manage_repositories_sources_list_location: /etc/apt/sources.list
+manage_repositories_repo_location: /etc/apt/sources.list.d
+manage_repositories_signing_keys_location: /usr/share/keyrings
+manage_repositories_sources_list_message: "# See /etc/apt/sources.list.d/{{ ansible_distribution|lower }}.sources\\n"
+manage_repositories_required_packages:
+  - name: python3-debian
+    version: latest
+    state: present

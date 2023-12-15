@@ -1,0 +1,52 @@
+---
+name: test
+on: [push]
+
+jobs:
+  lint:
+    name: Linting
+    runs-on: ubuntu-latest
+    container:
+      image: git.ednz.fr/container-factory/ansible-runner:act-latest
+      credentials:
+        username: ${{ secrets.ACTIONS_USER }}
+        password: ${{ secrets.ACTIONS_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: "Ansible lint"
+        run: ansible-lint --force-color
+        working-directory: ${{ gitea.workspace }}
+
+      - name: "YAML lint"
+        run: yamllint . -f colored -c .yamllint
+        working-directory: ${{ gitea.workspace }}
+
+  molecule-test:
+    name: Molecule tests
+    runs-on: ubuntu-latest
+    needs: lint
+    container:
+      image: git.ednz.fr/container-factory/ansible-runner:act-latest
+      credentials:
+        username: ${{ secrets.ACTIONS_USER }}
+        password: ${{ secrets.ACTIONS_TOKEN }}
+    strategy:
+      matrix:
+        test_os: [debian11, debian12, ubuntu2004, ubuntu2204]
+        scenario: [default, with_custom_config]
+    env:
+      ANSIBLE_HOST_KEY_CHECKING: 'false'
+      ANSIBLE_FORCE_COLOR: 'true'
+      ANSIBLE_PYTHON_INTERPRETER: /usr/bin/python3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: "Molecule test"
+        run: molecule test -s ${{ matrix.scenario }}
+        shell: bash
+        working-directory: ${{ gitea.workspace }}
+        env:
+          MOLECULE_TEST_OS: ${{ matrix.test_os }}

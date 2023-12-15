@@ -1,0 +1,25 @@
+---
+# task/install file for hashicorp_consul
+- name: "Configure hashicorp repository"
+  ansible.builtin.include_role:
+    name: ednxzu.manage_repositories
+  vars:
+    manage_repositories_enable_default_repo: false
+    manage_repositories_enable_custom_repo: true
+    manage_repositories_custom_repo: "{{ hashi_consul_repository }}"
+
+- name: "Install consul:{{ hashi_consul_version }}"
+  ansible.builtin.include_role:
+    name: ednxzu.manage_apt_packages
+  vars:
+    manage_apt_packages_list: "{{ hashi_consul_packages }}"
+
+- name: "Copy systemd service file for consul"
+  ansible.builtin.template:
+    src: "consul.service.j2"
+    dest: "/etc/systemd/system/consul.service"
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - "systemctl-daemon-reload"

@@ -1,0 +1,25 @@
+---
+# meta file for hashicorp_vault
+galaxy_info:
+  namespace: 'ednxzu'
+  role_name: 'hashicorp_vault'
+  author: 'Bertrand Lanson'
+  description: 'Install and configure hashicorp vault for debian-based distros.'
+  license: 'license (BSD, MIT)'
+  min_ansible_version: '2.10'
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+  galaxy_tags:
+    - 'ubuntu'
+    - 'debian'
+    - 'hashicorp'
+    - 'vault'
+
+dependencies: []

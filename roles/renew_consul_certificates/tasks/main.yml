@@ -1,0 +1,10 @@
+---
+# task/main file for renew_consul_certificates
+- name: "Import prerequisites.yml"
+  ansible.builtin.include_tasks: prerequisites.yml
+
+- name: "Import install.yml"
+  ansible.builtin.include_tasks: install.yml
+
+- name: "Import configure.yml"
+  ansible.builtin.include_tasks: configure.yml

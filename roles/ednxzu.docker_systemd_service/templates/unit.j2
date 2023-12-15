@@ -1,0 +1,43 @@
+# {{ ansible_managed }}
+{% set service_systemd_options_keys = docker_systemd_service_systemd_options | selectattr("key") | map(attribute="key") | list %}
+[Unit]
+{% for key, value in docker_systemd_service_systemd_unit_options | dictsort %}
+{{ key }}={{ value }}
+{% endfor %}
+
+[Service]
+{% for item in docker_systemd_service_systemd_options %}
+{{ item['key'] }}={{ item['value'] }}
+{% endfor %}
+{% if not 'EnvironmentFile' in service_systemd_options_keys %}
+EnvironmentFile={{ docker_systemd_service_sysconf_dir }}/{{ docker_systemd_service_container_name }}
+{% endif %}
+{% if not 'ExecStartPre' in service_systemd_options_keys %}
+ExecStartPre=-{{ docker_systemd_service_docker_path }} rm -f {{ docker_systemd_service_container_name }}
+{% endif %}
+{% if not 'ExecStart' in service_systemd_options_keys %}
+{% set docker_flags = docker_systemd_service_flags | create_docker_flags %}
+ExecStart={{ docker_systemd_service_docker_path }} run --name {{ docker_systemd_service_container_name }} \
+--rm \
+--env-file {{ docker_systemd_service_sysconf_dir }}/{{ docker_systemd_service_container_name }} \
+{{ docker_flags -}}{% if docker_flags +%}
+{% endif %}{{ docker_systemd_service_image -}}{{ ' ' if docker_systemd_service_container_cmd else '' }}{% if docker_systemd_service_container_cmd is string %}{{ docker_systemd_service_container_cmd | trim }}{% else %}{{ docker_systemd_service_container_cmd | join(' ') | trim }}{% endif %}
+{% endif +%}
+{% if not 'ExecStop' in service_systemd_options_keys %}
+ExecStop={{ docker_systemd_service_docker_path }} stop {{ docker_systemd_service_container_name }}
+{% endif %}
+{% if container_start_post is defined %}
+ExecStartPost=-{{ container_start_post }}
+{% endif %}
+{% if not 'SyslogIdentifier' in service_systemd_options_keys %}
+SyslogIdentifier={{ docker_systemd_service_container_name }}
+{% endif %}
+{% if not 'Restart' in service_systemd_options_keys %}
+Restart=always
+{% endif %}
+{% if not 'RestartSec' in service_systemd_options_keys %}
+RestartSec=10s
+{% endif %}
+
+[Install]
+WantedBy=docker.service

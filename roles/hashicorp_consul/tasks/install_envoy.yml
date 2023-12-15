@@ -1,0 +1,66 @@
+---
+# task/install_envoy file for hashicorp_consul
+- name: "Get release for envoy:{{ hashi_consul_envoy_version }}"
+  vars:
+    _envoy_url_ext: "{% if hashi_consul_envoy_version == 'latest'%}releases{% else %}releases/tags{% endif %}"
+  ansible.builtin.uri:
+    url: "{{ hashi_consul_envoy_github_api }}/{{ _envoy_url_ext }}/{{ hashi_consul_envoy_version }}"
+    return_content: true
+  register: _envoy_new_release
+
+- name: "Check if envoy is already installed"
+  ansible.builtin.stat:
+    path: "{{ hashi_consul_data_dir }}/envoy/version"
+  changed_when: false
+  check_mode: false
+  register: _envoy_is_installed
+
+
+- name: "Check current envoy version"
+  ansible.builtin.command: "cat {{ hashi_consul_data_dir }}/envoy/version"
+  changed_when: false
+  check_mode: false
+  register: _envoy_old_release
+  when: _envoy_is_installed.stat.exists
+
+- name: "Set facts for wanted envoy release"
+  ansible.builtin.set_fact:
+    hashi_consul_envoy_wanted_version: "{{ _envoy_new_release.json['tag_name']|regex_replace('v', '') }}"
+  when: _envoy_new_release.json is defined
+    and (_envoy_new_release.json | length > 0)
+
+- name: "Set facts for current envoy release"
+  ansible.builtin.set_fact:
+    hashi_consul_envoy_current_version: "{{ _envoy_old_release.stdout | regex_replace('v', '') }}"
+  when: _envoy_old_release.stdout is defined
+    and (_envoy_old_release.stdout | length > 0)
+
+- name: "Create envoy directory"
+  ansible.builtin.file:
+    path: "{{ hashi_consul_data_dir }}/envoy"
+    state: directory
+    mode: "0775"
+
+- name: "Install envoy"
+  when: hashi_consul_envoy_current_version is not defined
+    or hashi_consul_envoy_wanted_version not in hashi_consul_envoy_current_version
+  block:
+    - name: "Remove old compose binary if different"
+      ansible.builtin.file:
+        path: "{{ hashi_consul_envoy_path }}"
+        state: absent
+      register: _envoy_binary_removed
+
+    - name: "Download and install envoy version:{{ hashi_consul_envoy_version }}"
+      ansible.builtin.get_url:
+        url: "{{ hashi_consul_envoy_github_url }}/releases/download/v{{ hashi_consul_envoy_wanted_version }}/envoy-{{ hashi_consul_envoy_wanted_version }}-linux-{{ hashi_consul_envoy_arch }} "
+        dest: "{{ hashi_consul_envoy_path }}"
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: "Update version file"
+      ansible.builtin.copy:
+        content: "{{ hashi_consul_envoy_wanted_version }}"
+        dest: "{{ hashi_consul_data_dir }}/envoy/version"
+        mode: "0600"

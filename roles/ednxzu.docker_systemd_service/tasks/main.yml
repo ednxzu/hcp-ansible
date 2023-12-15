@@ -1,0 +1,9 @@
+---
+# task/main file for docker_systemd_service
+- name: "Import install.yml"
+  ansible.builtin.include_tasks: install.yml
+  when: docker_systemd_service_state != "absent"
+
+- name: "Import uninstall.yml"
+  ansible.builtin.include_tasks: uninstall.yml
+  when: docker_systemd_service_state == "absent"

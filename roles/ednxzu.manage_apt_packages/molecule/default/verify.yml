@@ -1,0 +1,16 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: "Test: package vim"
+      block:
+        - name: "Get packages facts"
+          ansible.builtin.package_facts:
+            manager: auto
+
+        - name: "Verify package vim"
+          ansible.builtin.assert:
+            that:
+              - "ansible_facts.packages['vim'][0]['name'] == 'vim'"

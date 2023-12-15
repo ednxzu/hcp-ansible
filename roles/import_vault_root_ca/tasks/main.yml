@@ -1,0 +1,7 @@
+---
+# task/main file for import_vault_root_ca
+- name: "Import prerequisites.yml"
+  ansible.builtin.include_tasks: prerequisites.yml
+
+- name: "Import import.yml"
+  ansible.builtin.include_tasks: import.yml

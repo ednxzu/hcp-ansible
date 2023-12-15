@@ -1,0 +1,42 @@
+---
+dependency:
+  name: galaxy
+  options:
+    requirements-file: ./requirements.yml
+driver:
+  name: vagrant
+  provider:
+    name: libvirt
+platforms:
+  - name: hashistack01
+    box: generic/${MOLECULE_TEST_OS}
+    cpus: 4
+    memory: 4096
+  - name: hashistack02
+    box: generic/${MOLECULE_TEST_OS}
+    cpus: 4
+    memory: 4096
+  - name: hashistack03
+    box: generic/${MOLECULE_TEST_OS}
+    cpus: 4
+    memory: 4096
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      remote_tmp: /tmp/.ansible
+verifier:
+  name: ansible
+scenario:
+  name: no_tls_multi_node
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - verify
+    - cleanup
+    - destroy

@@ -1,0 +1,140 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: "Test: directory /etc/consul-template.d/consul"
+      block:
+        - name: "Stat directory /etc/consul-template.d/consul"
+          ansible.builtin.stat:
+            path: "/etc/consul-template.d/consul"
+          register: stat_etc_consul_template_d_nomad
+
+        - name: "Stat file /etc/consul-template.d/consul/consul_config.hcl"
+          ansible.builtin.stat:
+            path: "/etc/consul-template.d/consul/consul_config.hcl"
+          register: stat_etc_consul_template_d_nomad_nomad_config_hcl
+
+        - name: "Slurp file /etc/consul-template.d/consul/consul_config.hcl"
+          ansible.builtin.slurp:
+            src: "/etc/consul-template.d/consul/consul_config.hcl"
+          register: slurp_etc_consul_template_d_consul_consul_config_hcl
+
+        - name: "Verify directory /etc/consul-template.d/consul"
+          ansible.builtin.assert:
+            that:
+              - stat_etc_consul_template_d_nomad.stat.exists
+              - stat_etc_consul_template_d_nomad.stat.isdir
+              - stat_etc_consul_template_d_nomad.stat.pw_name == 'consul'
+              - stat_etc_consul_template_d_nomad.stat.gr_name == 'consul'
+              - stat_etc_consul_template_d_nomad.stat.mode == '0755'
+              - stat_etc_consul_template_d_nomad_nomad_config_hcl.stat.exists
+              - stat_etc_consul_template_d_nomad_nomad_config_hcl.stat.isreg
+              - stat_etc_consul_template_d_nomad_nomad_config_hcl.stat.pw_name == 'consul'
+              - stat_etc_consul_template_d_nomad_nomad_config_hcl.stat.gr_name == 'consul'
+              - stat_etc_consul_template_d_nomad_nomad_config_hcl.stat.mode == '0600'
+              - slurp_etc_consul_template_d_consul_consul_config_hcl.content != ''
+
+    - name: "Test: directory /etc/consul-template.d/consul/templates"
+      block:
+        - name: "Stat directory /etc/consul-template.d/consul/templates"
+          ansible.builtin.stat:
+            path: "/etc/consul-template.d/consul/templates"
+          register: stat_etc_consul_template_d_consul_templates
+
+        - name: "Find in directory /etc/consul-template.d/consul/templates"
+          ansible.builtin.find:
+            paths: "/etc/consul-template.d/consul/templates"
+            file_type: file
+          register: find_etc_consul_template_d_consul_templates
+
+        - name: "Stat in directory /etc/consul-template.d/consul/templates"
+          ansible.builtin.stat:
+            path: "{{ item.path }}"
+          loop: "{{ find_etc_consul_template_d_consul_templates.files }}"
+          register: stat_etc_consul_template_d_consul_templates
+
+        - name: "Slurp in directory /etc/consul-template.d/consul/templates"
+          ansible.builtin.slurp:
+            src: "{{ item.path }}"
+          loop: "{{ find_etc_consul_template_d_consul_templates.files }}"
+          register: slurp_etc_consul_template_d_nomad_templates
+
+        - name: "Verify file /etc/consul-template.d/consul/templates/consul_ca.pem.tpl"
+          vars:
+            consul_ca_file: |
+              {% raw %}{{ with secret "pki/issue/your-issuer" "common_name=consul01.example.com" "ttl=90d" "alt_names=localhost,server.dc1.consul,consul.service.consul" "ip_sans=127.0.0.1" }}
+              {{ .Data.issuing_ca }}
+              {{ end }}{% endraw %}
+          ansible.builtin.assert:
+            that:
+              - item.item.isreg
+              - item.item.pw_name == 'consul'
+              - item.item.gr_name == 'consul'
+              - item.item.mode == '0600'
+              - "(item.content|b64decode) == consul_ca_file"
+          loop: "{{ slurp_etc_consul_template_d_nomad_templates.results }}"
+          when: (item.item.path | basename) == 'consul_ca.pem.tpl'
+
+        - name: "Verify file /etc/consul-template.d/consul/templates/consul_cert.pem.tpl"
+          vars:
+            consul_cert_file: |
+              {% raw %}{{ with secret "pki/issue/your-issuer" "common_name=consul01.example.com" "ttl=90d" "alt_names=localhost,server.dc1.consul,consul.service.consul" "ip_sans=127.0.0.1" }}
+              {{ .Data.certificate }}
+              {{ .Data.issuing_ca }}
+              {{ end }}{% endraw %}
+          ansible.builtin.assert:
+            that:
+              - item.item.isreg
+              - item.item.pw_name == 'consul'
+              - item.item.gr_name == 'consul'
+              - item.item.mode == '0600'
+              - "(item.content|b64decode) == consul_cert_file"
+          loop: "{{ slurp_etc_consul_template_d_nomad_templates.results }}"
+          when: (item.item.path | basename) == 'consul_cert.pem.tpl'
+
+        - name: "Verify file /etc/consul-template.d/consul/templates/consul_key.pem.tpl"
+          vars:
+            consul_key_file: |
+              {% raw %}{{ with secret "pki/issue/your-issuer" "common_name=consul01.example.com" "ttl=90d" "alt_names=localhost,server.dc1.consul,consul.service.consul" "ip_sans=127.0.0.1" }}
+              {{ .Data.private_key }}
+              {{ end }}{% endraw %}
+          ansible.builtin.assert:
+            that:
+              - item.item.isreg
+              - item.item.pw_name == 'consul'
+              - item.item.gr_name == 'consul'
+              - item.item.mode == '0600'
+              - "(item.content|b64decode) == consul_key_file"
+          loop: "{{ slurp_etc_consul_template_d_nomad_templates.results }}"
+          when: (item.item.path | basename) == 'consul_key.pem.tpl'
+
+    - name: "Test: service consul-certs"
+      block:
+        - name: "Get service consul-certs"
+          ansible.builtin.service_facts:
+
+        - name: "Stat file /etc/systemd/system/consul-certs.service"
+          ansible.builtin.stat:
+            path: "/etc/systemd/system/consul-certs.service"
+          register: stat_etc_systemd_system_consul_certs_service
+
+        - name: "Slurp file /etc/systemd/system/consul-certs.service"
+          ansible.builtin.slurp:
+            src: "/etc/systemd/system/consul-certs.service"
+          register: slurp_etc_systemd_system_consul_certs_service
+
+        - name: "Verify service consul-certs"
+          ansible.builtin.assert:
+            that:
+              - stat_etc_systemd_system_consul_certs_service.stat.exists
+              - stat_etc_systemd_system_consul_certs_service.stat.isreg
+              - stat_etc_systemd_system_consul_certs_service.stat.pw_name == 'root'
+              - stat_etc_systemd_system_consul_certs_service.stat.gr_name == 'root'
+              - stat_etc_systemd_system_consul_certs_service.stat.mode == '0644'
+              - slurp_etc_systemd_system_consul_certs_service.content != ''
+              - ansible_facts.services['consul-certs.service'] is defined
+              - ansible_facts.services['consul-certs.service']['source'] == 'systemd'
+              - ansible_facts.services['consul-certs.service']['state'] == 'stopped'
+              - ansible_facts.services['consul-certs.service']['status'] == 'enabled'

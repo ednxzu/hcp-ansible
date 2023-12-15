@@ -1,0 +1,5 @@
+---
+# requirements file for molecule
+roles:
+  - name: ednxzu.manage_repositories
+  - name: ednxzu.manage_apt_packages

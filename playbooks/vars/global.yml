@@ -1,1 +1,44 @@
 ---
+hashi_nomad_install: true
+hashi_nomad_auto_update: false
+hashi_nomad_cni_plugins_install: true
+hashi_nomad_start_service: true
+hashi_nomad_cni_plugins_version: latest
+hashi_nomad_cni_plugins_install_path: /opt/cni/bin
+hashi_nomad_version: latest
+hashi_nomad_deploy_method: host  # deployment method, either host or docker
+hashi_nomad_env_variables: {}
+hashi_nomad_data_dir: /opt/nomad
+hashi_nomad_extra_files: false
+hashi_nomad_extra_files_src: /tmp/extra_files
+hashi_nomad_extra_files_dst: /etc/nomad.d/extra_files
+#! nomad configuration
+hashi_nomad_configuration: {}
+
+hashi_vault_install: true
+hashi_vault_auto_update: false
+hashi_vault_start_service: true
+hashi_vault_version: latest
+hashi_vault_deploy_method: host  # deployment method, either host or docker
+hashi_vault_env_variables: {}
+hashi_vault_data_dir: "/opt/vault"
+hashi_vault_extra_files: false
+hashi_vault_extra_files_src: /tmp/extra_files
+hashi_vault_extra_files_dst: /etc/vault.d/extra_files
+#! vault configuration
+hashi_vault_configuration: {}
+
+hashi_consul_install: true
+hashi_consul_auto_update: false
+hashi_consul_start_service: true
+hashi_consul_version: latest
+hashi_consul_deploy_method: host  # deployment method, either host or docker.
+hashi_consul_env_variables: {}
+hashi_consul_data_dir: "/opt/consul"
+hashi_consul_extra_files: false
+hashi_consul_extra_files_src: /tmp/extra_files
+hashi_consul_extra_files_dst: /etc/consul.d/extra_files
+hashi_consul_envoy_install: false
+hashi_consul_envoy_version: latest
+#! consul configuration
+hashi_consul_configuration: {}

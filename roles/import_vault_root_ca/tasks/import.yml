@@ -1,0 +1,27 @@
+---
+# task/import file for import_vault_root_ca
+- name: "Download certificate file"
+  ansible.builtin.get_url:
+    url: "{{ item.url }}"
+    validate_certs: false
+    force: "{{ import_vault_root_ca_certificate_force_download }}"
+    dest: "/tmp/{{ item.cert_name }}.tmp"
+    mode: '0644'
+  loop: "{{ import_vault_root_ca_certificate_list }}"
+  register: download_results
+
+- name: "Check certificate format"
+  ansible.builtin.command: >
+    openssl x509 -inform PEM -noout -in {{ item.dest }}
+  loop: "{{ download_results.results }}"
+  register: cert_format_results
+  changed_when: false
+  failed_when: false
+
+- name: "Make sure certificate is in PEM format"
+  ansible.builtin.command:
+    cmd: openssl x509 -inform {{ 'PEM' if item.rc == 0 else 'DER' }} -in {{ item.item.dest }} -out {{ import_vault_root_ca_cert_dir }}/{{ item.item.item.cert_name }}.crt -outform pem
+    creates: "{{ import_vault_root_ca_cert_dir }}/{{ item.item.item.cert_name }}.crt"
+  loop: "{{ cert_format_results.results }}"
+  notify:
+    - update-ca-certificates

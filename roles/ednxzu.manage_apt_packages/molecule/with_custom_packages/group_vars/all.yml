@@ -1,0 +1,11 @@
+---
+manage_apt_packages_list:
+  - name: mariadb-server
+    version: latest
+    state: present
+  - name: apache2
+    version: latest
+    state: present
+  - name: consul
+    version: 1.13.1-1
+    state: present

@@ -1,0 +1,22 @@
+---
+- name: Prepare
+  hosts: all
+  tasks:
+    - name: "Include manage_repositories"
+      ansible.builtin.include_role:
+        name: "ednxzu.manage_repositories"
+      vars:
+        manage_repositories_enable_default_repo: true
+        manage_repositories_enable_custom_repo: true
+        manage_repositories_custom_repo:
+          - name: hashicorp
+            uri: "https://apt.releases.hashicorp.com"
+            comments: "hashicorp repository"
+            types:
+              - deb
+            suites:
+              - "{{ ansible_distribution_release }}"
+            components:
+              - main
+            options:
+              Signed-By: "https://apt.releases.hashicorp.com/gpg"

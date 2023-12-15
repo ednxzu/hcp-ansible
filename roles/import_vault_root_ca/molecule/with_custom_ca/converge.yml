@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  tasks:
+    - name: "Include ednxzu.import_vault_root_ca"
+      ansible.builtin.include_role:
+        name: "ednxzu.import_vault_root_ca"

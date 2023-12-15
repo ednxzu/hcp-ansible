@@ -1,0 +1,6 @@
+---
+# handlers file for manage_apt_packages
+- name: "Remove unnecessary dependencies"
+  ansible.builtin.apt:
+    autoremove: yes
+  listen: "apt-autoremove"

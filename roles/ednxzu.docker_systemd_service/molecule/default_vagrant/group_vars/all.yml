@@ -1,0 +1,14 @@
+---
+docker_systemd_service_container_name: "nginx"
+docker_systemd_service_image: nginx
+docker_systemd_service_container_env: {}
+docker_systemd_service_container_pull_image: true
+docker_systemd_service_container_pull_force_source: true
+docker_systemd_service_flags: []
+docker_systemd_service_container_cmd: []
+docker_systemd_service_name: "{{ docker_systemd_service_container_name }}_container"
+docker_systemd_service_systemd_options: []
+docker_systemd_service_enabled: true
+docker_systemd_service_masked: false
+docker_systemd_service_state: started
+docker_systemd_service_restart: true

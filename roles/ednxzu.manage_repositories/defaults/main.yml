@@ -1,0 +1,7 @@
+---
+# defaults file for manage_repositories
+manage_repositories_enable_default_repo: true
+manage_repositories_enable_custom_repo: false
+manage_repositories_main_repo_uri:
+  ubuntu: "http://fr.archive.ubuntu.com/ubuntu"
+  debian: "http://deb.debian.org/debian"

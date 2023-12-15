@@ -1,0 +1,23 @@
+---
+renew_consul_certificates_config_dir: /etc/consul-template.d/consul
+renew_consul_certificates_consul_user: consul
+renew_consul_certificates_consul_group: consul
+renew_consul_certificates_service_env_variables:
+  consul_http_addr: http://127.0.0.1:8500
+  # consul_http_token:
+renew_consul_certificates_vault_addr: "https://consul.example.com"
+renew_consul_certificates_vault_token: mysupersecretconsultokenthatyoushouldchange
+renew_consul_certificates_vault_token_unwrap: false
+renew_consul_certificates_vault_token_renew: true
+renew_consul_certificates_ca_dest: /opt/consul/tls/ca.pem
+renew_consul_certificates_cert_dest: /opt/consul/tls/cert.pem
+renew_consul_certificates_key_dest: /opt/consul/tls/key.pem
+renew_consul_certificates_info:
+  issuer_path: pki/issue/your-issuer
+  common_name: consul01.example.com
+  ttl: 90d
+  is_server: true
+  include_consul_service: true
+renew_consul_certificates_consul_dc_name: dc1.consul
+renew_consul_certificates_consul_service_name: consul.service.consul
+renew_consul_certificates_start_service: false

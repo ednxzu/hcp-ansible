@@ -1,0 +1,86 @@
+---
+hashi_nomad_install: true
+hashi_nomad_auto_update: true
+hashi_nomad_cni_plugins_install: true
+hashi_nomad_start_service: true
+hashi_nomad_cni_plugins_version: latest
+hashi_nomad_cni_plugins_install_path: "/opt/cni/bin"
+hashi_nomad_version: latest
+hashi_nomad_deploy_method: host  # deployment method, either host or docker
+hashi_nomad_env_variables: {}
+hashi_nomad_data_dir: /opt/nomad
+hashi_nomad_extra_files: true
+hashi_nomad_extra_files_src: /tmp/extra_files
+hashi_nomad_extra_files_dst: /etc/nomad.d/extra_files
+#! nomad configuration
+hashi_nomad_configuration:
+  bind_addr: "0.0.0.0"
+  datacenter: dc1
+  log_level: INFO
+  leave_on_terminate: false
+  data_dir: "{{ hashi_nomad_data_dir }}"
+  advertise:
+    http: "{{ ansible_default_ipv4.address }}"
+    rpc: "{{ ansible_default_ipv4.address }}"
+    serf: "{{ ansible_default_ipv4.address }}"
+  server:
+    enabled: true
+    bootstrap_expect: 1
+    server_join:
+      retry_join:
+        - "{{ ansible_default_ipv4.address }}"
+  client:
+    enabled: false
+    node_class: default
+    reserved:
+      cpu: 500
+      memory: 300
+    cni_path: "{{ hashi_nomad_cni_plugins_install_path }}"
+    bridge_network_name: nomad
+    bridge_network_subnet: "172.26.64.0/20"
+  ui:
+    enabled: true
+  acl:
+    enabled: true
+    token_ttl: 30s
+    policy_ttl: 30s
+    role_ttl: 30s
+    token_min_expiration_ttl: 30s
+    token_max_expiration_ttl: 24h
+  telemetry:
+    collection_interval: 1s
+    disable_hostname: false
+    use_node_name: false
+    publish_allocation_metrics: false
+    publish_node_metrics: false
+    prefix_filter: []
+    disable_dispatched_job_summary_metrics: false
+    prometheus_metrics: false
+  # tls:
+  #   http: false
+  #   rpc: false
+  #   ca_file: "{{ hashi_nomad_data_dir }}/tls/ca.pem"
+  #   cert_file: "{{ hashi_nomad_data_dir }}/tls/cert.pem"
+  #   key_file: "{{ hashi_nomad_data_dir }}/tls/key.pem"
+  # plugin:
+  #   docker:
+  #     config:
+  #       endpoint: "unix:///var/run/docker.sock"
+  #       allow_privileged: false
+  #       allow_caps: ["all"]
+  #       volumes:
+  #         enabled: true
+  # consul:
+  #   address: "127.0.0.1:8500"
+  #   token: ""
+  #   auto_advertise: true
+  # vault:
+  #   address: http://vault.service.consul:8200
+  #   token: ""
+  #   create_from_role: nomad-cluster
+  # plugin:
+  #   docker:
+  #     endpoint: "unix:///var/run/docker.sock"
+  #     allow_privileged: false
+  #     allow_caps: ["all"]
+  #     volumes_enabled: true

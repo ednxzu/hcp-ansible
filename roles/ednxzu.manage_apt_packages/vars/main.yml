@@ -1,0 +1,3 @@
+---
+# vars file for manage_apt_packages
+manage_apt_packages_apt_cache_time: 3600

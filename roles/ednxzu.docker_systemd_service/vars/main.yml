@@ -1,0 +1,8 @@
+---
+# vars file for docker_systemd_service
+docker_systemd_service_sysconf_dir: /etc/default
+docker_systemd_service_docker_path: "/usr/bin/docker"
+docker_systemd_service_systemd_unit_options:
+  After: docker.service
+  PartOf: docker.service
+  Requires: docker.service

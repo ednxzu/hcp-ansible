@@ -1,0 +1,36 @@
+---
+dependency:
+  name: galaxy
+  options:
+    requirements-file: ./requirements.yml
+driver:
+  name: vagrant
+  provider:
+    name: libvirt
+platforms:
+  - name: instance
+    box: generic/${MOLECULE_TEST_OS}
+    cpus: 4
+    memory: 4096
+    #machine_virtual_size: 50
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      remote_tmp: /tmp/.ansible
+verifier:
+  name: ansible
+scenario:
+  name: with_custom_packages_vagrant
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - verify
+    - cleanup
+    - destroy
