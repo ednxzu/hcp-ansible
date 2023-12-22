@@ -1,0 +1,9 @@
+---
+# hashistack deployment playbook
+- name: "Preflight"
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: "Debug"
+      ansible.builtin.debug:
+        msg: "{{ ansible_hostname }}"

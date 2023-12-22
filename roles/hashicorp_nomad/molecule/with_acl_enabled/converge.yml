@@ -1,8 +1,0 @@
----
-- name: Converge
-  hosts: all
-  become: true
-  tasks:
-    - name: "Include ednxzu.hashicorp_nomad"
-      ansible.builtin.include_role:
-        name: "ednxzu.hashicorp_nomad"

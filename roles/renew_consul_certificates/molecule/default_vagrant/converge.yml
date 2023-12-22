@@ -1,8 +1,0 @@
----
-- name: Converge
-  hosts: all
-  become: true
-  tasks:
-    - name: "Include ednxzu.renew_consul_certificates"
-      ansible.builtin.include_role:
-        name: "ednxzu.renew_consul_certificates"
