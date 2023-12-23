@@ -12,14 +12,32 @@ platforms:
     box: generic/${MOLECULE_TEST_OS}
     cpus: 4
     memory: 4096
+    groups:
+      - vault_servers
+      - consul_servers
+      - nomad_servers
+    children:
+      - common
   - name: hashistack02
     box: generic/${MOLECULE_TEST_OS}
     cpus: 4
     memory: 4096
+    groups:
+      - vault_servers
+      - consul_servers
+      - nomad_servers
+    children:
+      - common
   - name: hashistack03
     box: generic/${MOLECULE_TEST_OS}
     cpus: 4
     memory: 4096
+    groups:
+      - vault_servers
+      - consul_servers
+      - nomad_servers
+    children:
+      - common
 provisioner:
   name: ansible
   config_options:

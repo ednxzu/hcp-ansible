@@ -3,7 +3,199 @@
 - name: "Preflight"
   hosts: all
   gather_facts: true
+  become: true
   tasks:
-    - name: "Debug"
-      ansible.builtin.debug:
-        msg: "{{ ansible_hostname }}"
+    - name: "Checking vault inventory"
+      ansible.builtin.assert:
+        that:
+          - groups['vault_servers'] is defined
+          - groups['vault_servers'] | length > 0
+        fail_msg: >-
+          The variable `enable_vault` is set to yes, but the vault_servers
+          group is empty or undefined. You need to set the vault_servers group and populate it,
+          or set `enable_vault` to no.
+      when:
+        - enable_vault | bool
+
+    - name: "Checking consul inventory"
+      ansible.builtin.assert:
+        that:
+          - groups['consul_servers'] is defined
+          - groups['consul_servers'] | length > 0
+        fail_msg: >-
+          The variable `enable_consul` is set to yes, but the consul_servers
+          group is empty or undefined. You need to set the consul_servers group and populate it,
+          or set `enable_consul` to no.
+      when:
+        - enable_consul | bool
+
+    - name: "Checking nomad inventory"
+      ansible.builtin.assert:
+        that:
+          - groups['nomad_servers'] is defined
+          - groups['nomad_servers'] | length > 0
+        fail_msg: >-
+          The variable `enable_nomad` is set to yes, but the nomad_servers
+          group is empty or undefined. You need to set the nomad_servers group and populate it,
+          or set `enable_nomad` to no.
+      when:
+        - enable_nomad | bool
+
+    - name: "Checking host OS distribution"
+      ansible.builtin.assert:
+        that:
+          - "(ansible_facts.distribution | lower) in hashistack_supported_distributions"
+          - "(ansible_facts.distribution_version) in hashistack_supported_distribution_versions[(ansible_facts.distribution | lower)]"
+        fail_msg: >-
+          Distribution: {{ ansible_facts.distribution }}
+          Release: {{ ansible_facts.distribution_release }}
+          Version: {{ ansible_facts.distribution_version }}
+          This distribution is not supported.
+          Supported releases are:
+          {{ hashistack_supported_distribution_versions[(ansible_facts.distribution | lower)] }}
+
+    - name: "Verify host clocks"
+      when: preflight_enable_host_ntp_checks | bool
+      block:
+        - name: "Checking for a running NTP daemon on hosts"  # noqa command-instead-of-module
+          vars:
+            preflight_host_ntp_daemons:
+              - chrony
+              - chronyd
+              - ntp
+              - ntpd
+              - systemd-timesyncd
+          become: true
+          ansible.builtin.command:
+            cmd: "systemctl is-active {{ preflight_host_ntp_daemons | join(' ') }}"
+          register: _ntp_daemons_active
+          changed_when: false
+          failed_when: false
+          check_mode: false
+
+        - name: "Fail if a NTP daemon is not running"
+          ansible.builtin.fail:
+            msg: >-
+              No host NTP daemon is running.
+              Please install and configure a host NTP daemon.
+              Alternatively, set 'preflight_enable_host_ntp_checks' to 'false' to
+              disable this check if not using one of the following NTP daemons:
+              chrony, ntpd, systemd-timesyncd.
+          when:
+            - _ntp_daemons_active.rc != 0
+
+        - name: "Checking timedatectl status"
+          become: true
+          ansible.builtin.command: timedatectl status
+          register: timedatectl_status
+          changed_when: false
+          check_mode: false
+
+        - name: "Fail if the clock is not synchronized"
+          ansible.builtin.fail:
+            msg: >-
+              timedatectl sees the system clock as unsynchronized.
+              Please wait for synchronization.
+              Alternatively, set 'preflight_enable_host_ntp_checks' to 'false' to
+              disable this check if your NTP daemon is not recognised by
+              'timedatectl status'.
+          when:
+            - "'synchronized: yes' not in timedatectl_status.stdout"
+
+    - name: "Ensure /etc/localtime exists"
+      ansible.builtin.stat:
+        path: /etc/localtime
+      register: _etc_localtime
+
+    - name: "Fail if /etc/localtime is absent"
+      ansible.builtin.fail:
+        msg: >-
+          /etc/localtime is not found. This file is used for system-wide time
+          settings and needs to be mounted to containers.
+      when: not _etc_localtime.stat.exists
+
+    - name: "Ensure /etc/timezone exists"
+      ansible.builtin.stat:
+        path: /etc/timezone
+      register: _etc_timezone
+
+    - name: "Fail if /etc/timezone is absent"
+      ansible.builtin.fail:
+        msg: >-
+          /etc/timezone is not found. This file is used for system-wide timezone
+          settings and needs to be mounted to containers.
+      when: not _etc_timezone.stat.exists
+
+    - name: "Checking the api_interface is present"
+      ansible.builtin.fail:
+        msg: "Please check the api_interface property - interface {{ api_interface }} not found"
+      when: api_interface not in ansible_facts.interfaces
+
+    - name: "Verify api interface(s)"
+      when: inventory_hostname not in groups['deployment'] | default([])
+      block:
+        - name: "Checking the api_interface is active"
+          ansible.builtin.fail:
+            msg: "Please check the api_interface settings - interface {{ api_interface }} is not active"
+          when: not hostvars[inventory_hostname].ansible_facts[api_interface]['active']
+
+        - name: "Debug"
+          ansible.builtin.debug:
+            msg: "{{ api_interface_address }}"
+
+        - name: "Checking the api_interface ip address configuration"
+          ansible.builtin.fail:
+            msg: "Please check the api_interface settings - interface {{ api_interface }} ip address problem"
+          when: api_interface_address is not defined
+
+    - name: "Verify required ports"
+      block:
+        - name: "Checking if vault ports are available"
+          when: inventory_hostname in groups['vault_servers']
+          block:
+            - name: "Checking if vault ports are available"
+              ansible.builtin.wait_for:
+                host: "{{ inventory_hostname }}"
+                port: "{{ item }}"
+                state: "stopped"
+                timeout: 5
+              loop: "{{ vault_required_ports }}"
+              ignore_errors: true
+              register: vault_port_results
+
+            - name: "Assert that vault ports are not currently in use"
+              ansible.builtin.assert:
+                that:
+                  - item.failed == false
+              with_items: "{{ vault_port_results.results }}"
+              when: vault_port_results.results | length > 0
+
+    - name: "Checking if system uses systemd"
+      become: true
+      ansible.builtin.assert:
+        that:
+          - "ansible_facts.service_mgr == 'systemd'"
+      when: inventory_hostname in groups['common']
+
+        # - name: "Checking that docker is installed"
+        #   when: deployment_method == 'docker'
+        #   block:
+
+    - name: "Checking that python SDK for docker is installed"
+      when: deployment_method == 'docker'
+      vars:
+        wanted_docker_sdk_package: "python3-docker"
+      block:
+        - name: "Get packages facts"
+          ansible.builtin.package_facts:
+            manager: auto
+
+        - name: "Checking that python SDK for docker is installed"
+          ansible.builtin.assert:
+            that:
+              - "wanted_docker_sdk_package in ansible_facts.packages"
+            fail_msg: >-
+              The python sdk for docker is really out of date, you need to install
+              a more recent version of it in order to use this tool.
+
+    - ansible.builtin.fail:

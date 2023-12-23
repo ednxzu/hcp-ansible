@@ -3,14 +3,40 @@
 # General options ########
 ##########################
 
+enable_vault: "yes"
+enable_consul: "yes"
+enable_nomad: "yes"
 
+deployment_method: "docker"
+api_interface: "eth0"
+api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
+
+##########################
+# Support options ########
+##########################
+
+hashistack_supported_distributions:
+  - ubuntu
+  - debian
+
+hashistack_supported_distribution_versions:
+  debian:
+    - "11"
+    - "12"
+  ubuntu:
+    - "20.04"
+    - "22.04"
+
+preflight_enable_host_ntp_checks: true
+
+vault_required_ports: [8200,8201]
+consul_required_ports: [8300,8301,8302,8500,8501,8502,8503,8600]
+nomad_required_ports: []
 
 ##########################
 # Nomad options ##########
 ##########################
 
-hashi_nomad_install: true
-hashi_nomad_auto_update: false
 hashi_nomad_cni_plugins_install: true
 hashi_nomad_start_service: true
 hashi_nomad_cni_plugins_version: latest
@@ -29,8 +55,6 @@ hashi_nomad_configuration: {}
 # Consul options #########
 ##########################
 
-hashi_consul_install: true
-hashi_consul_auto_update: false
 hashi_consul_start_service: true
 hashi_consul_version: latest
 hashi_consul_deploy_method: host  # deployment method, either host or docker.
@@ -48,8 +72,6 @@ hashi_consul_configuration: {}
 # Vault options ##########
 ##########################
 
-hashi_vault_install: true
-hashi_vault_auto_update: false
 hashi_vault_start_service: true
 hashi_vault_version: latest
 hashi_vault_deploy_method: host  # deployment method, either host or docker

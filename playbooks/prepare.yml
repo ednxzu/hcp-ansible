@@ -1,9 +1,0 @@
----
-# hashistack prepare playbook
-- name: "Prepare"
-  hosts: all
-  gather_facts: true
-  tasks:
-    - name: "Include ednxzu.install_docker"
-      ansible.builtin.include_role:
-        name: ednxzu.install_docker
