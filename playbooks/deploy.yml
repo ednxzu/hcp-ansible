@@ -3,7 +3,13 @@
 - name: "Deploy"
   hosts: all
   gather_facts: true
+  become: true
   tasks:
-    - name: "Debug"
-      ansible.builtin.debug:
-        msg: "{{ ansible_hostname }}"
+    # - name: "Include ednxzu.hashicorp_vault"
+    #   ansible.builtin.include_role:
+    #     name: ednxzu.hashicorp_vault
+
+    - name: "Test module"
+      ednxzu.hashistack.vault_init:
+        name: "Test"
+        new: true

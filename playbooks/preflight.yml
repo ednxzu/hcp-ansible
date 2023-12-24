@@ -170,6 +170,26 @@
               with_items: "{{ vault_port_results.results }}"
               when: vault_port_results.results | length > 0
 
+        - name: "Checking if consul ports are available"
+          when: inventory_hostname in groups['consul_servers']
+          block:
+            - name: "Checking if consul ports are available"
+              ansible.builtin.wait_for:
+                host: "{{ inventory_hostname }}"
+                port: "{{ item }}"
+                state: "stopped"
+                timeout: 5
+              loop: "{{ consul_required_ports }}"
+              ignore_errors: true
+              register: consul_port_results
+
+            - name: "Assert that consul ports are not currently in use"
+              ansible.builtin.assert:
+                that:
+                  - item.failed == false
+              with_items: "{{ consul_port_results.results }}"
+              when: consul_port_results.results | length > 0
+
     - name: "Checking if system uses systemd"
       become: true
       ansible.builtin.assert:
@@ -198,4 +218,12 @@
               The python sdk for docker is really out of date, you need to install
               a more recent version of it in order to use this tool.
 
-    - ansible.builtin.fail:
+    - name: "Debug"
+      ansible.builtin.debug:
+        msg: "{{ groups['vault_servers'] }}"
+
+    - name: "Debug"
+      ansible.builtin.debug:
+        msg: "{{ hashi_vault_configuration.storage }}"
+
+    # - ansible.builtin.fail:
