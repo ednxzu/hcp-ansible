@@ -74,8 +74,8 @@ def run_module():
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
         api_url=dict(type='str', required=True),
-        key_shares=dict(type='int', required=False,default=5)
-        key_treshold=dict(type='int',required=False,default=3)
+        key_shares=dict(type='int', required=False,default=5),
+        key_treshold=dict(type='int',required=False,default=3),
         name=dict(type='str', required=True),
         new=dict(type='bool', required=False, default=False)
     )
