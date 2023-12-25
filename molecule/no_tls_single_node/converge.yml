@@ -1,0 +1,3 @@
+---
+- name: Include a playbook from a collection
+  ansible.builtin.import_playbook: ednxzu.hashistack.deploy.yml
