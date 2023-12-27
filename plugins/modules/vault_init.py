@@ -83,9 +83,7 @@ def run_module():
     module_args = dict(
         api_url=dict(type='str', required=True),
         key_shares=dict(type='int', required=False,default=5),
-        key_treshold=dict(type='int',required=False,default=3),
-        name=dict(type='str', required=True),
-        new=dict(type='bool', required=False, default=False)
+        key_treshold=dict(type='int',required=False,default=3)
     )
 
     # seed the result dict in the object
@@ -107,6 +105,13 @@ def run_module():
         argument_spec=module_args,
         supports_check_mode=True
     )
+
+
+    if not HAS_HVAC:
+        module.fail_json(
+            msg=missing_required_lib('hvac'),
+            exception=HVAC_IMPORT_ERROR
+        )
 
     # if the user is working with this module in only check mode we do not
     # want to make any changes to the environment, just return the current
