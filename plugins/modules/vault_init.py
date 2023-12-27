@@ -68,7 +68,15 @@ message:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-import hvac
+
+try:
+    import hvac
+except ImportError:
+    HAS_HVAC = False
+    HVAC_IMPORT_ERROR = traceback.format_exc()
+else:
+    HVAC_IMPORT_ERROR = None
+    HAS_HVAC = True
 
 def run_module():
     # define available arguments/parameters a user can pass to the module
