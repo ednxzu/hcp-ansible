@@ -18,6 +18,15 @@
       delegate_to: "{{ groups['vault_servers'] | first }}"
       register: _vault_init_secret
 
+    - name: "Write vault configuration to file"
+      ansible.builtin.copy:
+        content: "{{ _vault_init_secret.state }}"
+        dest: "{{ configuration_directory }}/vault/vault_config"
+        mode: '0600'
+      when: _vault_init_secret.state
+      run_once: true
+      delegate_to: localhost
+
     - name: "Debug"
       ansible.builtin.debug:
         msg: "{{ _vault_init_secret }}"

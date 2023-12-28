@@ -3,6 +3,7 @@
 roles:
   - name: ednxzu.manage_repositories
   - name: ednxzu.manage_apt_packages
+  - name: ednxzu.manage_pip_packages
   - name: ednxzu.install_docker
   - name: ednxzu.docker_systemd_service
 

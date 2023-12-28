@@ -5,6 +5,16 @@
   gather_facts: true
   become: true
   tasks:
+    - name: "Install hvac library with pip"
+      ansible.builtin.include_role:
+        name: ednxzu.manage_pip_packages
+      vars:
+        manage_pip_packages_install_prereqs: true
+        manage_pip_packages_list:
+          - name: hvac
+            version_constraint: latest
+            state: present
+
     - name: "Include ednxzu.install_docker"
       ansible.builtin.include_role:
         name: ednxzu.install_docker
