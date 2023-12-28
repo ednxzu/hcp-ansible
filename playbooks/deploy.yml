@@ -5,11 +5,20 @@
   gather_facts: true
   become: true
   tasks:
-    # - name: "Include ednxzu.hashicorp_vault"
-    #   ansible.builtin.include_role:
-    #     name: ednxzu.hashicorp_vault
+    - name: "Include ednxzu.hashicorp_vault"
+      ansible.builtin.include_role:
+        name: ednxzu.hashicorp_vault
 
-    - name: "Test module"
+    - name: "Initialize vault cluster"
       ednxzu.hashistack.vault_init:
-        name: "Test"
-        new: true
+        api_url: "http://127.0.0.1:8200"
+        key_shares: 3
+        key_threshold: 2
+      run_once: true
+      delegate_to: "{{ groups['vault_servers'] | first }}"
+      register: _vault_init_secret
+
+    - name: "Debug"
+      ansible.builtin.debug:
+        msg: "{{ _vault_init_secret }}"
+      when: _vault_init_secret is defined

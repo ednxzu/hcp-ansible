@@ -11,6 +11,8 @@ deployment_method: "docker"
 api_interface: "eth0"
 api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
 
+configuration_directory: "/tmp/hashistack-ansible"
+
 ##########################
 # Support options ########
 ##########################
