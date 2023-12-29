@@ -99,7 +99,7 @@ def run_module():
 
     if not HAS_HVAC:
         module.fail_json(
-            msg="missing_required_lib(hvac)",
+            msg="Missing required library: hvac",
             exception=HVAC_IMPORT_ERROR
         )
 

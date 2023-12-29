@@ -68,6 +68,7 @@ message:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
+import traceback
 
 try:
     import hvac
@@ -79,70 +80,61 @@ else:
     HAS_HVAC = True
 
 def run_module():
-    # define available arguments/parameters a user can pass to the module
     module_args = dict(
         api_url=dict(type='str', required=True),
-
-        name=dict(type='str', required=True),
-        new=dict(type='bool', required=False, default=False)
+        key_shares=dict(type='list', required=False, default=[]),
+        max_retries=dict(type='int', required=False, default=3)
     )
 
-    # seed the result dict in the object
-    # we primarily care about changed and state
-    # changed is if this module effectively modified the target
-    # state will include any data that you want your module to pass back
-    # for consumption, for example, in a subsequent task
     result = dict(
         changed=False,
         original_message='',
-        message=''
+        state=''
     )
 
-    # the AnsibleModule object will be our abstraction working with Ansible
-    # this includes instantiation, a couple of common attr would be the
-    # args/params passed to the execution, as well as if the module
-    # supports check mode
     module = AnsibleModule(
         argument_spec=module_args,
         supports_check_mode=True
     )
 
-    if not HAS_HVAC:
+    # Check if hvac module is available
+    try:
+        import hvac
+    except ImportError:
         module.fail_json(
-            msg=missing_required_lib("hvac"),
-            exception=HVAC_IMPORT_ERROR,
+            msg="Missing required library: hvac",
+            exception=HVAC_IMPORT_ERROR
         )
 
-    # if the user is working with this module in only check mode we do not
-    # want to make any changes to the environment, just return the current
-    # state with no modifications
     if module.check_mode:
         module.exit_json(**result)
 
-    # manipulate or modify the state as needed (this is going to be the
-    # part where your module will do what it needs to do)
-    result['original_message'] = module.params['name']
-    result['message'] = 'goodbye'
+    # Initialize HashiCorp Vault client
+    client = hvac.Client(
+        url=module.params['api_url']
+    )
 
-    # use whatever logic you need to determine whether or not this module
-    # made any modifications to your target
-    if module.params['new']:
-        result['changed'] = True
+    # Unseal Vault
+    try:
+        retries = 0
+        while client.sys.is_sealed() and retries < module.params['max_retries']:
+            key_share = module.params['key_shares'][min(retries, len(module.params['key_shares']) - 1)]
+            vault_unseal_result = client.sys.submit_unseal_key(key_share)
+            retries += 1
+    except hvac.exceptions.VaultError as ve:
+        module.fail_json(msg=f"Vault unsealing failed: {ve}")
 
-    # during the execution of the module, if there is an exception or a
-    # conditional state that effectively causes a failure, run
-    # AnsibleModule.fail_json() to pass in the message and the result
-    if module.params['name'] == 'fail me':
-        module.fail_json(msg='You requested this to fail', **result)
+    # Check if the Vault is successfully unsealed
+    if client.sys.is_sealed():
+        module.fail_json(msg="Vault unsealing failed: Maximum retries reached.")
 
-    # in the event of a successful module execution, you will want to
-    # simple AnsibleModule.exit_json(), passing the key/value results
+    result['state'] = vault_unseal_result
+    result['changed'] = True
+
     module.exit_json(**result)
-
 
 def main():
     run_module()
-
 
 if __name__ == '__main__':
     main()

@@ -7,7 +7,7 @@
   tasks:
     - name: "Include ednxzu.hashicorp_vault"
       ansible.builtin.include_role:
-        name: ednxzu.hashicorp_vault
+        name: ednxzu.hashistack.hashicorp_vault
 
     - name: "Initialize vault cluster"
       ednxzu.hashistack.vault_init:
@@ -20,14 +20,33 @@
 
     - name: "Write vault configuration to file"
       ansible.builtin.copy:
-        content: "{{ _vault_init_secret.state }}"
+        content: "{{ _vault_init_secret.state | to_nice_yaml}}"
         dest: "{{ configuration_directory }}/vault/vault_config"
-        mode: '0600'
-      when: _vault_init_secret.state
+        mode: '0644'
+      when: _vault_init_secret.changed
       run_once: true
       delegate_to: localhost
 
+    - name: "Load vault cluster variables necessary for unseal operation"
+      ansible.builtin.include_vars:
+        file: "{{ configuration_directory }}/vault/vault_config"
+        name: _vault_cluster_config
+
+    - name: "Unseal the bootstrap node"
+      ednxzu.hashistack.vault_unseal:
+        api_url: "http://127.0.0.1:8200"
+        key_shares: "{{ _vault_cluster_config['keys'] }}"
+        max_retries: "{{ (_vault_cluster_config['keys'] | length) - 1 }}"
+      run_once: true
+      delegate_to: "{{ groups['vault_servers'] | first }}"
+      when: _vault_init_secret.changed
+
+    - name: "Unseal all vault nodes"
+      ednxzu.hashistack.vault_unseal:
+        api_url: "http://127.0.0.1:8200"
+        key_shares: "{{ _vault_cluster_config['keys'] }}"
+        max_retries: "{{ (_vault_cluster_config['keys'] | length) - 1 }}"
+
     - name: "Debug"
       ansible.builtin.debug:
-        msg: "{{ _vault_init_secret }}"
-      when: _vault_init_secret is defined
+        msg: "{{ _vault_cluster_config }}"
