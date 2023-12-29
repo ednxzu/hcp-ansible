@@ -15,8 +15,11 @@
         key_shares: 3
         key_threshold: 2
       run_once: true
+      retries: 5
+      delay: 5
       delegate_to: "{{ groups['vault_servers'] | first }}"
       register: _vault_init_secret
+      until: not _vault_init_secret.failed
 
     - name: "Write vault configuration to file"
       ansible.builtin.copy:
@@ -46,7 +49,7 @@
         api_url: "http://127.0.0.1:8200"
         key_shares: "{{ _vault_cluster_config['keys'] }}"
         max_retries: "{{ (_vault_cluster_config['keys'] | length) - 1 }}"
-
-    - name: "Debug"
-      ansible.builtin.debug:
-        msg: "{{ _vault_cluster_config }}"
+      retries: 5
+      delay: 5
+      register: _unseal_status
+      until: not _unseal_status.failed

@@ -1,9 +1,10 @@
 #!/usr/bin/python
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
-DOCUMENTATION = r'''
+DOCUMENTATION = r"""
 ---
 module: my_test
 
@@ -33,9 +34,9 @@ options:
 
 author:
     - Your Name (@yourGitHubHandle)
-'''
+"""
 
-EXAMPLES = r'''
+EXAMPLES = r"""
 # Pass in a message
 - name: Test with a message
   my_namespace.my_collection.my_test:
@@ -51,9 +52,9 @@ EXAMPLES = r'''
 - name: Test failure of the module
   my_namespace.my_collection.my_test:
     name: fail me
-'''
+"""
 
-RETURN = r'''
+RETURN = r"""
 # These are examples of possible return values, and in general should use other names for return values.
 original_message:
     description: The original name param that was passed in.
@@ -65,8 +66,7 @@ message:
     type: str
     returned: always
     sample: 'goodbye'
-'''
-
+"""
 from ansible.module_utils.basic import AnsibleModule
 import traceback
 
@@ -79,46 +79,41 @@ else:
     HVAC_IMPORT_ERROR = None
     HAS_HVAC = True
 
+
 def run_module():
     module_args = dict(
-        api_url=dict(type='str', required=True),
-        key_shares=dict(type='list', required=False, default=[]),
-        max_retries=dict(type='int', required=False, default=3)
+        api_url=dict(type="str", required=True),
+        key_shares=dict(type="list", required=False, default=[]),
+        max_retries=dict(type="int", required=False, default=3),
     )
 
-    result = dict(
-        changed=False,
-        original_message='',
-        state=''
-    )
+    result = dict(changed=False, original_message="", state=None)
 
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True
-    )
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
-    # Check if hvac module is available
-    try:
-        import hvac
-    except ImportError:
+    if not HAS_HVAC:
         module.fail_json(
-            msg="Missing required library: hvac",
-            exception=HVAC_IMPORT_ERROR
+            msg="Missing required library: hvac", exception=HVAC_IMPORT_ERROR
         )
 
     if module.check_mode:
         module.exit_json(**result)
 
     # Initialize HashiCorp Vault client
-    client = hvac.Client(
-        url=module.params['api_url']
-    )
+    client = hvac.Client(url=module.params["api_url"])
+
+    # Check if Vault is sealed
+    if not client.sys.is_sealed():
+        module.exit_json(**result)
 
     # Unseal Vault
     try:
         retries = 0
-        while client.sys.is_sealed() and retries < module.params['max_retries']:
-            key_share = module.params['key_shares'][min(retries, len(module.params['key_shares']) - 1)]
+        vault_unseal_result = None
+        while client.sys.is_sealed() and retries < module.params["max_retries"]:
+            key_share = module.params["key_shares"][
+                min(retries, len(module.params["key_shares"]) - 1)
+            ]
             vault_unseal_result = client.sys.submit_unseal_key(key_share)
             retries += 1
     except hvac.exceptions.VaultError as ve:
@@ -128,13 +123,15 @@ def run_module():
     if client.sys.is_sealed():
         module.fail_json(msg="Vault unsealing failed: Maximum retries reached.")
 
-    result['state'] = vault_unseal_result
-    result['changed'] = True
+    result["state"] = vault_unseal_result
+    result["changed"] = True
 
     module.exit_json(**result)
+
 
 def main():
     run_module()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
