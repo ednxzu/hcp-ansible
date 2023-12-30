@@ -1,0 +1,21 @@
+---
+# hashistack variable injection playbook
+- name: "Deploy"
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: "Load global variables"
+      ansible.builtin.include_vars:
+        dir: "{{ configuration_directory }}"
+        files_matching: "{{ configuration_global_vars_file }}"
+
+    - name: "Load group specific variables"
+      ansible.builtin.include_vars:
+        dir: ""
+        files_matching: ""
+
+    - name: "Load host specific variables"
+      ansible.builtin.include_vars:
+        dir: ""
+        files_matching: ""

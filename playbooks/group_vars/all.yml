@@ -7,11 +7,12 @@ enable_vault: "yes"
 enable_consul: "yes"
 enable_nomad: "yes"
 
-deployment_method: "docker"
+deployment_method: "host"
 api_interface: "eth0"
 api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
 
 configuration_directory: "{{ lookup('env', 'PWD') }}/etc/hashistack"
+configuration_global_vars_file: "globals.yml"
 
 ##########################
 # Support options ########
@@ -93,7 +94,7 @@ default_container_extra_volumes:
   - "/etc/localtime:/etc/localtime"
 
 hashi_vault_start_service: true
-hashi_vault_version: "1.15.2"
+hashi_vault_version: latest
 hashi_vault_deploy_method: "{{ deployment_method }}"  # deployment method, either host or docker
 hashi_vault_env_variables: {}
 hashi_vault_data_dir: "/opt/vault"
