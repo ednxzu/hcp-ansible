@@ -16,7 +16,7 @@
 
         - name: "Initialize vault cluster"
           ednxzu.hashistack.vault_init:
-            api_url: "http://127.0.0.1:8200"
+            api_url: "{{ hashi_vault_configuration['api_addr'] }}"
             key_shares: 3
             key_threshold: 2
           run_once: true
@@ -42,7 +42,7 @@
 
         - name: "Unseal the bootstrap node"
           ednxzu.hashistack.vault_unseal:
-            api_url: "http://127.0.0.1:8200"
+            api_url: "{{ hashi_vault_configuration['api_addr'] }}"
             key_shares: "{{ _vault_cluster_config['keys'] }}"
             max_retries: "{{ (_vault_cluster_config['keys'] | length) - 1 }}"
           run_once: true
@@ -51,7 +51,7 @@
 
         - name: "Unseal all vault nodes"
           ednxzu.hashistack.vault_unseal:
-            api_url: "http://127.0.0.1:8200"
+            api_url: "{{ hashi_vault_configuration['api_addr'] }}"
             key_shares: "{{ _vault_cluster_config['keys'] }}"
             max_retries: "{{ (_vault_cluster_config['keys'] | length) - 1 }}"
           retries: 5
