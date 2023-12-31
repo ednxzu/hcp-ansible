@@ -3,7 +3,7 @@
 # General options ########
 ##########################
 
-enable_vault: "yes"
+enable_vault: "no"
 enable_consul: "yes"
 enable_nomad: "yes"
 
@@ -13,6 +13,10 @@ api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
 
 configuration_directory: "{{ lookup('env', 'PWD') }}/etc/hashistack"
 configuration_global_vars_file: "globals.yml"
+
+default_container_extra_volumes:
+  - "/etc/timezone:/etc/timezone"
+  - "/etc/localtime:/etc/localtime"
 
 ##########################
 # Support options ########
@@ -75,6 +79,10 @@ hashi_consul_configuration: {}
 ##########################
 
 vault_cluster_name: vault
+
+###############
+# vault storage
+###############
 vault_storage_configuration:
   raft:
     path: "{{ hashi_vault_data_dir }}/data"
@@ -88,15 +96,36 @@ vault_storage_configuration:
       {% endfor %}
       ]
 
-extra_vault_container_volumes: []
-default_container_extra_volumes:
-  - "/etc/timezone:/etc/timezone"
-  - "/etc/localtime:/etc/localtime"
+################
+# vault listener
+################
+vault_enable_tls: true
+vault_listener_configuration:
+  tcp:
+    address: "0.0.0.0:8200"
+    tls_disable: true
 
+vault_tls_listener_configuration:
+  tcp:
+    tls_disable: false
+    tls_cert_file: "{{ hashi_vault_config_dir }}/cert.pem"
+    tls_key_file: "{{ hashi_vault_config_dir }}/key.pem"
+
+vault_extra_listener_configuration: {}
+
+#########################
+# vault container volumes
+#########################
+extra_vault_container_volumes: []
+
+#####################
+# vault configuration
+#####################
 hashi_vault_start_service: true
 hashi_vault_version: latest
-hashi_vault_deploy_method: "{{ deployment_method }}"  # deployment method, either host or docker
+hashi_vault_deploy_method: "{{ deployment_method }}"
 hashi_vault_env_variables: {}
+hashi_vault_config_dir: "/etc/vault.d"
 hashi_vault_data_dir: "/opt/vault"
 hashi_vault_extra_files: false
 hashi_vault_extra_files_src: /tmp/extra_files
@@ -110,11 +139,7 @@ hashi_vault_configuration:
   ui: true
   disable_mlock: false
   disable_cache: false
-  listener:
-    tcp:
-      address: "0.0.0.0:8200"
-      tls_disable: true
-      #tls_disable_client_certs: true
-      #tls_cert_file: "{{ hashi_vault_data_dir }}/tls/cert.pem"
-      #tls_key_file: "{{ hashi_vault_data_dir }}/tls/key.pem"
+  listener: "{{ vault_listener_configuration.tcp
+    | combine((vault_enable_tls | bool) | ternary(vault_tls_listener_configuration.tcp, {}))
+    | combine(vault_extra_listener_configuration.tcp | default({})) }}"
   storage: "{{ vault_storage_configuration }}"
