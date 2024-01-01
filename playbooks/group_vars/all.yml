@@ -3,7 +3,7 @@
 # General options ########
 ##########################
 
-enable_vault: "no"
+enable_vault: "yes"
 enable_consul: "yes"
 enable_nomad: "yes"
 
@@ -99,7 +99,7 @@ vault_storage_configuration:
 ################
 # vault listener
 ################
-vault_enable_tls: true
+vault_enable_tls: false
 vault_listener_configuration:
   tcp:
     address: "0.0.0.0:8200"
@@ -139,7 +139,7 @@ hashi_vault_configuration:
   ui: true
   disable_mlock: false
   disable_cache: false
-  listener: "{{ vault_listener_configuration.tcp
-    | combine((vault_enable_tls | bool) | ternary(vault_tls_listener_configuration.tcp, {}))
-    | combine(vault_extra_listener_configuration.tcp | default({})) }}"
+  listener: "{{ vault_listener_configuration
+    | combine((vault_enable_tls | bool) | ternary(vault_tls_listener_configuration, {}))
+    | combine(vault_extra_listener_configuration | default({})) }}"
   storage: "{{ vault_storage_configuration }}"

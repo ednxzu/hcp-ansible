@@ -5,12 +5,12 @@
   gather_facts: true
   become: true
   tasks:
-    - name: Debug
+    - name: "debug"
       ansible.builtin.debug:
         msg: "{{ hashi_vault_configuration.listener }}"
-
     - name: "Vault"
       when: enable_vault | bool
+      when: "'vault_servers' in group_names"
       tags:
         - vault
       block:
