@@ -6,9 +6,21 @@
   become: true
   tasks:
     - name: "Load global variables"
-      ansible.builtin.include_vars:
-        dir: "{{ configuration_directory }}"
-        files_matching: "{{ configuration_global_vars_file }}"
+      block:
+        - name: "Stat global configuration file"
+          ansible.builtin.stat:
+            path: "{{ configuration_directory }}/{{ configuration_global_vars_file }}"
+          register: _global_config_file
+
+        - name: "Make sure global configuration file exists"
+          ansible.builtin.assert:
+            that:
+              - _global_config_file.stat.exists
+
+        - name: "Load global variables"
+          ansible.builtin.include_vars:
+            dir: "{{ configuration_directory }}"
+            files_matching: "{{ configuration_global_vars_file }}"
 
     - name: "Load group specific variables"
       ansible.builtin.include_vars:

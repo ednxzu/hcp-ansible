@@ -8,6 +8,7 @@
     - name: "debug"
       ansible.builtin.debug:
         msg: "{{ hashi_vault_configuration.listener }}"
+
     - name: "Vault"
       when: enable_vault | bool
       when: "'vault_servers' in group_names"
