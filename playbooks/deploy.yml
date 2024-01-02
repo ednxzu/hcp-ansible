@@ -9,6 +9,10 @@
       ansible.builtin.debug:
         msg: "{{ hashi_vault_configuration.listener }}"
 
+    - name: "Import variables"
+      ansible.builtin.import_tasks:
+        file: load_vars.yml
+
     - name: "Vault"
       when: enable_vault | bool
       when: "'vault_servers' in group_names"
