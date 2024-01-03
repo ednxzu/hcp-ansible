@@ -41,6 +41,26 @@
       when: item.stat.exists
       delegate_to: localhost
 
+- name: "Load host specific variables"
+  block:
+    - name: "Stat host specific config file"
+      ansible.builtin.stat:
+        path: "{{ configuration_directory }}/{{ item }}/{{ inventory_hostname }}/{{ configuration_global_vars_file }}"
+      register: _host_config_file
+      loop: "{{ group_names }}"
+      delegate_to: localhost
+
+    - name: "debug"
+      ansible.builtin.debug:
+        msg: "{{ _host_config_file }}"
+
+    - name: Load host specific variables
+      ansible.builtin.include_vars:
+        dir: "{{ configuration_directory }}/{{ item.item }}/{{ inventory_hostname }}"
+        files_matching: "{{ configuration_global_vars_file }}"
+      loop: "{{ _host_config_file.results }}"
+      when: item.stat.exists
+      delegate_to: localhost
 
 # - name: "Load host specific variables"
 #   ansible.builtin.include_vars:
