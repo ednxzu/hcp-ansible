@@ -12,6 +12,11 @@ api_interface: "eth0"
 api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
 
 configuration_directory: "{{ lookup('env', 'PWD') }}/etc/hashistack"
+sub_configuration_directories:
+  nomad_servers: "{{ configuration_directory }}/nomad_servers"
+  vault_servers: "{{ configuration_directory }}/vault_servers "
+  consul_servers: "{{ configuration_directory }}/consul_servers"
+
 configuration_global_vars_file: "globals.yml"
 
 default_container_extra_volumes:

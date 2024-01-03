@@ -38,7 +38,7 @@
         - name: "Write vault configuration to file"
           ansible.builtin.copy:
             content: "{{ _vault_init_secret.state | to_nice_yaml}}"
-            dest: "{{ configuration_directory }}/vault/vault_config"
+            dest: "{{ configuration_directory }}/vault_servers/vault_config"
             mode: '0644'
           when: _vault_init_secret.changed
           run_once: true

@@ -1,9 +1,5 @@
 ---
 # hashistack variable injection playbook
-- name: "Debug"
-  ansible.builtin.debug:
-    msg: "{{ vault_cluster_name }}"
-
 - name: "Load global variables"
   block:
     - name: "Stat global configuration file"
@@ -68,16 +64,6 @@
         loop_var: item
       delegate_to: localhost
 
-
-- name: "Debug"
-  ansible.builtin.debug:
-    msg: "{{ group_names }}"
-
 - name: "Debug"
   ansible.builtin.debug:
     msg: "{{ vault_cluster_name }}"
-# - name: "Load host specific variables"
-#   ansible.builtin.include_vars:
-#     dir: ""
-#     files_matching: ""
-- fail:
