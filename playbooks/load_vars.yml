@@ -1,5 +1,9 @@
 ---
 # hashistack variable injection playbook
+- name: "Debug"
+  ansible.builtin.debug:
+    msg: "{{ vault_cluster_name }}"
+
 - name: "Load global variables"
   block:
     - name: "Stat global configuration file"
@@ -18,50 +22,60 @@
       ansible.builtin.include_vars:
         dir: "{{ configuration_directory }}"
         files_matching: "{{ configuration_global_vars_file }}"
+        depth: 1
       delegate_to: localhost
 
 - name: "Load group specific variables"
   block:
     - name: "Stat group specific config file"
       ansible.builtin.stat:
-        path: "{{ configuration_directory }}/{{ item }}/{{ configuration_global_vars_file }}"
+        path: "{{ configuration_directory }}/{{ group_name }}/{{ configuration_global_vars_file }}"
       register: _group_config_file
       loop: "{{ group_names }}"
-      delegate_to: localhost
-
-    - name: "debug"
-      ansible.builtin.debug:
-        msg: "{{ _group_config_file }}"
+      loop_control:
+        loop_var: group_name
 
     - name: Load group specific variables
       ansible.builtin.include_vars:
-        dir: "{{ configuration_directory }}/{{ item.item }}"
+        dir: "{{ configuration_directory }}/{{ item.group_name }}"
         files_matching: "{{ configuration_global_vars_file }}"
+        depth: 1
       loop: "{{ _group_config_file.results }}"
       when: item.stat.exists
+        and item.group_name in group_names
+      loop_control:
+        loop_var: item
       delegate_to: localhost
 
 - name: "Load host specific variables"
   block:
     - name: "Stat host specific config file"
       ansible.builtin.stat:
-        path: "{{ configuration_directory }}/{{ item }}/{{ inventory_hostname }}/{{ configuration_global_vars_file }}"
+        path: "{{ configuration_directory }}/{{ group_name }}/{{ inventory_hostname }}/{{ configuration_global_vars_file }}"
       register: _host_config_file
       loop: "{{ group_names }}"
+      loop_control:
+        loop_var: group_name
       delegate_to: localhost
-
-    - name: "debug"
-      ansible.builtin.debug:
-        msg: "{{ _host_config_file }}"
 
     - name: Load host specific variables
       ansible.builtin.include_vars:
-        dir: "{{ configuration_directory }}/{{ item.item }}/{{ inventory_hostname }}"
+        dir: "{{ configuration_directory }}/{{ item.group_name }}/{{ inventory_hostname }}"
         files_matching: "{{ configuration_global_vars_file }}"
       loop: "{{ _host_config_file.results }}"
       when: item.stat.exists
+      loop_control:
+        loop_var: item
       delegate_to: localhost
 
+
+- name: "Debug"
+  ansible.builtin.debug:
+    msg: "{{ group_names }}"
+
+- name: "Debug"
+  ansible.builtin.debug:
+    msg: "{{ vault_cluster_name }}"
 # - name: "Load host specific variables"
 #   ansible.builtin.include_vars:
 #     dir: ""
