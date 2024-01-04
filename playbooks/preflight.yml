@@ -2,9 +2,14 @@
 # hashistack deployment playbook
 - name: "Preflight"
   hosts: all
+  strategy: linear
   gather_facts: true
   become: true
   tasks:
+    - name: "Import variables"
+      ansible.builtin.import_tasks:
+        file: tasks/load_vars.yml
+
     - name: "Checking vault inventory"
       ansible.builtin.assert:
         that:
@@ -41,8 +46,9 @@
       when:
         - enable_nomad | bool
 
-    - name: "Checking directory {{ configuration_directory }}"
+    - name: "Checking directory {{ configuration_directory }}"  # noqa: run-once[task]
       delegate_to: localhost
+      run_once: true
       block:
         - name: "Stat directory {{ configuration_directory }}"
           ansible.builtin.stat:
@@ -70,21 +76,43 @@
           when:
             - enable_vault | bool
 
-        - name: "Make sure required directories exist"
+        - name: "Make sure directory exists: {{ configuration_directory }}"
           ansible.builtin.assert:
             that:
               - _stat_config_dir.stat.exists
               - _stat_config_dir.stat.isdir
-              - _stat_config_dir.stat.writable
-              - _stat_config_dir_nomad_servers.stat.exists if enable_nomad
-              - _stat_config_dir_nomad_servers.stat.isdir if enable_nomad
-              - _stat_config_dir_nomad_servers.stat.writeable if enable_nomad
-              - _stat_config_dir_consul_servers.stat.exists if enable_consul
-              - _stat_config_dir_consul_servers.stat.isdir if enable_consul
-              - _stat_config_dir_consul_servers.stat.writeable if enable_consul
-              - _stat_config_dir_vault_servers.stat.exists if enable_vault
-              - _stat_config_dir_vault_servers.stat.isdir if enable_vault
-              - _stat_config_dir_vault_servers.stat.writeable if enable_vault
+              - _stat_config_dir.stat.writeable
+
+        - name: "Make sure directory exists: {{ sub_configuration_directories.nomad_servers }}"
+          ansible.builtin.assert:
+            that:
+              - _stat_config_dir_nomad_servers.stat.exists
+              - _stat_config_dir_nomad_servers.stat.isdir
+              - _stat_config_dir_nomad_servers.stat.writeable
+          when:
+            - enable_nomad | bool
+
+        - name: "Make sure directory exists: {{ sub_configuration_directories.consul_servers }}"
+          ansible.builtin.assert:
+            that:
+              - _stat_config_dir_consul_servers.stat.exists
+              - _stat_config_dir_consul_servers.stat.isdir
+              - _stat_config_dir_consul_servers.stat.writeable
+          when:
+            - enable_consul | bool
+
+        - name: "Debug"
+          ansible.builtin.debug:
+            msg: "{{ _stat_config_dir_vault_servers }}"
+
+        - name: "Make sure directory exists: {{ sub_configuration_directories.vault_servers }}"
+          ansible.builtin.assert:
+            that:
+              - _stat_config_dir_vault_servers.stat.exists
+              - _stat_config_dir_vault_servers.stat.isdir
+              - _stat_config_dir_vault_servers.stat.writeable
+          when:
+            - enable_vault | bool
 
     - name: "Checking host OS distribution"
       ansible.builtin.assert:
@@ -262,13 +290,3 @@
             fail_msg: >-
               The python sdk for docker is really out of date, you need to install
               a more recent version of it in order to use this tool.
-
-    - name: "Debug"
-      ansible.builtin.debug:
-        msg: "{{ groups['vault_servers'] }}"
-
-    - name: "Debug"
-      ansible.builtin.debug:
-        msg: "{{ hashi_vault_configuration.storage }}"
-
-    # - ansible.builtin.fail:

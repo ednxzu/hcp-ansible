@@ -4,8 +4,8 @@
 ##########################
 
 enable_vault: "yes"
-enable_consul: "yes"
-enable_nomad: "yes"
+enable_consul: "no"
+enable_nomad: "no"
 
 deployment_method: "host"
 api_interface: "eth0"
@@ -14,7 +14,7 @@ api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
 configuration_directory: "{{ lookup('env', 'PWD') }}/etc/hashistack"
 sub_configuration_directories:
   nomad_servers: "{{ configuration_directory }}/nomad_servers"
-  vault_servers: "{{ configuration_directory }}/vault_servers "
+  vault_servers: "{{ configuration_directory }}/vault_servers"
   consul_servers: "{{ configuration_directory }}/consul_servers"
 
 configuration_global_vars_file: "globals.yml"
@@ -40,8 +40,8 @@ hashistack_supported_distribution_versions:
     - "22.04"
 
 preflight_enable_host_ntp_checks: true
-vault_required_ports: [8200,8201]
-consul_required_ports: [8300,8301,8302,8500,8501,8502,8503,8600]
+vault_required_ports: [8200, 8201]
+consul_required_ports: [8300, 8301, 8302, 8500, 8501, 8502, 8503, 8600]
 nomad_required_ports: []
 
 ##########################
@@ -59,7 +59,6 @@ hashi_nomad_data_dir: /opt/nomad
 hashi_nomad_extra_files: false
 hashi_nomad_extra_files_src: /tmp/extra_files
 hashi_nomad_extra_files_dst: /etc/nomad.d/extra_files
-#! nomad configuration
 hashi_nomad_configuration: {}
 
 ##########################
@@ -76,7 +75,6 @@ hashi_consul_extra_files_src: /tmp/extra_files
 hashi_consul_extra_files_dst: /etc/consul.d/extra_files
 hashi_consul_envoy_install: false
 hashi_consul_envoy_version: latest
-#! consul configuration
 hashi_consul_configuration: {}
 
 ##########################
@@ -136,7 +134,6 @@ hashi_vault_extra_files: false
 hashi_vault_extra_files_src: /tmp/extra_files
 hashi_vault_extra_files_dst: /etc/vault.d/extra_files
 hashi_vault_extra_container_volumes: "{{ default_container_extra_volumes | union(extra_vault_container_volumes) | unique }}"
-#! vault configuration
 hashi_vault_configuration:
   cluster_name: "{{ vault_cluster_name }}"
   cluster_addr: "http://{{ api_interface_address }}:8201"
