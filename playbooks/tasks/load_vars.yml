@@ -64,6 +64,13 @@
         loop_var: item
       delegate_to: localhost
 
+- name: "Merge vault configurations"
+  ansible.builtin.import_tasks:
+    file: "vault_vars.yml"
+  when:
+    - enable_vault | bool
+    - "'vault_servers' in group_names"
+
 - name: "Debug"
   ansible.builtin.debug:
     msg: "{{ vault_cluster_name }}"

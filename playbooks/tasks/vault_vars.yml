@@ -1,0 +1,6 @@
+---
+# hashistack configuration merging for vault
+- name: "Merge service registration configuration"
+  ansible.builtin.set_fact:
+    hashi_vault_configuration: "{{ hashi_vault_configuration | combine({'service_registration': vault_service_registration_configuration}) }}"
+  when: vault_enable_service_registration

@@ -131,6 +131,7 @@ vault_service_registration_configuration:
 #############################
 # vault plugins configuration
 #############################
+vault_enable_plugins: false
 
 
 #########################

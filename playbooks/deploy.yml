@@ -14,6 +14,12 @@
       ansible.builtin.import_tasks:
         file: tasks/load_vars.yml
 
+    - name: "Debug"
+      ansible.builtin.debug:
+        msg: "{{ hashi_vault_configuration }}"
+
+    - ansible.builtin.fail:
+
     - name: "Vault"
       when:
         - enable_vault | bool
