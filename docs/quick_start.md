@@ -93,3 +93,11 @@ roles_path = ./roles/
 collections_path = ./collections/
 inventory  = ./inventory/
 ```
+
+7. Install the `ednxzu.hashistack` ansible collection
+
+```bash
+ansible-galaxy collection install ednxzu.hashistack:==<version>
+```
+
+You should now have a directory under `./collections/ansible_collections/ednxzu/hashistack`
