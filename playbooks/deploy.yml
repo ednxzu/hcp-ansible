@@ -28,8 +28,8 @@
         - name: "Initialize vault cluster"  # noqa: run-once[task]
           ednxzu.hashistack.vault_init:
             api_url: "{{ hashi_vault_configuration['api_addr'] }}"
-            key_shares: 3
-            key_threshold: 2
+            key_shares: "{{ vault_seal_configuration['key_shares'] }}"
+            key_threshold: "{{ vault_seal_configuration['key_threshold'] }}"
           run_once: true
           retries: 5
           delay: 5

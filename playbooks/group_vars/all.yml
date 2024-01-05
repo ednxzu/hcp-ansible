@@ -82,6 +82,9 @@ hashi_consul_configuration: {}
 ##########################
 
 vault_cluster_name: vault
+vault_seal_configuration:
+  key_shares: 3
+  key_threshold: 2
 
 ###############
 # vault storage
@@ -115,6 +118,20 @@ vault_tls_listener_configuration:
     tls_key_file: "{{ hashi_vault_config_dir }}/key.pem"
 
 vault_extra_listener_configuration: {}
+
+############################
+# vault service registration
+############################
+vault_enable_service_registration: false
+vault_service_registration_configuration:
+  consul:
+    address: "127.0.0.1:8500"
+    scheme: "http"
+
+#############################
+# vault plugins configuration
+#############################
+
 
 #########################
 # vault container volumes
