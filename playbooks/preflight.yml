@@ -101,10 +101,6 @@
           when:
             - enable_consul | bool
 
-        - name: "Debug"
-          ansible.builtin.debug:
-            msg: "{{ _stat_config_dir_vault_servers }}"
-
         - name: "Make sure directory exists: {{ sub_configuration_directories.vault_servers }}"
           ansible.builtin.assert:
             that:
