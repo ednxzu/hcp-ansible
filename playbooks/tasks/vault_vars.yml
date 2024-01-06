@@ -1,6 +1,31 @@
 ---
 # hashistack configuration merging for vault
-- name: "Merge service registration configuration"
+- name: "Merge listener configuration"
   ansible.builtin.set_fact:
-    hashi_vault_configuration: "{{ hashi_vault_configuration | combine({'service_registration': vault_service_registration_configuration}) }}"
+    vault_listener_configuration: "{{
+      vault_listener_configuration |
+      combine((vault_enable_tls | bool) | ternary(vault_tls_listener_configuration, {})) |
+      combine(vault_extra_listener_configuration | default({}))
+      }}"
+
+- name: "Merge service registration configuration"
+  vars:
+    _config_to_merge:
+      service_registration: "{{ vault_service_registration_configuration }}"
+  ansible.builtin.set_fact:
+    hashi_vault_configuration: "{{
+      hashi_vault_configuration |
+      combine(_config_to_merge)
+      }}"
   when: vault_enable_service_registration
+
+- name: "Merge plugins configuration"
+  vars:
+    _config_to_merge:
+      plugin_directory: "{{ vault_plugin_directory }}"
+  ansible.builtin.set_fact:
+    hashi_vault_configuration: "{{
+      hashi_vault_configuration |
+      combine(_config_to_merge)
+      }}"
+  when: vault_enable_plugins

@@ -18,7 +18,7 @@
       ansible.builtin.debug:
         msg: "{{ hashi_vault_configuration }}"
 
-    - ansible.builtin.fail:
+    # - ansible.builtin.fail:
 
     - name: "Vault"
       when:
