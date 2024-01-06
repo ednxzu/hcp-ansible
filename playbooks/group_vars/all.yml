@@ -82,13 +82,14 @@ hashi_consul_configuration: {}
 ##########################
 
 vault_cluster_name: vault
+vault_enable_ui: true
 vault_seal_configuration:
   key_shares: 3
   key_threshold: 2
 
-###############
-# vault storage
-###############
+#########
+# storage
+#########
 vault_storage_configuration:
   raft:
     path: "{{ hashi_vault_data_dir }}/data"
@@ -102,9 +103,9 @@ vault_storage_configuration:
       {% endfor %}
       ]
 
-################
-# vault listener
-################
+##########
+# listener
+##########
 vault_enable_tls: false
 vault_listener_configuration:
   tcp:
@@ -119,29 +120,39 @@ vault_tls_listener_configuration:
 
 vault_extra_listener_configuration: {}
 
-############################
-# vault service registration
-############################
+######################
+# service registration
+######################
 vault_enable_service_registration: false
 vault_service_registration_configuration:
   consul:
     address: "127.0.0.1:8500"
     scheme: "http"
 
-#############################
-# vault plugins configuration
-#############################
+#########
+# plugins
+#########
 vault_enable_plugins: true
 vault_plugin_directory: "{{ hashi_vault_extra_files_dst }}/plugin"
+
+#########
+# logging
+#########
+vault_enable_log_to_file: false
+vault_logging_configuration:
+  log_level: info
+  log_format: standard
+  log_rotate_duration: 24h
+  log_rotate_max_files: 30
 
 #########################
 # vault container volumes
 #########################
 extra_vault_container_volumes: []
 
-#####################
-# vault configuration
-#####################
+###############
+# configuration
+###############
 hashi_vault_start_service: true
 hashi_vault_version: latest
 hashi_vault_deploy_method: "{{ deployment_method }}"
@@ -156,7 +167,7 @@ hashi_vault_configuration:
   cluster_name: "{{ vault_cluster_name }}"
   cluster_addr: "http://{{ api_interface_address }}:8201"
   api_addr: "http://{{ api_interface_address }}:8200"
-  ui: true
+  ui: "{{ vault_enable_ui }}"
   disable_mlock: false
   disable_cache: false
   listener: "{{ vault_listener_configuration }}"

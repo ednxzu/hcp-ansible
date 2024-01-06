@@ -29,3 +29,13 @@
       combine(_config_to_merge)
       }}"
   when: vault_enable_plugins
+
+- name: "Merge logging configuration"
+  vars:
+    _config_to_merge: "{{ vault_logging_configuration }}"
+  ansible.builtin.set_fact:
+    hashi_vault_configuration: "{{
+      hashi_vault_configuration |
+      combine(_config_to_merge)
+      }}"
+  when: vault_enable_log_to_file
