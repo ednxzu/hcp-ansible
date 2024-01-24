@@ -61,17 +61,26 @@
           ednxzu.hashistack.vault_unseal:
             api_url: "{{ hashi_vault_configuration['api_addr'] }}"
             key_shares: "{{ _vault_cluster_config['keys'] }}"
-            max_retries: "{{ (_vault_cluster_config['keys'] | length) - 1 }}"
+            # max_retries: "{{ (_vault_cluster_config['keys'] | length) - 1 }}"
           run_once: true
           delegate_to: "{{ groups['vault_servers'] | first }}"
           when: _vault_init_secret.changed
+          register: _vault_unseal_secret
+
+        - name: "Print unseal status"
+          ansible.builtin.debug:
+            msg: "{{ _vault_unseal_secret }}"
 
         - name: "Unseal all vault nodes"
           ednxzu.hashistack.vault_unseal:
             api_url: "{{ hashi_vault_configuration['api_addr'] }}"
             key_shares: "{{ _vault_cluster_config['keys'] }}"
-            max_retries: "{{ (_vault_cluster_config['keys'] | length) - 1 }}"
+            # max_retries: "{{ (_vault_cluster_config['keys'] | length) - 1 }}"
           retries: 5
           delay: 5
           register: _unseal_status
-          until: not _unseal_status.failed
+          until: _unseal_status.changed
+
+        - name: "Print unseal status"
+          ansible.builtin.debug:
+            msg: "{{ _unseal_status }}"

@@ -6,7 +6,7 @@ __metaclass__ = type
 
 DOCUMENTATION = r"""
 ---
-module: my_test
+module: ednxzu.hashistack.vault_init
 
 short_description: Manages the initialization of HashiCorp Vault.
 
@@ -93,7 +93,7 @@ def run_module():
         key_threshold=dict(type="int", required=False, default=3),
     )
 
-    result = dict(changed=False, original_message="", state="")
+    result = dict(changed=False, state="")
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 

@@ -84,10 +84,9 @@ def run_module():
     module_args = dict(
         api_url=dict(type="str", required=True),
         key_shares=dict(type="list", required=False, default=[]),
-        max_retries=dict(type="int", required=False, default=3),
     )
 
-    result = dict(changed=False, original_message="", state=None)
+    result = dict(changed=False, state="")
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
@@ -108,24 +107,16 @@ def run_module():
 
     # Unseal Vault
     try:
-        retries = 0
-        vault_unseal_result = None
-        while client.sys.is_sealed() and retries < module.params["max_retries"]:
-            key_share = module.params["key_shares"][
-                min(retries, len(module.params["key_shares"]) - 1)
-            ]
-            vault_unseal_result = client.sys.submit_unseal_key(key_share)
-            retries += 1
+        key_shares = module.params["key_shares"]
+        vault_unseal_result = client.sys.submit_unseal_keys(key_shares)
+        result["state"] = vault_unseal_result
     except hvac.exceptions.VaultError as ve:
         module.fail_json(msg=f"Vault unsealing failed: {ve}")
 
-    # Check if the Vault is successfully unsealed
     if client.sys.is_sealed():
-        module.fail_json(msg="Vault unsealing failed: Maximum retries reached.")
+        module.fail_json(msg="Vault unsealing failed.")
 
-    result["state"] = vault_unseal_result
     result["changed"] = True
-
     module.exit_json(**result)
 
 
