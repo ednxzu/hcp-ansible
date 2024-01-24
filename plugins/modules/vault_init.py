@@ -1,71 +1,77 @@
 #!/usr/bin/python
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
-DOCUMENTATION = r'''
+DOCUMENTATION = r"""
 ---
 module: my_test
 
-short_description: This is my test module
+short_description: Manages the initialization of HashiCorp Vault.
 
-# If this is part of a collection, you need to use semantic versioning,
-# i.e. the version is of the form "2.5.0" and not "2.4".
 version_added: "1.0.0"
 
-description: This is my longer description explaining my test module.
+description:
+    - This module initializes HashiCorp Vault, ensuring that it is securely set up for use.
 
 options:
-    name:
-        description: This is the message to send to the test module.
+    api_url:
+        description: The URL of the HashiCorp Vault API.
         required: true
         type: str
-    new:
+    key_shares:
         description:
-            - Control to demo if the result of this module is changed or not.
-            - Parameter description can be a list as well.
+            - The number of key shares to split the master key into.
+            - Default is 5.
         required: false
-        type: bool
-# Specify this value according to your collection
-# in format of namespace.collection.doc_fragment_name
-# extends_documentation_fragment:
-#     - my_namespace.my_collection.my_doc_fragment_name
+        type: int
+        default: 5
+    key_threshold:
+        description:
+            - The number of key shares required to reconstruct the master key.
+            - Default is 3.
+        required: false
+        type: int
+        default: 3
 
 author:
-    - Your Name (@yourGitHubHandle)
-'''
+    - Bertrand Lanson (@ednxzu)
+"""
 
-EXAMPLES = r'''
-# Pass in a message
-- name: Test with a message
+EXAMPLES = r"""
+# Example: Initialize HashiCorp Vault with default settings
+- name: Initialize HashiCorp Vault
   my_namespace.my_collection.my_test:
-    name: hello world
+    api_url: https://vault.example.com
 
-# pass in a message and have changed true
-- name: Test with a message and changed output
+# Example: Initialize HashiCorp Vault with custom key shares and threshold
+- name: Initialize HashiCorp Vault with custom settings
   my_namespace.my_collection.my_test:
-    name: hello world
-    new: true
+    api_url: https://vault.example.com
+    key_shares: 7
+    key_threshold: 4
+"""
 
-# fail the module
-- name: Test failure of the module
-  my_namespace.my_collection.my_test:
-    name: fail me
-'''
-
-RETURN = r'''
-# These are examples of possible return values, and in general should use other names for return values.
-original_message:
-    description: The original name param that was passed in.
-    type: str
+RETURN = r"""
+state:
+    description: Information about the state of HashiCorp Vault after initialization.
+    type: complex
     returned: always
-    sample: 'hello world'
-message:
-    description: The output message that the test module generates.
-    type: str
-    returned: always
-    sample: 'goodbye'
-'''
+    sample: {
+        "keys": [
+            "70e15679de84ac951633b5a79a3b8b45fcc719c6c219d785230a230674cbdff063",
+            "1a5badb309c9bf8ce384b13db28195f56c3adea70d29b58ad59ad8d573450632e2",
+            "2aa8ee4bdb87b70582e712a180720d877106b67838fcd8c606879ba462c0f6972b"
+        ],
+        "keys_base64": [
+            "cOFWed6ErJUWM7WnmjuLRfzHGcbCGdeFIwojBnTL3/Bj",
+            "GlutswnJv4zjhLE9soGV9Ww63qcNKbWK1ZrY1XNFBjLi",
+            "KqjuS9uHtwWC5xKhgHINh3EGtng4/NjGBoebpGLA9pcr"
+        ],
+        "root_token": "hvs.WasuYYUlbc1xsF2TIpbyNnWi"
+    }
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 import traceback
@@ -79,55 +85,47 @@ else:
     HVAC_IMPORT_ERROR = None
     HAS_HVAC = True
 
+
 def run_module():
     module_args = dict(
-        api_url=dict(type='str', required=True),
-        key_shares=dict(type='int', required=False, default=5),
-        key_threshold=dict(type='int', required=False, default=3)
+        api_url=dict(type="str", required=True),
+        key_shares=dict(type="int", required=False, default=5),
+        key_threshold=dict(type="int", required=False, default=3),
     )
 
-    result = dict(
-        changed=False,
-        original_message='',
-        state=''
-    )
+    result = dict(changed=False, original_message="", state="")
 
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True
-    )
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
     if not HAS_HVAC:
         module.fail_json(
-            msg="Missing required library: hvac",
-            exception=HVAC_IMPORT_ERROR
+            msg="Missing required library: hvac", exception=HVAC_IMPORT_ERROR
         )
 
     if module.check_mode:
         module.exit_json(**result)
 
     vault_init_result = None
-    client = hvac.Client(
-        url=module.params['api_url']
-    )
+    client = hvac.Client(url=module.params["api_url"])
 
     try:
         if not client.sys.is_initialized():
             vault_init_result = client.sys.initialize(
-                module.params['key_shares'],
-                module.params['key_threshold']
+                module.params["key_shares"], module.params["key_threshold"]
             )
-            result['state'] = vault_init_result
+            result["state"] = vault_init_result
     except Exception as e:
         module.fail_json(msg=f"Vault initialization failed: {str(e)}")
 
     if vault_init_result:
-        result['changed'] = True
+        result["changed"] = True
 
     module.exit_json(**result)
+
 
 def main():
     run_module()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

@@ -92,7 +92,7 @@ Additionally, within each `group configuration directory`, you can add `host con
   enable_nomad: "yes"
   api_interface: "eth1"
   ```
-  Except for host `nomad-master-1`, who will have the following:
+  Except for host `nomad-master-01`, who will have the following:
 
   ```yaml
   ---
