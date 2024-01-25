@@ -117,3 +117,9 @@ hashi_vault_version: "latest"
 #      #tls_cert_file: "{{ hashi_vault_data_dir }}/tls/cert.pem"
 #      #tls_key_file: "{{ hashi_vault_data_dir }}/tls/key.pem"
 #  storage: "{{ vault_storage_configuration }}"
+
+vault_extra_configuration:
+  user_lockout:
+    all:
+      lockout_duration: "10m"
+      lockout_counter_reset: "10m"

@@ -64,6 +64,13 @@
         loop_var: item
       delegate_to: localhost
 
+- name: "Merge consul configurations"
+  ansible.builtin.import_tasks:
+    file: "consul_vars.yml"
+  when:
+    - enable_consul | bool
+    - "'consul_servers' in group_names"
+
 - name: "Merge vault configurations"
   ansible.builtin.import_tasks:
     file: "vault_vars.yml"

@@ -85,7 +85,6 @@ def run_module():
         api_url=dict(type="str", required=True),
         key_shares=dict(type="list", required=False, default=[]),
     )
-
     result = dict(changed=False, state="")
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
@@ -98,25 +97,24 @@ def run_module():
     if module.check_mode:
         module.exit_json(**result)
 
-    # Initialize HashiCorp Vault client
     client = hvac.Client(url=module.params["api_url"])
 
-    # Check if Vault is sealed
     if not client.sys.is_sealed():
         module.exit_json(**result)
 
-    # Unseal Vault
     try:
         key_shares = module.params["key_shares"]
         vault_unseal_result = client.sys.submit_unseal_keys(key_shares)
         result["state"] = vault_unseal_result
+
+        if client.sys.is_sealed():
+            module.fail_json(msg="Vault unsealing failed.")
+        else:
+            result["changed"] = True
+
     except hvac.exceptions.VaultError as ve:
         module.fail_json(msg=f"Vault unsealing failed: {ve}")
 
-    if client.sys.is_sealed():
-        module.fail_json(msg="Vault unsealing failed.")
-
-    result["changed"] = True
     module.exit_json(**result)
 
 

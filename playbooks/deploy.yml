@@ -18,7 +18,22 @@
       ansible.builtin.debug:
         msg: "{{ hashi_vault_configuration }}"
 
+    - name: "Debug"
+      ansible.builtin.debug:
+        msg: "{{ hashi_consul_configuration }}"
+
     # - ansible.builtin.fail:
+
+    - name: "Consul"
+      when:
+        - enable_consul | bool
+        - "'consul_servers' in group_names"
+      tags:
+        - consul
+      block:
+        - name: "Include ednxzu.hashistack.hashicorp_consul"
+          ansible.builtin.include_role:
+            name: ednxzu.hashistack.hashicorp_consul
 
     - name: "Vault"
       when:
@@ -27,7 +42,7 @@
       tags:
         - vault
       block:
-        - name: "Include ednxzu.hashicorp_vault"
+        - name: "Include ednxzu.hashistack.hashicorp_consul"
           ansible.builtin.include_role:
             name: ednxzu.hashistack.hashicorp_vault
 
@@ -61,26 +76,15 @@
           ednxzu.hashistack.vault_unseal:
             api_url: "{{ hashi_vault_configuration['api_addr'] }}"
             key_shares: "{{ _vault_cluster_config['keys'] }}"
-            # max_retries: "{{ (_vault_cluster_config['keys'] | length) - 1 }}"
           run_once: true
           delegate_to: "{{ groups['vault_servers'] | first }}"
           when: _vault_init_secret.changed
           register: _vault_unseal_secret
 
-        - name: "Print unseal status"
-          ansible.builtin.debug:
-            msg: "{{ _vault_unseal_secret }}"
-
         - name: "Unseal all vault nodes"
           ednxzu.hashistack.vault_unseal:
             api_url: "{{ hashi_vault_configuration['api_addr'] }}"
             key_shares: "{{ _vault_cluster_config['keys'] }}"
-            # max_retries: "{{ (_vault_cluster_config['keys'] | length) - 1 }}"
           retries: 5
           delay: 5
           register: _unseal_status
-          until: _unseal_status.changed
-
-        - name: "Print unseal status"
-          ansible.builtin.debug:
-            msg: "{{ _unseal_status }}"

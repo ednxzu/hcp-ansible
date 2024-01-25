@@ -14,6 +14,7 @@
           - name: hvac
             version_constraint: latest
             state: present
+      when: "'vault_servers' in group_names"
 
     - name: "Include ednxzu.install_docker"
       ansible.builtin.include_role:
