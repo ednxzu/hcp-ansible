@@ -60,16 +60,16 @@ state:
     returned: always
     sample: {
         "keys": [
-            "70e15679de84ac951633b5a79a3b8b45fcc719c6c219d785230a230674cbdff063",
-            "1a5badb309c9bf8ce384b13db28195f56c3adea70d29b58ad59ad8d573450632e2",
-            "2aa8ee4bdb87b70582e712a180720d877106b67838fcd8c606879ba462c0f6972b"
+            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+            "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
         ],
         "keys_base64": [
-            "cOFWed6ErJUWM7WnmjuLRfzHGcbCGdeFIwojBnTL3/Bj",
-            "GlutswnJv4zjhLE9soGV9Ww63qcNKbWK1ZrY1XNFBjLi",
-            "KqjuS9uHtwWC5xKhgHINh3EGtng4/NjGBoebpGLA9pcr"
+            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+            "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
         ],
-        "root_token": "hvs.WasuYYUlbc1xsF2TIpbyNnWi"
+        "root_token": "hvs.xxxxxxxxxxxxxxxxxxxxxxxx"
     }
 """
 

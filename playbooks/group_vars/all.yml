@@ -11,13 +11,25 @@ nomad_version: latest
 consul_version: latest
 vault_version: latest
 
-vault_versions:
-  host: "{{ vault_version }}*"
-  docker: "{{ vault_version }}"
-
 deployment_method: "host"
 api_interface: "eth0"
 api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
+
+##########################
+# Helper options #########
+##########################
+
+vault_versions:
+  host: "{{ vault_version }}{% '*' if vault_version != 'latest' %}"
+  docker: "{{ vault_version }}"
+
+consul_versions:
+  host: "{{ consul_version }}{% '*' if consul_version != 'latest' %}"
+  docker: "{{ consul_version }}"
+
+nomad_versions:
+  host: "{{ nomad_version }}{% '*' if nomad_version != 'latest' %}"
+  docker: "{{ nomad_version }}"
 
 configuration_directory: "{{ lookup('env', 'PWD') }}/etc/hashistack"
 sub_configuration_directories:
@@ -98,8 +110,8 @@ consul_address_configuration:
 ##########################
 
 consul_acl_configuration:
-  enabled: false
-  default_policy: "allow" # can be allow or deny
+  enabled: true
+  default_policy: "deny" # can be allow or deny
   enable_token_persistence: true
 
 #####################
