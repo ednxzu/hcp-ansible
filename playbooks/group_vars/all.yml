@@ -7,6 +7,14 @@ enable_vault: "no"
 enable_consul: "yes"
 enable_nomad: "no"
 
+nomad_version: latest
+consul_version: latest
+vault_version: latest
+
+vault_versions:
+  host: "{{ vault_version }}*"
+  docker: "{{ vault_version }}"
+
 deployment_method: "host"
 api_interface: "eth0"
 api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
