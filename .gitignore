@@ -3,3 +3,4 @@
 .vscode
 roles/ednxzu.*
 vault_config
+consul_config

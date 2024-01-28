@@ -3,7 +3,7 @@
 # General options ########
 ##########################
 
-enable_vault: "yes"
+enable_vault: "no"
 enable_consul: "yes"
 enable_nomad: "no"
 
@@ -114,12 +114,6 @@ consul_acl_configuration:
   default_policy: "deny" # can be allow or deny
   enable_token_persistence: true
 
-#####################
-# extra configuration
-#####################
-
-consul_extra_configuration: {}
-
 ##########################
 # consul DNS configuration
 ##########################
@@ -128,6 +122,30 @@ consul_dns_configuration:
   allow_stale: true
   enable_truncate: true
   only_passing: true
+
+#########################
+# consul ui configuration
+#########################
+
+consul_ui_configuration:
+  enabled: true
+
+###################################
+# consul service mesh configuration
+###################################
+
+consul_mesh_configuration:
+  enabled: true
+
+#####################
+# extra configuration
+#####################
+
+consul_extra_configuration: {}
+
+###############
+# configuration
+###############
 
 hashi_consul_start_service: true
 hashi_consul_version: latest
@@ -138,8 +156,8 @@ hashi_consul_data_dir: "/opt/consul"
 hashi_consul_extra_files: false
 hashi_consul_extra_files_src: "{{ sub_configuration_directories.consul_servers }}/config"
 hashi_consul_extra_files_dst: "{{ hashi_consul_config_dir }}/config"
-hashi_consul_envoy_install: false
-hashi_consul_envoy_version: latest
+hashi_consul_envoy_install: true
+hashi_consul_envoy_version: v1.27.2
 hashi_consul_configuration:
   domain: "{{ consul_domain }}"
   datacenter: "{{ consul_datacenter }}"
@@ -154,10 +172,8 @@ hashi_consul_configuration:
     to_json |
     from_json
     }}"
-  ui_config:
-    enabled: true
-  connect:
-    enabled: false
+  ui_config: "{{ consul_ui_configuration }}"
+  connect: "{{ consul_mesh_configuration }}"
   leave_on_terminate: true
   rejoin_after_leave: true
   enable_script_checks: true
@@ -196,6 +212,7 @@ vault_seal_configuration:
 #########
 # storage
 #########
+
 vault_storage_configuration:
   raft:
     path: "{{ hashi_vault_data_dir }}/data"
@@ -212,6 +229,7 @@ vault_storage_configuration:
 ##########
 # listener
 ##########
+
 vault_enable_tls: false
 vault_listener_configuration:
   tcp:
@@ -239,12 +257,14 @@ vault_service_registration_configuration:
 #########
 # plugins
 #########
+
 vault_enable_plugins: true
 vault_plugin_directory: "{{ hashi_vault_extra_files_dst }}/plugin"
 
 #########
 # logging
 #########
+
 vault_enable_log_to_file: false
 vault_logging_configuration:
   log_level: info
@@ -255,6 +275,7 @@ vault_logging_configuration:
 #########################
 # vault container volumes
 #########################
+
 extra_vault_container_volumes: []
 
 #####################
@@ -266,6 +287,7 @@ vault_extra_configuration: {}
 ###############
 # configuration
 ###############
+
 hashi_vault_start_service: true
 hashi_vault_version: latest
 hashi_vault_deploy_method: "{{ deployment_method }}"
