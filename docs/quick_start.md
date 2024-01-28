@@ -101,3 +101,13 @@ ansible-galaxy collection install ednxzu.hashistack:==<version>
 ```
 
 You should now have a directory under `./collections/ansible_collections/ednxzu/hashistack`
+
+8. Install the other dependencies required by `ednxzu.hashistack`
+
+```bash
+ansible-galaxy install -r ./collections/ansible_collections/ednxzu/hashistack/roles/requirements.yml
+```
+
+This will install roles that are not packaged with the collection, but are still required in order to run the playbooks.
+
+You should now have some roles inside `./roles/`.

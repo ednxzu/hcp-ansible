@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from __future__ import absolute_import, division, print_function
+from typing import Tuple
 
 __metaclass__ = type
 
@@ -80,6 +81,18 @@ else:
     HAS_HVAC = True
 
 
+def unseal_vault(api_url: str, key_shares: list) -> Tuple[bool, dict]:
+    client = hvac.Client(url=api_url)
+
+    try:
+        if client.sys.is_sealed():
+            return True, client.sys.submit_unseal_keys(key_shares)
+        else:
+            return False, {"message": "Vault is already unsealed"}
+    except hvac.exceptions.VaultError as e:
+        raise hvac.exceptions.VaultError(f"Vault unsealing failed: {str(e)}")
+
+
 def run_module():
     module_args = dict(
         api_url=dict(type="str", required=True),
@@ -87,15 +100,7 @@ def run_module():
     )
     result = dict(changed=False, state="")
 
-    module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
-
-    if not HAS_HVAC:
-        module.fail_json(
-            msg="Missing required library: hvac", exception=HVAC_IMPORT_ERROR
-        )
-
-    if module.check_mode:
-        module.exit_json(**result)
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=False)
 
     client = hvac.Client(url=module.params["api_url"])
 
@@ -103,15 +108,21 @@ def run_module():
         module.exit_json(**result)
 
     try:
-        key_shares = module.params["key_shares"]
-        vault_unseal_result = client.sys.submit_unseal_keys(key_shares)
-        result["state"] = vault_unseal_result
+        if not HAS_HVAC:
+            module.fail_json(
+                msg="Missing required library: hvac", exception=HVAC_IMPORT_ERROR
+            )
+        vault_unseal_result, response_data = unseal_vault(
+            api_url=module.params["api_url"], key_shares=module.params["key_shares"]
+        )
 
         if client.sys.is_sealed():
-            module.fail_json(msg="Vault unsealing failed.")
-        else:
-            result["changed"] = True
+            module.fail_json(
+                msg="Vault unsealing failed. The unseal operation worked, but the vault is still sealed, maybe you didn't pass enough keys ?"
+            )
 
+        result["changed"] = vault_unseal_result
+        result["state"] = response_data
     except hvac.exceptions.VaultError as ve:
         module.fail_json(msg=f"Vault unsealing failed: {ve}")
 

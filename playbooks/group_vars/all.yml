@@ -3,7 +3,7 @@
 # General options ########
 ##########################
 
-enable_vault: "no"
+enable_vault: "yes"
 enable_consul: "yes"
 enable_nomad: "no"
 
