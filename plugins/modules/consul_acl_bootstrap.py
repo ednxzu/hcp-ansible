@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from __future__ import absolute_import, division, print_function
+from typing import Tuple
 
 __metaclass__ = type
 
@@ -26,27 +27,38 @@ else:
     HAS_REQUESTS = True
 
 
-def bootstrap_acl(api_url):
-    # Your ACL bootstrap logic goes here
-    # You can use the 'requests' library to make HTTP requests to the Consul API
-    # For example:
-    # response = requests.post(api_url + '/v1/acl/bootstrap')
-    # Check the response and handle it accordingly
+def bootstrap_acl(scheme: str, api_addr: str, port: int) -> Tuple[bool, dict]:
+    url = f"{scheme}://" + f"{api_addr}:{port}" + "/v1/acl/bootstrap"
 
-    # For demonstration purposes, we assume the ACL bootstrap is successful
-    return True
+    # Make a PUT request to bootstrap the cluster
+    response = requests.put(url)
+
+    # Check the HTTP status code and handle the response
+    if response.status_code == 200:
+        return True, {
+            "accessor_id": response.json()["AccessorID"],
+            "secret_id": response.json()["SecretID"],
+        }
+    elif response.status_code == 403:
+        return False, "Cluster has already been bootstrapped"
+    else:
+        response.raise_for_status()  # Raise an exception for other status codes
 
 
 def run_module():
     module_args = dict(
-        api_url=dict(type="str", required=True),
+        api_addr=dict(type="str", required=True),
+        scheme=dict(type="str", required=False, default="http"),
+        port=dict(type="int", required=False, default=8500),
     )
 
     result = dict(changed=False, state="")
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
-    api_url = module.params["api_url"]
+    api_addr = module.params["api_addr"]
+    scheme = module.params["scheme"]
+    port = module.params["port"]
 
     try:
         if not HAS_REQUESTS:
@@ -57,21 +69,17 @@ def run_module():
             )
 
         # Perform ACL Bootstrap
-        acl_bootstrap_result = bootstrap_acl(api_url)
+        acl_bootstrap_result, response_data = bootstrap_acl(
+            api_addr=api_addr, port=port
+        )
 
-        if acl_bootstrap_result:
-            result["changed"] = True
-            result["state"] = "ACL Bootstrap successful"
-        else:
-            result["changed"] = False
-            result["state"] = "ACL Bootstrap failed"
+        result["changed"] = acl_bootstrap_result
+        result["state"] = response_data
 
         module.exit_json(**result)
 
-    except Exception as e:
-        module.fail_json(
-            msg="An error occurred during ACL Bootstrap: {}".format(str(e))
-        )
+    except requests.exceptions.RequestException as e:
+        module.fail_json(msg="Error during ACL Bootstrap: {}".format(str(e)))
 
 
 def main():

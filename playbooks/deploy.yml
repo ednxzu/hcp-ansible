@@ -35,6 +35,20 @@
           ansible.builtin.include_role:
             name: ednxzu.hashistack.hashicorp_consul
 
+        - name: "Initialize consul cluster"
+          ednxzu.hashistack.consul_acl_bootstrap:
+            api_addr: "{{ hashi_consul_configuration['advertise_addr'] }}"
+          run_once: true
+          delegate_to: "{{ groups['consul_servers'] | first }}"
+          retries: 5
+          delay: 5
+          register: _consul_init_secret
+          until: not _consul_init_secret.failed
+
+        - name: "Print consul token"
+          ansible.builtin.debug:
+            msg: "{{ _consul_init_secret }}"
+
     - name: "Vault"
       when:
         - enable_vault | bool
