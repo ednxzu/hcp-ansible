@@ -36,6 +36,8 @@ graph LR;
 
 ## Testing/Preprod deployment
 
+For testing, of pre-production deployments, running all services on the same nodes might be a good way to cut cost and/or save resources.
+
 ## Production deployment
 
 For production use, it is recommended to separate concerns as much as possible. This means that consul, vault and nomad, as well as the haproxy services, should be on different nodes altogether. The **client-facing** and **cluster-facing** interfaces should also be separated.
@@ -92,3 +94,4 @@ graph TD
 
   nomad -->|Service registration| consul
 ```
+> **Note**: you can substract the haproxy part if using an external load-balancing solution, like AWS ALB,or any other LB technology, for connecting to your platform.

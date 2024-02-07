@@ -31,12 +31,12 @@
       tags:
         - consul
       block:
-        - name: "Include ednxzu.hashistack.hashicorp_consul"
+        - name: "Include ednz_cloud.hashistack.hashicorp_consul"
           ansible.builtin.include_role:
-            name: ednxzu.hashistack.hashicorp_consul
+            name: ednz_cloud.hashistack.hashicorp_consul
 
         - name: "Initialize consul cluster" # noqa: run-once[task]
-          ednxzu.hashistack.consul_acl_bootstrap:
+          ednz_cloud.hashistack.consul_acl_bootstrap:
             api_addr: "{{ hashi_consul_configuration['advertise_addr'] }}"
           run_once: true
           delegate_to: "{{ groups['consul_servers'] | first }}"
@@ -67,12 +67,12 @@
       tags:
         - vault
       block:
-        - name: "Include ednxzu.hashistack.hashicorp_consul"
+        - name: "Include ednz_cloud.hashistack.hashicorp_consul"
           ansible.builtin.include_role:
-            name: ednxzu.hashistack.hashicorp_vault
+            name: ednz_cloud.hashistack.hashicorp_vault
 
         - name: "Initialize vault cluster"  # noqa: run-once[task]
-          ednxzu.hashistack.vault_init:
+          ednz_cloud.hashistack.vault_init:
             api_url: "{{ hashi_vault_configuration['api_addr'] }}"
             key_shares: "{{ vault_seal_configuration['key_shares'] }}"
             key_threshold: "{{ vault_seal_configuration['key_threshold'] }}"
@@ -98,7 +98,7 @@
             name: _vault_cluster_config
 
         - name: "Unseal the bootstrap node"  # noqa: run-once[task] no-handler
-          ednxzu.hashistack.vault_unseal:
+          ednz_cloud.hashistack.vault_unseal:
             api_url: "{{ hashi_vault_configuration['api_addr'] }}"
             key_shares: "{{ _vault_cluster_config['keys'] }}"
           run_once: true
@@ -107,7 +107,7 @@
           register: _vault_unseal_secret
 
         - name: "Unseal all vault nodes"
-          ednxzu.hashistack.vault_unseal:
+          ednz_cloud.hashistack.vault_unseal:
             api_url: "{{ hashi_vault_configuration['api_addr'] }}"
             key_shares: "{{ _vault_cluster_config['keys'] }}"
           retries: 5

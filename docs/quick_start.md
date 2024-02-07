@@ -94,18 +94,18 @@ collections_path = ./collections/
 inventory  = ./inventory/
 ```
 
-7. Install the `ednxzu.hashistack` ansible collection
+7. Install the `ednz_cloud.hashistack` ansible collection
 
 ```bash
-ansible-galaxy collection install ednxzu.hashistack:==<version>
+ansible-galaxy collection install ednz_cloud.hashistack:==<version>
 ```
 
-You should now have a directory under `./collections/ansible_collections/ednxzu/hashistack`
+You should now have a directory under `./collections/ansible_collections/ednz_cloud/hashistack`
 
-8. Install the other dependencies required by `ednxzu.hashistack`
+8. Install the other dependencies required by `ednz_cloud.hashistack`
 
 ```bash
-ansible-galaxy install -r ./collections/ansible_collections/ednxzu/hashistack/roles/requirements.yml
+ansible-galaxy install -r ./collections/ansible_collections/ednz_cloud/hashistack/roles/requirements.yml
 ```
 
 This will install roles that are not packaged with the collection, but are still required in order to run the playbooks.

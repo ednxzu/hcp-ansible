@@ -7,7 +7,7 @@ __metaclass__ = type
 
 DOCUMENTATION = r"""
 ---
-module: ednxzu.hashistack.vault_init
+module: ednz_cloud.hashistack.vault_init
 
 short_description: Manages the initialization of HashiCorp Vault.
 
@@ -38,7 +38,7 @@ options:
         default: 3
 
 author:
-    - Bertrand Lanson (@ednxzu)
+    - Bertrand Lanson (@ednz_cloud)
 """
 
 EXAMPLES = r"""

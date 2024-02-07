@@ -1,6 +1,6 @@
 # ignore molecule/testinfra pycache
 **/__pycache__
 .vscode
-roles/ednxzu.*
+roles/ednz_cloud.*
 vault_config
 consul_config

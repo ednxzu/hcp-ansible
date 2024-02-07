@@ -1,6 +1,6 @@
 # Deploying a Vault cluster
 
-This documentation explains each steps necessary to successfully deploy a Vault cluster using the ednxzu.hashistack ansible collection.
+This documentation explains each steps necessary to successfully deploy a Vault cluster using the ednz_cloud.hashistack ansible collection.
 
 ## Prerequisites
 

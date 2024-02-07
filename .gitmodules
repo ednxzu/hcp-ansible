@@ -1,6 +1,6 @@
 [submodule "roles/hashicorp_consul"]
 	path = roles/hashicorp_consul
-	url = https://github.com/ednxzu/hashicorp_consul
+	url = https://github.com/ednz-cloud/hashicorp_consul
 [submodule "roles/hashicorp_vault"]
 	path = roles/hashicorp_vault
-	url = https://github.com/ednxzu/hashicorp_vault
+	url = https://github.com/ednz-cloud/hashicorp_vault

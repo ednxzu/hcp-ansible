@@ -7,7 +7,7 @@
   tasks:
     - name: "Install hvac library with pip"
       ansible.builtin.include_role:
-        name: ednxzu.manage_pip_packages
+        name: ednz_cloud.manage_pip_packages
       vars:
         manage_pip_packages_install_prereqs: true
         manage_pip_packages_list:
@@ -16,9 +16,9 @@
             state: present
       when: "'vault_servers' in group_names"
 
-    - name: "Include ednxzu.install_docker"
+    - name: "Include ednz_cloud.install_docker"
       ansible.builtin.include_role:
-        name: ednxzu.install_docker
+        name: ednz_cloud.install_docker
       vars:
         install_docker_edition: ce
         install_docker_auto_update: false
@@ -31,3 +31,11 @@
           - "{{ ansible_user }}"
         install_docker_daemon_options: {}
       when: deployment_method == 'docker'
+
+    - name: "Ensure /etc/localtime exists"
+      ansible.builtin.file:
+        src: /etc/timezone
+        dest: /etc/localtime
+        owner: root
+        group: root
+        state: link

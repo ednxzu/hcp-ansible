@@ -19,6 +19,8 @@ api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
 # Helper options #########
 ##########################
 
+manage_pip_packages_allow_break_system_packages: true
+
 vault_versions:
   host: "{{ vault_version }}{% '*' if vault_version != 'latest' %}"
   docker: "{{ vault_version }}"
@@ -156,7 +158,7 @@ hashi_consul_data_dir: "/opt/consul"
 hashi_consul_extra_files: false
 hashi_consul_extra_files_src: "{{ sub_configuration_directories.consul_servers }}/config"
 hashi_consul_extra_files_dst: "{{ hashi_consul_config_dir }}/config"
-hashi_consul_envoy_install: true
+hashi_consul_envoy_install: false
 hashi_consul_envoy_version: v1.27.2
 hashi_consul_configuration:
   domain: "{{ consul_domain }}"

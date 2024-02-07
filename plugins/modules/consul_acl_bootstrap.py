@@ -7,7 +7,7 @@ __metaclass__ = type
 
 DOCUMENTATION = r"""
 ---
-module: ednxzu.hashistack.consul_acl_bootstrap
+module: ednz_cloud.hashistack.consul_acl_bootstrap
 
 short_description: Bootstraps ACL for a Consul cluster.
 
@@ -34,13 +34,13 @@ options:
         default: 8500
 
 author:
-    - Bertrand Lanson (@ednxzu)
+    - Bertrand Lanson (@ednz_cloud)
 """
 
 EXAMPLES = r"""
 # Example: Bootstrap ACL for a Consul cluster
 - name: Bootstrap ACL for Consul cluster
-  ednxzu.hashistack.consul_acl_bootstrap:
+  ednz_cloud.hashistack.consul_acl_bootstrap:
     api_addr: 127.0.0.1
     scheme: http
     port: 8500

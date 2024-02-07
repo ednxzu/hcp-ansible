@@ -1,3 +1,3 @@
-# Ansible Collection - ednxzu.hashistack
+# Ansible Collection - ednz_cloud.hashistack
 
 THIS REPOSITORY IS A WORK IN PROGRESS, IT IS NOWHERE NEAR FIT FOR PRODUCTION.
