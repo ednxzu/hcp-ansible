@@ -77,7 +77,3 @@
   when:
     - enable_vault | bool
     - "'vault_servers' in group_names"
-
-- name: "Debug"
-  ansible.builtin.debug:
-    msg: "{{ vault_cluster_name }}"

@@ -8,36 +8,67 @@ driver:
   provider:
     name: libvirt
 platforms:
+  - name: proxy01
+    box: generic/${MOLECULE_TEST_OS}
+    cpus: 2
+    memory: 4096
+    # interfaces:
+    #   - network_name: private_network
+    #     ip: 192.168.122.91
+    #     auto_config: true
+    groups:
+      - common
+      - haproxy_servers
+  - name: proxy02
+    box: generic/${MOLECULE_TEST_OS}
+    cpus: 2
+    memory: 4096
+    # interfaces:
+    #   - network_name: private_network
+    #     ip: 192.168.122.92
+    #     auto_config: true
+    groups:
+      - common
+      - haproxy_servers
   - name: hashistack01
     box: generic/${MOLECULE_TEST_OS}
     cpus: 4
     memory: 4096
+    # interfaces:
+    #   - network_name: private_network
+    #     ip: 192.168.122.101
+    #     auto_config: true
     groups:
+      - common
       - vault_servers
       - consul_servers
       - nomad_servers
-    children:
-      - common
   - name: hashistack02
     box: generic/${MOLECULE_TEST_OS}
     cpus: 4
     memory: 4096
+    # interfaces:
+    #   - network_name: private_network
+    #     ip: 192.168.122.102
+    #     auto_config: true
     groups:
+      - common
       - vault_servers
       - consul_servers
       - nomad_servers
-    children:
-      - common
   - name: hashistack03
     box: generic/${MOLECULE_TEST_OS}
     cpus: 4
     memory: 4096
+    # interfaces:
+    #   - network_name: private_network
+    #     ip: 192.168.122.103
+    #     auto_config: true
     groups:
+      - common
       - vault_servers
       - consul_servers
       - nomad_servers
-    children:
-      - common
 provisioner:
   name: ansible
   config_options:

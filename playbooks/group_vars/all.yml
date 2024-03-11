@@ -19,7 +19,7 @@ api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
 # Helper options #########
 ##########################
 
-manage_pip_packages_allow_break_system_packages: true
+# manage_pip_packages_allow_break_system_packages: true
 
 vault_versions:
   host: "{{ vault_version }}{% '*' if vault_version != 'latest' %}"
@@ -62,6 +62,7 @@ hashistack_supported_distribution_versions:
     - "22.04"
 
 preflight_enable_host_ntp_checks: true
+haproxy_required_ports: [80, 443]
 vault_required_ports: [8200, 8201]
 consul_required_ports: [8300, 8301, 8302, 8500, 8501, 8502, 8503, 8600]
 nomad_required_ports: []

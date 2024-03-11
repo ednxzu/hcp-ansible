@@ -111,10 +111,12 @@
             - enable_vault | bool
 
     - name: "Checking host OS distribution"
+      #TODO: This needs to work with debian and ubuntu, major version works for debian but not ubuntu, simple version works the other way around...
       ansible.builtin.assert:
         that:
           - "(ansible_facts.distribution | lower) in hashistack_supported_distributions"
-          - "(ansible_facts.distribution_major_version) in hashistack_supported_distribution_versions[(ansible_facts.distribution | lower)]"
+          - "(ansible_facts.distribution_version in hashistack_supported_distribution_versions[(ansible_facts.distribution | lower)]) or
+            (ansible_facts.distribution_major_version in hashistack_supported_distribution_versions[(ansible_facts.distribution | lower)])"
         fail_msg: >-
           Distribution: {{ ansible_facts.distribution }}
           Release: {{ ansible_facts.distribution_release }}
@@ -219,6 +221,26 @@
 
     - name: "Verify required ports"
       block:
+        - name: "Checking if haproxy ports are available"
+          when: inventory_hostname in groups['haproxy_servers']
+          block:
+            - name: "Checking if haproxy ports are available"
+              ansible.builtin.wait_for:
+                host: "{{ inventory_hostname }}"
+                port: "{{ item }}"
+                state: "stopped"
+                timeout: 5
+              loop: "{{ haproxy_required_ports }}"
+              ignore_errors: true
+              register: haproxy_port_results
+
+            - name: "Assert that haproxy ports are not currently in use"
+              ansible.builtin.assert:
+                that:
+                  - item.failed == false
+              with_items: "{{ haproxy_port_results.results }}"
+              when: haproxy_port_results.results | length > 0
+
         - name: "Checking if vault ports are available"
           when: inventory_hostname in groups['vault_servers']
           block:
@@ -282,3 +304,6 @@
             fail_msg: >-
               The python sdk for docker is really out of date, you need to install
               a more recent version of it in order to use this tool.
+
+    - name: "Fail"
+      fail:
