@@ -18,10 +18,6 @@
       ansible.builtin.debug:
         msg: "{{ hashi_vault_configuration }}"
 
-    - name: "Debug"
-      ansible.builtin.debug:
-        msg: "{{ hashi_consul_configuration }}"
-
     # - ansible.builtin.fail:
 
     - name: "Consul"
@@ -35,22 +31,39 @@
           ansible.builtin.include_role:
             name: ednz_cloud.hashistack.hashicorp_consul
 
+        - name: "Wait for consul cluster to initialize"  # noqa: run-once[task]
+          ansible.builtin.wait_for:
+            timeout: 15
+          delegate_to: localhost
+          run_once: true
+
         - name: "Initialize consul cluster" # noqa: run-once[task]
-          ednz_cloud.hashistack.consul_acl_bootstrap:
-            api_addr: "{{ hashi_consul_configuration['advertise_addr'] }}"
+          community.general.consul_acl_bootstrap:
+            host: "{{ hashi_consul_configuration['advertise_addr'] }}"
+            port: 8500
+            scheme: http
+            state: present
           run_once: true
           delegate_to: "{{ groups['consul_servers'] | first }}"
-          retries: 5
-          delay: 5
+          # retries: 5
+          # delay: 5
           register: _consul_init_secret
-          until: not _consul_init_secret.failed
+          # until: _consul_init_secret.result is defined
+          when: hashi_consul_configuration.acl.enabled
 
         - name: "Write consul configuration to file"  # noqa: run-once[task] no-handler
           ansible.builtin.copy:
-            content: "{{ _consul_init_secret.state | to_nice_yaml}}"
+            content: "{{
+              {
+                'root_token':{
+                  'accessor_id': _consul_init_secret.result.AccessorID,
+                  'secret_id': _consul_init_secret.result.SecretID
+                }
+              } | to_nice_yaml
+              }}"
             dest: "{{ sub_configuration_directories.consul_servers }}/consul_config"
             mode: '0644'
-          when: _consul_init_secret.changed
+          when: _consul_init_secret.result is defined
           run_once: true
           delegate_to: localhost
 
@@ -59,6 +72,54 @@
             file: "{{ sub_configuration_directories.consul_servers }}/consul_config"
             name: _consul_cluster_config
 
+        - name: "Create consul agents token"  # noqa: run-once[task] no-handler
+          # when:
+          #   - _consul_init_secret.changed
+          #   - consul_acl_configuration.enabled
+          run_once: true
+          delegate_to: localhost
+          block:
+            - name: "Create consul agent policy"
+              community.general.consul_policy:
+                host: "{{ hashi_consul_configuration['advertise_addr'] }}"
+                token: "{{ _consul_cluster_config.root_token.secret_id }}"
+                port: 8500
+                scheme: http
+                state: present
+                name: agents-policy
+                rules: "{{ consul_default_agent_policy }}"
+              register: _consul_agent_policy
+
+            - name: "Debug Policy"
+              ansible.builtin.debug:
+                msg: "{{ _consul_agent_policy }}"
+
+            # - fail:
+
+            - name: "Create consul agents token"
+              community.general.consul_token:
+                host: "localhost" # "{{ hashi_consul_configuration['advertise_addr'] }}"
+                token: "{{ _consul_cluster_config.root_token.secret_id }}"
+                port: 8500
+                scheme: http
+                state: present
+                local: true
+                policies:
+                  - id: _consul_agent_policy.policy.ID
+              register: _consul_agent_token
+
+            - name: "Write consul agents token to file"  # no-handler
+              ansible.builtin.copy:
+                content: "{{
+                  {
+                    'tokens':{
+                      'agent': _consul_agent_token.token.SecretID
+                    }
+                  } | to_nice_yaml
+                  }}"
+                dest: "{{ sub_configuration_directories.consul_servers }}/consul_config"
+                mode: '0644'
+              when: _consul_agent_token.changed
 
     - name: "Vault"
       when:

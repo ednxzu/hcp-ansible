@@ -67,9 +67,103 @@ vault_required_ports: [8200, 8201]
 consul_required_ports: [8300, 8301, 8302, 8500, 8501, 8502, 8503, 8600]
 nomad_required_ports: []
 
-##########################
-# Nomad options ##########
-##########################
+#####################################################
+#                                                   #
+#                HAProxy Configuration              #
+#                                                   #
+#####################################################
+
+deploy_haproxy_deploy_method: host # deployment method, either host or docker
+deploy_haproxy_version: "2.8"
+
+deploy_haproxy_env_variables: {}
+deploy_haproxy_start_service: true
+deploy_haproxy_cert_dir: ""
+deploy_haproxy_extra_container_volumes: []
+deploy_haproxy_global:
+  - log /dev/log local0
+  - log /dev/log local1 notice
+  - stats socket {{ deploy_haproxy_socket }} level admin
+  - chroot {{ deploy_haproxy_chroot }}
+  - daemon
+  - description hashistack haproxy
+
+deploy_haproxy_defaults:
+  - log global
+  - mode http
+  - option httplog
+  - option dontlognull
+  - timeout connect 5000
+  - timeout client  5000
+  - timeout server  5000
+
+deploy_haproxy_frontends:
+  []
+  # - name: default
+  #   options:
+  #     - description default frontend
+  #     - mode http
+  #     - bind :80
+  #     - default_backend default
+
+deploy_haproxy_backends:
+  []
+  # - name: default
+  #   options:
+  #     - description default backend
+  #     - option forwardfor
+  #     - option httpchk
+  #     - http-check send meth GET uri /
+  #     - server srv_nginx1 172.17.0.4:80 check inter 5s
+  #     - server srv_nginx2 172.17.0.3:80 check inter 5s
+
+deploy_haproxy_listen:
+  - name: monitoring
+    options:
+      - bind :9000
+      - mode http
+      - option httpchk
+      - stats enable
+      - stats uri /stats
+      - stats refresh 30s
+      - stats show-desc
+      - stats show-legends
+      - stats auth admin:password
+      - http-check send meth GET uri /health ver HTTP/1.1 hdr Host localhost
+      - http-check expect status 200
+      - acl health_check_ok nbsrv() ge 1
+      - monitor-uri /health
+      - http-request use-service prometheus-exporter if { path /metrics }
+
+deploy_keepalived_deploy_method: "host"
+deploy_keepalived_version: "latest"
+deploy_keepalived_start_service: true
+deploy_keepalived_env_variables: {}
+
+deploy_keepalived_vrrp_instance_name: "{{ ansible_hostname }}"
+deploy_keepalived_interface: "{{ ansible_default_ipv4.interface }}"
+deploy_keepalived_state: "BACKUP"
+deploy_keepalived_router_id: 50
+deploy_keepalived_priority: 100
+deploy_keepalived_advert_interval: 1
+deploy_keepalived_unicast_source: "{{ ansible_default_ipv4.address }}"
+deploy_keepalived_unicast_peers: []
+deploy_keepalived_auth_passwd: "password"
+deploy_keepalived_virtual_ips:
+  - 192.168.1.100/32
+deploy_keepalived_notify_script: notify.sh
+
+deploy_keepalived_custom_scripts_src:
+deploy_keepalived_extra_container_volumes: []
+
+deploy_keepalived_use_custom_config: false
+deploy_keepalived_custom_config_src:
+
+#####################################################
+#                                                   #
+#                Nomad Configuration                #
+#                                                   #
+#####################################################
 
 hashi_nomad_cni_plugins_install: true
 hashi_nomad_start_service: true
@@ -84,9 +178,11 @@ hashi_nomad_extra_files_src: /tmp/extra_files
 hashi_nomad_extra_files_dst: /etc/nomad.d/extra_files
 hashi_nomad_configuration: {}
 
-##########################
-# Consul options #########
-##########################
+#####################################################
+#                                                   #
+#                Consul Configuration               #
+#                                                   #
+#####################################################
 
 consul_domain: consul
 consul_datacenter: dc1
@@ -116,6 +212,17 @@ consul_acl_configuration:
   enabled: true
   default_policy: "deny" # can be allow or deny
   enable_token_persistence: true
+
+consul_default_agent_policy: |
+  agent_prefix "" {
+    policy = "write"
+  }
+  node_prefix "" {
+    policy = "write"
+  }
+  service_prefix "" {
+    policy = "read"
+  }
 
 ##########################
 # consul DNS configuration
@@ -202,9 +309,11 @@ hashi_consul_configuration:
 hashi_consul_configuration_string: |
   bootstrap_expect: {{ (groups['consul_servers'] | length) }}
 
-##########################
-# Vault options ##########
-##########################
+#####################################################
+#                                                   #
+#                Vault Configuration                #
+#                                                   #
+#####################################################
 
 vault_cluster_name: vault
 vault_enable_ui: true
