@@ -6,171 +6,24 @@
   gather_facts: true
   become: true
   tasks:
-    - name: "Debug"
-      ansible.builtin.debug:
-        msg: "{{ hashi_vault_configuration.listener }}"
-
     - name: "Import variables"
       ansible.builtin.import_tasks:
         file: tasks/load_vars.yml
 
-    - name: "Debug"
-      ansible.builtin.debug:
-        msg: "{{ hashi_vault_configuration }}"
-
-    # - ansible.builtin.fail:
-
-    - name: "Consul"
+    - name: "Deploy Consul"
+      ansible.builtin.import_tasks:
+        file: tasks/consul/consul_deploy.yml
       when:
         - enable_consul | bool
         - "'consul_servers' in group_names"
       tags:
         - consul
-      block:
-        - name: "Include ednz_cloud.hashistack.hashicorp_consul"
-          ansible.builtin.include_role:
-            name: ednz_cloud.hashistack.hashicorp_consul
 
-        - name: "Wait for consul cluster to initialize"  # noqa: run-once[task]
-          ansible.builtin.wait_for:
-            timeout: 15
-          delegate_to: localhost
-          run_once: true
-
-        - name: "Initialize consul cluster" # noqa: run-once[task]
-          community.general.consul_acl_bootstrap:
-            host: "{{ hashi_consul_configuration['advertise_addr'] }}"
-            port: 8500
-            scheme: http
-            state: present
-          run_once: true
-          delegate_to: "{{ groups['consul_servers'] | first }}"
-          # retries: 5
-          # delay: 5
-          register: _consul_init_secret
-          # until: _consul_init_secret.result is defined
-          when: hashi_consul_configuration.acl.enabled
-
-        - name: "Write consul configuration to file"  # noqa: run-once[task] no-handler
-          ansible.builtin.copy:
-            content: "{{
-              {
-                'root_token':{
-                  'accessor_id': _consul_init_secret.result.AccessorID,
-                  'secret_id': _consul_init_secret.result.SecretID
-                }
-              } | to_nice_yaml
-              }}"
-            dest: "{{ sub_configuration_directories.consul_servers }}/consul_config"
-            mode: '0644'
-          when: _consul_init_secret.result is defined
-          run_once: true
-          delegate_to: localhost
-
-        - name: "Load consul cluster variables"
-          ansible.builtin.include_vars:
-            file: "{{ sub_configuration_directories.consul_servers }}/consul_config"
-            name: _consul_cluster_config
-
-        - name: "Create consul agents token"  # noqa: run-once[task] no-handler
-          # when:
-          #   - _consul_init_secret.changed
-          #   - consul_acl_configuration.enabled
-          run_once: true
-          delegate_to: localhost
-          block:
-            - name: "Create consul agent policy"
-              community.general.consul_policy:
-                host: "{{ hashi_consul_configuration['advertise_addr'] }}"
-                token: "{{ _consul_cluster_config.root_token.secret_id }}"
-                port: 8500
-                scheme: http
-                state: present
-                name: agents-policy
-                rules: "{{ consul_default_agent_policy }}"
-              register: _consul_agent_policy
-
-            - name: "Debug Policy"
-              ansible.builtin.debug:
-                msg: "{{ _consul_agent_policy }}"
-
-            # - fail:
-
-            - name: "Create consul agents token"
-              community.general.consul_token:
-                host: "localhost" # "{{ hashi_consul_configuration['advertise_addr'] }}"
-                token: "{{ _consul_cluster_config.root_token.secret_id }}"
-                port: 8500
-                scheme: http
-                state: present
-                local: true
-                policies:
-                  - id: _consul_agent_policy.policy.ID
-              register: _consul_agent_token
-
-            - name: "Write consul agents token to file"  # no-handler
-              ansible.builtin.copy:
-                content: "{{
-                  {
-                    'tokens':{
-                      'agent': _consul_agent_token.token.SecretID
-                    }
-                  } | to_nice_yaml
-                  }}"
-                dest: "{{ sub_configuration_directories.consul_servers }}/consul_config"
-                mode: '0644'
-              when: _consul_agent_token.changed
-
-    - name: "Vault"
+    - name: "Deploy Vault"
+      ansible.builtin.import_tasks:
+        file: tasks/vault/vault_deploy.yml
       when:
         - enable_vault | bool
         - "'vault_servers' in group_names"
       tags:
         - vault
-      block:
-        - name: "Include ednz_cloud.hashistack.hashicorp_consul"
-          ansible.builtin.include_role:
-            name: ednz_cloud.hashistack.hashicorp_vault
-
-        - name: "Initialize vault cluster"  # noqa: run-once[task]
-          ednz_cloud.hashistack.vault_init:
-            api_url: "{{ hashi_vault_configuration['api_addr'] }}"
-            key_shares: "{{ vault_seal_configuration['key_shares'] }}"
-            key_threshold: "{{ vault_seal_configuration['key_threshold'] }}"
-          run_once: true
-          retries: 5
-          delay: 5
-          delegate_to: "{{ groups['vault_servers'] | first }}"
-          register: _vault_init_secret
-          until: not _vault_init_secret.failed
-
-        - name: "Write vault configuration to file"  # noqa: run-once[task] no-handler
-          ansible.builtin.copy:
-            content: "{{ _vault_init_secret.state | to_nice_yaml}}"
-            dest: "{{ sub_configuration_directories.vault_servers }}/vault_config"
-            mode: '0644'
-          when: _vault_init_secret.changed
-          run_once: true
-          delegate_to: localhost
-
-        - name: "Load vault cluster variables necessary for unseal operation"
-          ansible.builtin.include_vars:
-            file: "{{ sub_configuration_directories.vault_servers }}/vault_config"
-            name: _vault_cluster_config
-
-        - name: "Unseal the bootstrap node"  # noqa: run-once[task] no-handler
-          ednz_cloud.hashistack.vault_unseal:
-            api_url: "{{ hashi_vault_configuration['api_addr'] }}"
-            key_shares: "{{ _vault_cluster_config['keys'] }}"
-          run_once: true
-          delegate_to: "{{ groups['vault_servers'] | first }}"
-          when: _vault_init_secret.changed
-          register: _vault_unseal_secret
-
-        - name: "Unseal all vault nodes"
-          ednz_cloud.hashistack.vault_unseal:
-            api_url: "{{ hashi_vault_configuration['api_addr'] }}"
-            key_shares: "{{ _vault_cluster_config['keys'] }}"
-          retries: 5
-          delay: 5
-          register: _unseal_status

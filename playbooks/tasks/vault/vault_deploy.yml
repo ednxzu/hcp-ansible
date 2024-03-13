@@ -1,0 +1,50 @@
+- name: "Vault"
+  block:
+    - name: "Include ednz_cloud.hashistack.hashicorp_consul"
+      ansible.builtin.include_role:
+        name: ednz_cloud.hashistack.hashicorp_vault
+
+    - name: "Initialize vault cluster" # noqa: run-once[task]
+      ednz_cloud.hashistack.vault_init:
+        api_url: "{{ hashi_vault_configuration['api_addr'] }}"
+        key_shares: "{{ vault_seal_configuration['key_shares'] }}"
+        key_threshold: "{{ vault_seal_configuration['key_threshold'] }}"
+      run_once: true
+      retries: 5
+      delay: 5
+      delegate_to: "{{ groups['vault_servers'] | first }}"
+      register: _vault_init_secret
+      until: not _vault_init_secret.failed
+
+    - name: "Write vault configuration to file" # noqa: run-once[task] no-handler
+      ansible.builtin.copy:
+        content: "{{ _vault_init_secret.state | to_nice_yaml}}"
+        dest: "{{ sub_configuration_directories.vault_servers }}/vault_config.yml"
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "{{ lookup('env', 'USER') }}"
+        mode: "0644"
+      when: _vault_init_secret.changed
+      run_once: true
+      delegate_to: localhost
+
+    - name: "Load vault cluster variables necessary for unseal operation"
+      ansible.builtin.include_vars:
+        file: "{{ sub_configuration_directories.vault_servers }}/vault_config.yml"
+        name: _vault_cluster_config
+
+    - name: "Unseal the bootstrap node" # noqa: run-once[task] no-handler
+      ednz_cloud.hashistack.vault_unseal:
+        api_url: "{{ hashi_vault_configuration['api_addr'] }}"
+        key_shares: "{{ _vault_cluster_config['keys'] }}"
+      run_once: true
+      delegate_to: "{{ groups['vault_servers'] | first }}"
+      when: _vault_init_secret.changed
+      register: _vault_unseal_secret
+
+    - name: "Unseal all vault nodes"
+      ednz_cloud.hashistack.vault_unseal:
+        api_url: "{{ hashi_vault_configuration['api_addr'] }}"
+        key_shares: "{{ _vault_cluster_config['keys'] }}"
+      retries: 5
+      delay: 5
+      register: _unseal_status
