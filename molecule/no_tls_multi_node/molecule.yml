@@ -12,10 +12,11 @@ platforms:
     box: generic/${MOLECULE_TEST_OS}
     cpus: 2
     memory: 4096
-    # interfaces:
-    #   - network_name: private_network
-    #     ip: 192.168.122.91
-    #     auto_config: true
+    interfaces:
+      - network_name: private_network
+        ip: 192.168.100.91
+        auto_config: true
+        type: static
     groups:
       - common
       - haproxy_servers
@@ -23,10 +24,11 @@ platforms:
     box: generic/${MOLECULE_TEST_OS}
     cpus: 2
     memory: 4096
-    # interfaces:
-    #   - network_name: private_network
-    #     ip: 192.168.122.92
-    #     auto_config: true
+    interfaces:
+      - network_name: private_network
+        ip: 192.168.100.92
+        auto_config: true
+        type: static
     groups:
       - common
       - haproxy_servers
@@ -34,10 +36,11 @@ platforms:
     box: generic/${MOLECULE_TEST_OS}
     cpus: 4
     memory: 4096
-    # interfaces:
-    #   - network_name: private_network
-    #     ip: 192.168.122.101
-    #     auto_config: true
+    interfaces:
+      - network_name: private_network
+        ip: 192.168.100.101
+        auto_config: true
+        type: static
     groups:
       - common
       - vault_servers
@@ -47,10 +50,11 @@ platforms:
     box: generic/${MOLECULE_TEST_OS}
     cpus: 4
     memory: 4096
-    # interfaces:
-    #   - network_name: private_network
-    #     ip: 192.168.122.102
-    #     auto_config: true
+    interfaces:
+      - network_name: private_network
+        ip: 192.168.100.102
+        auto_config: true
+        type: static
     groups:
       - common
       - vault_servers
@@ -60,10 +64,11 @@ platforms:
     box: generic/${MOLECULE_TEST_OS}
     cpus: 4
     memory: 4096
-    # interfaces:
-    #   - network_name: private_network
-    #     ip: 192.168.122.103
-    #     auto_config: true
+    interfaces:
+      - network_name: private_network
+        ip: 192.168.100.103
+        auto_config: true
+        type: static
     groups:
       - common
       - vault_servers

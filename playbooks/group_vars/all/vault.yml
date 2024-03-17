@@ -1,0 +1,111 @@
+---
+#####################################################
+#                                                   #
+#                Vault Configuration                #
+#                                                   #
+#####################################################
+
+vault_cluster_name: vault
+vault_enable_ui: true
+vault_seal_configuration:
+  key_shares: 3
+  key_threshold: 2
+
+#########
+# storage
+#########
+
+vault_storage_configuration:
+  raft:
+    path: "{{ hashi_vault_data_dir }}/data"
+    node_id: "{{ ansible_hostname }}"
+    retry_join: |
+      [
+      {% for host in groups['vault_servers'] %}
+        {
+          'leader_api_addr': 'http://{{ hostvars[host].api_interface_address }}:8200'
+        }{% if not loop.last %},{% endif %}
+      {% endfor %}
+      ]
+
+##########
+# listener
+##########
+
+vault_enable_tls: false
+vault_listener_configuration:
+  tcp:
+    address: "0.0.0.0:8200"
+    tls_disable: true
+
+vault_tls_listener_configuration:
+  tcp:
+    tls_disable: false
+    tls_cert_file: "{{ hashi_vault_extra_files_dst }}/tls/cert.pem"
+    tls_key_file: "{{ hashi_vault_extra_files_dst }}/tls/key.pem"
+
+vault_extra_listener_configuration: {}
+
+######################
+# service registration
+######################
+
+vault_enable_service_registration: false
+vault_service_registration_configuration:
+  consul:
+    address: "127.0.0.1:8500"
+    scheme: "http"
+
+#########
+# plugins
+#########
+
+vault_enable_plugins: true
+vault_plugin_directory: "{{ hashi_vault_extra_files_dst }}/plugin"
+
+#########
+# logging
+#########
+
+vault_enable_log_to_file: false
+vault_logging_configuration:
+  log_level: info
+  log_format: standard
+  log_rotate_duration: 24h
+  log_rotate_max_files: 30
+
+#########################
+# vault container volumes
+#########################
+
+extra_vault_container_volumes: []
+
+#####################
+# extra configuration
+#####################
+
+vault_extra_configuration: {}
+
+###############
+# configuration
+###############
+
+hashi_vault_start_service: true
+hashi_vault_version: latest
+hashi_vault_deploy_method: "{{ deployment_method }}"
+hashi_vault_env_variables: {}
+hashi_vault_config_dir: "/etc/vault.d"
+hashi_vault_data_dir: "/opt/vault"
+hashi_vault_extra_files: true
+hashi_vault_extra_files_src: "{{ sub_configuration_directories.vault_servers }}/config"
+hashi_vault_extra_files_dst: "{{ hashi_vault_config_dir }}/config"
+hashi_vault_extra_container_volumes: "{{ default_container_extra_volumes | union(extra_vault_container_volumes) | unique }}"
+hashi_vault_configuration:
+  cluster_name: "{{ vault_cluster_name }}"
+  cluster_addr: "http://{{ api_interface_address }}:8201"
+  api_addr: "http://{{ api_interface_address }}:8200"
+  ui: "{{ vault_enable_ui }}"
+  disable_mlock: false
+  disable_cache: false
+  listener: "{{ vault_listener_configuration }}"
+  storage: "{{ vault_storage_configuration }}"

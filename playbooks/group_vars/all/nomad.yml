@@ -1,0 +1,18 @@
+#####################################################
+#                                                   #
+#                Nomad Configuration                #
+#                                                   #
+#####################################################
+
+hashi_nomad_cni_plugins_install: true
+hashi_nomad_start_service: true
+hashi_nomad_cni_plugins_version: latest
+hashi_nomad_cni_plugins_install_path: /opt/cni/bin
+hashi_nomad_version: latest
+hashi_nomad_deploy_method: host # deployment method, either host or docker
+hashi_nomad_env_variables: {}
+hashi_nomad_data_dir: /opt/nomad
+hashi_nomad_extra_files: false
+hashi_nomad_extra_files_src: /tmp/extra_files
+hashi_nomad_extra_files_dst: /etc/nomad.d/extra_files
+hashi_nomad_configuration: {}

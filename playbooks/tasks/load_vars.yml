@@ -77,3 +77,10 @@
   when:
     - enable_vault | bool
     - "'vault_servers' in group_names"
+
+- debug:
+    msg: "{{ deploy_haproxy_frontends }}"
+
+- debug:
+    msg: "{{ deploy_haproxy_backends }}"
+# - fail:

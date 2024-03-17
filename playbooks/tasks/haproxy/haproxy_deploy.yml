@@ -1,0 +1,9 @@
+- name: "HAProxy"
+  block:
+    - name: "Include ednz_cloud.deploy_haproxy"
+      ansible.builtin.include_role:
+        name: ednz_cloud.deploy_haproxy
+
+    - name: "Include ednz_cloud.deploy_keepalived"
+      ansible.builtin.include_role:
+        name: ednz_cloud.deploy_keepalived

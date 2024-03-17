@@ -10,6 +10,15 @@
       ansible.builtin.import_tasks:
         file: tasks/load_vars.yml
 
+    - name: "Deploy Haproxy & Keepalived"
+      ansible.builtin.import_tasks:
+        file: tasks/haproxy/haproxy_deploy.yml
+      when:
+        - enable_haproxy | bool
+        - "'haproxy_servers' in group_names"
+      tags:
+        - haproxy
+
     - name: "Deploy Consul"
       ansible.builtin.import_tasks:
         file: tasks/consul/consul_deploy.yml

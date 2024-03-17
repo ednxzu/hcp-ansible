@@ -1,0 +1,78 @@
+---
+##########################
+# General options ########
+##########################
+
+enable_haproxy: "yes"
+enable_vault: "no"
+enable_consul: "yes"
+enable_nomad: "no"
+
+nomad_version: latest
+consul_version: latest
+vault_version: latest
+
+deployment_method: "docker"
+
+hashistack_external_vip_interface: "eth0"
+hashistack_external_vip_addr: "192.168.121.100"
+hashistack_internal_vip_interface: "eth1"
+# hashistack_internal_vip_interface: "{{ hashistack_external_vip_interface }}"
+hashistack_internal_vip_addr: "192.168.100.100"
+# hashistack_internal_vip_addr: "{{ hashistack_external_vip_addr }}"
+
+# api_interface: "eth0"
+api_interface: "eth1"
+api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
+
+##########################
+# Helper options #########
+##########################
+
+# manage_pip_packages_allow_break_system_packages: true
+
+vault_versions:
+  host: "{{ vault_version }}{% '*' if vault_version != 'latest' %}"
+  docker: "{{ vault_version }}"
+
+consul_versions:
+  host: "{{ consul_version }}{% '*' if consul_version != 'latest' %}"
+  docker: "{{ consul_version }}"
+
+nomad_versions:
+  host: "{{ nomad_version }}{% '*' if nomad_version != 'latest' %}"
+  docker: "{{ nomad_version }}"
+
+configuration_directory: "{{ lookup('env', 'PWD') }}/etc/hashistack"
+sub_configuration_directories:
+  nomad_servers: "{{ configuration_directory }}/nomad_servers"
+  vault_servers: "{{ configuration_directory }}/vault_servers"
+  consul_servers: "{{ configuration_directory }}/consul_servers"
+
+configuration_global_vars_file: "globals.yml"
+
+default_container_extra_volumes:
+  - "/etc/timezone:/etc/timezone"
+  - "/etc/localtime:/etc/localtime"
+
+#################
+# Support options
+#################
+
+hashistack_supported_distributions:
+  - ubuntu
+  - debian
+
+hashistack_supported_distribution_versions:
+  debian:
+    - "11"
+    - "12"
+  ubuntu:
+    - "20.04"
+    - "22.04"
+
+preflight_enable_host_ntp_checks: true
+haproxy_required_ports: [80, 443]
+vault_required_ports: [8200, 8201]
+consul_required_ports: [8300, 8301, 8302, 8500, 8501, 8502, 8503, 8600]
+nomad_required_ports: []

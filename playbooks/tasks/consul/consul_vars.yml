@@ -43,12 +43,6 @@
         hashi_consul_configuration: "{{ hashi_consul_configuration | default({}) | combine(_config_to_merge, recursive=true) }}"
       when: _consul_cluster_config.tokens is defined
 
-- name: Debug token config
-  ansible.builtin.debug:
-    msg: "{{ hashi_consul_configuration }}"
-
-# - fail:
-
 - name: "Consul | Merge extra configuration settings"
   vars:
     _config_to_merge: "{{ consul_extra_configuration }}"

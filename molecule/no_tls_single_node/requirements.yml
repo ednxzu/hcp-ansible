@@ -3,8 +3,11 @@
 roles:
   - name: ednz_cloud.manage_repositories
   - name: ednz_cloud.manage_apt_packages
+  - name: ednz_cloud.manage_pip_packages
   - name: ednz_cloud.install_docker
   - name: ednz_cloud.docker_systemd_service
+  - name: ednz_cloud.deploy_haproxy
+  - name: ednz_cloud.deploy_keepalived
 
 collections:
   - name: ednz_cloud.hashistack
