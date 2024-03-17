@@ -14,6 +14,10 @@ vault_version: latest
 
 deployment_method: "docker"
 
+consul_fqdn: consul.ednz.lab
+vault_fqdn: vault.ednz.lab
+nomad_fqdn: nomad.ednz.lab
+
 hashistack_external_vip_interface: "eth0"
 hashistack_external_vip_addr: "192.168.121.100"
 hashistack_internal_vip_interface: "eth1"
@@ -32,15 +36,15 @@ api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
 # manage_pip_packages_allow_break_system_packages: true
 
 vault_versions:
-  host: "{{ vault_version }}{% '*' if vault_version != 'latest' %}"
+  host: "{{ vault_version if vault_version != 'latest' else vault_version + '*' }}"
   docker: "{{ vault_version }}"
 
 consul_versions:
-  host: "{{ consul_version }}{% '*' if consul_version != 'latest' %}"
+  host: "{{ consul_version if consul_version != 'latest' else consul_version + '*' }}"
   docker: "{{ consul_version }}"
 
 nomad_versions:
-  host: "{{ nomad_version }}{% '*' if nomad_version != 'latest' %}"
+  host: "{{ nomad_version if nomad_version != 'latest' else nomad_version + '*' }}"
   docker: "{{ nomad_version }}"
 
 configuration_directory: "{{ lookup('env', 'PWD') }}/etc/hashistack"

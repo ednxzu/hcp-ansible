@@ -69,7 +69,7 @@
     file: "consul/consul_vars.yml"
   when:
     - enable_consul | bool
-    - "'consul_servers' in group_names"
+    - "('consul_servers' in group_names) or ('consul_agents' in group_names)"
 
 - name: "Merge vault configurations"
   ansible.builtin.import_tasks:

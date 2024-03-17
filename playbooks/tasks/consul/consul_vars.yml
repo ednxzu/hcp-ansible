@@ -8,7 +8,9 @@
       hashi_consul_configuration |
       combine(_config_to_merge|from_yaml)
       }}"
-  when: hashi_consul_configuration_string is defined
+  when:
+    - hashi_consul_configuration_string is defined
+    - "'consul_servers' in group_names"
 
 - name: "Consul | Merge addresses configuration"
   vars:
@@ -34,7 +36,7 @@
         name: _consul_cluster_config
       when: _consul_config_file.stat.exists
 
-    - name: "Merge token configuration"
+    - name: "Consul | Merge token configuration"
       vars:
         _config_to_merge:
           acl:
@@ -42,6 +44,16 @@
       ansible.builtin.set_fact:
         hashi_consul_configuration: "{{ hashi_consul_configuration | default({}) | combine(_config_to_merge, recursive=true) }}"
       when: _consul_cluster_config.tokens is defined
+
+    - name: "Consul | Create secrets file if not present"
+      ansible.builtin.file:
+        path: "{{ sub_configuration_directories.consul_servers }}/consul_config.yml"
+        state: touch
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "{{ lookup('env', 'USER') }}"
+        mode: "0644"
+      run_once: true
+      when: not _consul_config_file.stat.exists
 
 - name: "Consul | Merge extra configuration settings"
   vars:

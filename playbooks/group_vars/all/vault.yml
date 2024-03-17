@@ -91,7 +91,7 @@ vault_extra_configuration: {}
 ###############
 
 hashi_vault_start_service: true
-hashi_vault_version: latest
+hashi_vault_version: "{{ vault_versions[deployment_method] }}"
 hashi_vault_deploy_method: "{{ deployment_method }}"
 hashi_vault_env_variables: {}
 hashi_vault_config_dir: "/etc/vault.d"

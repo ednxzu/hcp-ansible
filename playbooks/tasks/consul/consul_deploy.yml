@@ -25,8 +25,9 @@
       when: hashi_consul_configuration.acl.enabled
 
     - name: "Write consul configuration to file" # noqa: run-once[task] no-handler
-      ansible.builtin.copy:
-        content: "{{
+      ansible.builtin.blockinfile:
+        marker: "## -- {root_token} ANSIBLE MANAGED BLOCK ##"
+        block: "{{
           {
           'root_token':{
           'accessor_id': _consul_init_secret.result.AccessorID,
@@ -34,9 +35,7 @@
           }
           } | to_nice_yaml
           }}"
-        dest: "{{ sub_configuration_directories.consul_servers }}/consul_config.yml"
-        owner: "{{ lookup('env', 'USER') }}"
-        group: "{{ lookup('env', 'USER') }}"
+        path: "{{ sub_configuration_directories.consul_servers }}/consul_config.yml"
         mode: "0644"
       when: _consul_init_secret.result is defined
       run_once: true

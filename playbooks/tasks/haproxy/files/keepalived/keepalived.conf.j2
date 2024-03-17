@@ -1,0 +1,50 @@
+# {{ ansible_managed }}
+global_defs {
+  script_user keepalived_script
+  enable_script_security
+}
+
+vrrp_script chk_haproxy{
+  script "/etc/keepalived/scripts.d/chk_haproxy.sh"
+  interval 3
+  weight 0
+  rise 6
+  fall 1
+}
+
+vrrp_instance {{ deploy_keepalived_vrrp_instance_name }} {
+  interface {{ deploy_keepalived_interface }}
+
+  state {{ deploy_keepalived_state }}
+  virtual_router_id {{ deploy_keepalived_router_id }}
+  priority {{ deploy_keepalived_priority }}
+  advert_int {{ deploy_keepalived_advert_interval }}
+
+  nopreempt
+
+{% if deploy_keepalived_unicast_peers %}
+  unicast_src_ip {{ deploy_keepalived_unicast_source }}
+  unicast_peer {
+{% for peer in deploy_keepalived_unicast_peers %}
+    {{ peer }}
+{% endfor %}
+  }
+{% endif %}
+
+  authentication {
+    auth_type PASS
+    auth_pass {{ deploy_keepalived_auth_passwd }}
+  }
+
+  virtual_ipaddress {
+{% for vip in deploy_keepalived_virtual_ips %}
+    {{ vip }}
+{% endfor %}
+  }
+
+  track_script {
+    chk_haproxy
+  }
+
+  notify {{ deploy_keepalived_scripts_dir }}/{{ deploy_keepalived_notify_script }}
+}

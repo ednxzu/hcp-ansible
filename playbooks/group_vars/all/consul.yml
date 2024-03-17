@@ -1,7 +1,7 @@
 ---
 #####################################################
 #                                                   #
-#                Consul Configuration               #
+#                Editable                           #
 #                                                   #
 #####################################################
 
@@ -11,40 +11,81 @@ consul_primary_datacenter: dc1
 consul_leave_on_terminate: true
 consul_rejoin_after_leave: true
 consul_enable_script_checks: true
+consul_gossip_encryption_key: "{{ 'mysupersecretgossipencryptionkey'|b64encode }}"
 
-########################
-# consul haproxy backend
-########################
+################################
+# consul address configuration #
+################################
+
+consul_address_configuration:
+  # The address to which Consul will bind client interfaces,
+  # including the HTTP and DNS servers.
+  client_addr: "0.0.0.0"
+  # The address that should be bound to for internal cluster communications.
+  bind_addr: "{{ api_interface_address }}"
+  # The advertise address is used to change the address that we advertise to other nodes in the cluster.
+  advertise_addr: "{{ api_interface_address }}"
+
+############################
+# consul ACL configuration #
+############################
+
+consul_acl_configuration:
+  enabled: true
+  default_policy: "deny" # can be allow or deny
+  enable_token_persistence: true
+
+############################
+# consul DNS configuration #
+############################
+
+consul_dns_configuration:
+  allow_stale: true
+  enable_truncate: true
+  only_passing: true
+
+###########################
+# consul ui configuration #
+###########################
+
+consul_ui_configuration:
+  enabled: "{{ 'consul_servers' in group_names }}"
+
+#####################################
+# consul service mesh configuration #
+#####################################
+
+consul_mesh_configuration:
+  enabled: true
+
+#######################
+# extra configuration #
+#######################
+
+consul_extra_configuration: {}
+
+#####################################################
+#                                                   #
+#                Non-Editable                       #
+#                                                   #
+#####################################################
+
+##########################
+# consul haproxy backend #
+##########################
+
 consul_haproxy_frontends:
-  - name: consul_internal
-    options:
-      - description consul internal gossip frontend
-      - mode tcp
-      - option tcplog
-      - bind :{{ hashi_consul_configuration.ports.serf_lan }}
-      - default_backend consul_internal
   - name: consul_external
     options:
       - description consul external http frontend
       - mode http
       - bind :80
-      - default_backend consul_external
+      - acl is_consul hdr(host) -i {{ consul_fqdn }}
+      - use_backend consul_external if is_consul
 
 consul_haproxy_backends:
-  - name: consul_internal
-    options: "{{ consul_internal_backend_options + consul_internal_backend_servers }}"
   - name: consul_external
     options: "{{ consul_external_backend_options + consul_external_backend_servers }}"
-
-consul_internal_backend_options:
-  - description consul internal gossip backend
-
-consul_internal_backend_servers: |
-  [
-    {% for host in groups['consul_servers'] %}
-      'server {{ hostvars[host].api_interface_address }} {{ hostvars[host].api_interface_address }}:{{ hashi_consul_configuration.ports.serf_lan }} check inter 3s'{% if not loop.last %},{% endif %}
-    {% endfor %}
-  ]
 
 consul_external_backend_options:
   - description consul external http backend
@@ -59,27 +100,9 @@ consul_external_backend_servers: |
     {% endfor %}
   ]
 
-##############################
-# consul address configuration
-##############################
-
-consul_address_configuration:
-  # The address to which Consul will bind client interfaces,
-  # including the HTTP and DNS servers.
-  client_addr: "0.0.0.0"
-  # The address that should be bound to for internal cluster communications.
-  bind_addr: "{{ api_interface_address }}"
-  # The advertise address is used to change the address that we advertise to other nodes in the cluster.
-  advertise_addr: "{{ api_interface_address }}"
-
-##########################
-# consul ACL configuration
-##########################
-
-consul_acl_configuration:
-  enabled: true
-  default_policy: "deny" # can be allow or deny
-  enable_token_persistence: true
+############################
+# consul ACL configuration #
+############################
 
 consul_default_agent_policy: |
   agent_prefix "" {
@@ -92,41 +115,12 @@ consul_default_agent_policy: |
     policy = "read"
   }
 
-##########################
-# consul DNS configuration
-##########################
-
-consul_dns_configuration:
-  allow_stale: true
-  enable_truncate: true
-  only_passing: true
-
 #########################
-# consul ui configuration
+# consul role variables #
 #########################
-
-consul_ui_configuration:
-  enabled: true
-
-###################################
-# consul service mesh configuration
-###################################
-
-consul_mesh_configuration:
-  enabled: true
-
-#####################
-# extra configuration
-#####################
-
-consul_extra_configuration: {}
-
-###############
-# configuration
-###############
 
 hashi_consul_start_service: true
-hashi_consul_version: latest
+hashi_consul_version: "{{ consul_versions[deployment_method] }}"
 hashi_consul_deploy_method: "{{ deployment_method }}"
 hashi_consul_env_variables: {}
 hashi_cosul_config_dir: "/etc/consul.d"
@@ -141,7 +135,7 @@ hashi_consul_configuration:
   datacenter: "{{ consul_datacenter }}"
   primary_datacenter: "{{ consul_primary_datacenter }}"
   data_dir: "{{ hashi_consul_data_dir }}"
-  encrypt: "" # "{{ 'mysupersecretgossipencryptionkey'|b64encode }}"
+  encrypt: "{{ consul_gossip_encryption_key }}"
   server: "{{ 'consul_servers' in group_names }}"
   retry_join: "{{
     groups['consul_servers'] |
@@ -152,9 +146,9 @@ hashi_consul_configuration:
     }}"
   ui_config: "{{ consul_ui_configuration }}"
   connect: "{{ consul_mesh_configuration }}"
-  leave_on_terminate: true
-  rejoin_after_leave: true
-  enable_script_checks: true
+  leave_on_terminate: "{{ consul_leave_on_terminate }}"
+  rejoin_after_leave: "{{ consul_rejoin_after_leave }}"
+  enable_script_checks: "{{ consul_enable_script_checks }}"
   enable_syslog: "{{ deployment_method == 'host' }}"
   log_level: INFO
   acl: "{{ consul_acl_configuration }}"
