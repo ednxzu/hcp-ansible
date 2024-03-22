@@ -7,3 +7,14 @@
     - name: "Include ednz_cloud.deploy_keepalived"
       ansible.builtin.include_role:
         name: ednz_cloud.deploy_keepalived
+
+    - name: "Register haproxy services in consul"
+      when: enable_consul | bool
+      block:
+        - name: "Register haproxy services in consul"
+          community.general.consul:
+            token: "{{ _consul_cluster_config.root_token.secret_id }}"
+            service_name: haproxy
+            service_port: 80
+            interval: 20s
+            http: http://localhost:9000/health

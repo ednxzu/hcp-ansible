@@ -55,6 +55,7 @@ vault_service_registration_configuration:
   consul:
     address: "127.0.0.1:8500"
     scheme: "http"
+    token: ""
 
 #########
 # plugins
