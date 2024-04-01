@@ -16,7 +16,7 @@ First, in order to deploy the HAproxy frontends, you need to enable the deployme
 enable_haproxy: "yes"
 ```
 
-You can also configure the version of haproxy you would like to use. This has very little impact, and should most likely be left outouched to whatever the collection version is defaulting to (which is the version that it is tested against).
+You can also configure the version of haproxy you would like to use. This has very little impact, and should most likely be left untouched to whatever the collection version is defaulting to (which is the version that it is tested against).
 
 ```yaml
 haproxy_version: "2.8"
