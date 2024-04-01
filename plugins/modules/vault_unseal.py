@@ -116,7 +116,7 @@ def run_module():
             api_url=module.params["api_url"], key_shares=module.params["key_shares"]
         )
 
-        if client.sys.is_sealed():
+        if hvac.Client(url=module.params["api_url"]).sys.is_sealed():
             module.fail_json(
                 msg="Vault unsealing failed. The unseal operation worked, but the vault is still sealed, maybe you didn't pass enough keys ?"
             )

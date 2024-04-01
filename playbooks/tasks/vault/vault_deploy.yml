@@ -1,3 +1,4 @@
+---
 - name: "Vault"
   block:
     - name: "Include ednz_cloud.hashistack.hashicorp_consul"
@@ -47,4 +48,5 @@
         key_shares: "{{ _vault_cluster_config['keys'] }}"
       retries: 5
       delay: 5
+      until: _unseal_status.changed or not _unseal_status.failed
       register: _unseal_status

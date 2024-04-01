@@ -1,3 +1,4 @@
+---
 - name: "Consul"
   block:
     - name: "Include ednz_cloud.hashistack.hashicorp_consul"
@@ -5,10 +6,16 @@
         name: ednz_cloud.hashistack.hashicorp_consul
 
     - name: "Wait for consul cluster to initialize" # noqa: run-once[task]
-      ansible.builtin.wait_for:
-        timeout: 15
-      delegate_to: localhost
-      run_once: true
+      ansible.builtin.uri:
+        url: "http://{{ api_interface_address }}:8500"
+        validate_certs: no
+        return_content: yes
+        status_code:
+          - 200
+      until: uri_output.status == 200
+      retries: 24
+      delay: 5
+      register: uri_output
 
     - name: "Initialize consul cluster" # noqa: run-once[task]
       community.general.consul_acl_bootstrap:
@@ -18,10 +25,7 @@
         state: present
       run_once: true
       delegate_to: "{{ groups['consul_servers'] | first }}"
-      # retries: 5
-      # delay: 5
       register: _consul_init_secret
-      # until: _consul_init_secret.result is defined
       when: hashi_consul_configuration.acl.enabled
 
     - name: "Write consul configuration to file" # noqa: run-once[task] no-handler

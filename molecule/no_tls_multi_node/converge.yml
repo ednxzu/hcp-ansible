@@ -1,3 +1,6 @@
 ---
+# - name: Include a playbook from a collection
+#   ansible.builtin.import_playbook: ednz_cloud.hashistack.generate_certs.yml
+
 - name: Include a playbook from a collection
   ansible.builtin.import_playbook: ednz_cloud.hashistack.deploy.yml

@@ -1,0 +1,60 @@
+---
+# hashistack deployment playbook
+- name: "Generate certificates"
+  hosts: all
+  strategy: linear
+  gather_facts: true
+  become: true
+  tasks:
+    - name: "Generate self-signed certificates"  # noqa: run-once[task]
+      delegate_to: localhost
+      run_once: true
+      block:
+        - name: "Create temporary cert directory in {{ sub_configuration_directories['certificates'] }}"
+          ansible.builtin.file:
+            path: "{{ sub_configuration_directories['certificates'] }}/external"
+            state: directory
+            owner: "{{ lookup('env', 'USER') }}"
+            group: "{{ lookup('env', 'USER') }}"
+            mode: "0755"
+
+        - name: "Generate self-signed certificate"
+          block:
+            - name: "Create private keys"
+              community.crypto.openssl_privatekey:
+                path: "{{ sub_configuration_directories['certificates'] }}/external/{{ item.fqdn }}.pem.key"
+                owner: "{{ lookup('env', 'USER') }}"
+                group: "{{ lookup('env', 'USER') }}"
+              loop:
+                - name: nomad
+                  fqdn: "{{ nomad_fqdn }}"
+                - name: vault
+                  fqdn: "{{ vault_fqdn }}"
+                - name: consul
+                  fqdn: "{{ consul_fqdn }}"
+
+            - name: "Create certificate signing request"
+              community.crypto.openssl_csr_pipe:
+                privatekey_path: "{{ sub_configuration_directories['certificates'] }}/external/{{ item.fqdn }}.pem.key"
+                common_name: "{{ item.fqdn }}"
+                organization_name: Ansible, Inc.
+              register: csr
+              loop:
+                - name: nomad
+                  fqdn: "{{ nomad_fqdn }}"
+                - name: vault
+                  fqdn: "{{ vault_fqdn }}"
+                - name: consul
+                  fqdn: "{{ consul_fqdn }}"
+
+            - name: "Create self-signed certificate from CSR"
+              community.crypto.x509_certificate:
+                path: "{{ sub_configuration_directories['certificates'] }}/external/{{ item.item.fqdn }}.pem"
+                csr_content: "{{ item.csr }}"
+                privatekey_path: "{{ sub_configuration_directories['certificates'] }}/external/{{ item.item.fqdn }}.pem.key"
+                provider: selfsigned
+                owner: "{{ lookup('env', 'USER') }}"
+                group: "{{ lookup('env', 'USER') }}"
+              loop: "{{ csr.results }}"
+
+            - fail:
