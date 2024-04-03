@@ -31,6 +31,24 @@ vault_external_backend_servers: |
     {% endfor %}
   ]
 
+######################
+# vault internal tls #
+######################
+
+vault_certificates_directory: "{{ hashi_vault_config_dir }}/tls"
+vault_certificates_extra_files_dir:
+  - src: "{{ sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}"
+    dest: "{{ hashi_vault_config_dir }}/tls/cert"
+
+#################
+# vault plugins #
+#################
+
+vault_plugin_directory: "{{ hashi_vault_config_dir }}/plugin"
+vault_plugin_extra_files_dir:
+  - src: "{{ sub_configuration_directories['vault_servers'] }}/plugin"
+    dest: "{{ hashi_vault_config_dir }}/plugin"
+
 ########################
 # vault role variables #
 ########################
@@ -42,6 +60,12 @@ hashi_vault_env_variables: {}
 hashi_vault_config_dir: "/etc/vault.d"
 hashi_vault_data_dir: "/opt/vault"
 hashi_vault_extra_files: true
+hashi_vault_extra_files_list: "{{ ([] +
+  (vault_certificates_extra_files_dir if vault_enable_tls else []) +
+  (vault_plugin_extra_files_dir if vault_enable_plugins else []) +
+  vault_extra_files_list)
+  | unique
+  }}"
 hashi_vault_extra_files_src: "{{ sub_configuration_directories.vault_servers }}/config"
 hashi_vault_extra_files_dst: "{{ hashi_vault_config_dir }}/config"
 hashi_vault_extra_container_volumes: "{{ default_container_extra_volumes | union(extra_vault_container_volumes) | unique }}"

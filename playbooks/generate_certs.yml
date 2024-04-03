@@ -6,11 +6,21 @@
   gather_facts: true
   become: true
   tasks:
-    - name: "Generate self-signed certificates"  # noqa: run-once[task]
+    - name: "Create temporary cert directory in {{ sub_configuration_directories['certificates'] }}"  # noqa: run-once[task]
+      ansible.builtin.file:
+        path: "{{ sub_configuration_directories['certificates'] }}/external"
+        state: directory
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "{{ lookup('env', 'USER') }}"
+        mode: "0755"
+      delegate_to: localhost
+      run_once: true
+
+    - name: "Generate external certificates"  # noqa: run-once[task]
       delegate_to: localhost
       run_once: true
       block:
-        - name: "Create temporary cert directory in {{ sub_configuration_directories['certificates'] }}"
+        - name: "Create temporary cert directory in {{ sub_configuration_directories['certificates'] }}"  # noqa: run-once[task]
           ansible.builtin.file:
             path: "{{ sub_configuration_directories['certificates'] }}/external"
             state: directory
@@ -18,43 +28,161 @@
             group: "{{ lookup('env', 'USER') }}"
             mode: "0755"
 
-        - name: "Generate self-signed certificate"
+        - name: "Create private keys"
+          community.crypto.openssl_privatekey:
+            path: "{{ sub_configuration_directories['certificates'] }}/external/{{ item.fqdn }}.pem.key"
+            owner: "{{ lookup('env', 'USER') }}"
+            group: "{{ lookup('env', 'USER') }}"
+          loop:
+            - name: nomad
+              fqdn: "{{ nomad_fqdn }}"
+            - name: vault
+              fqdn: "{{ vault_fqdn }}"
+            - name: consul
+              fqdn: "{{ consul_fqdn }}"
+
+        - name: "Create certificate signing request"
+          community.crypto.openssl_csr_pipe:
+            privatekey_path: "{{ sub_configuration_directories['certificates'] }}/external/{{ item.fqdn }}.pem.key"
+            common_name: "{{ item.fqdn }}"
+            organization_name: EDNZ Cloud
+          register: csr
+          loop:
+            - name: nomad
+              fqdn: "{{ nomad_fqdn }}"
+            - name: vault
+              fqdn: "{{ vault_fqdn }}"
+            - name: consul
+              fqdn: "{{ consul_fqdn }}"
+
+        - name: "Create self-signed certificate from CSR"
+          community.crypto.x509_certificate:
+            path: "{{ sub_configuration_directories['certificates'] }}/external/{{ item.item.fqdn }}.pem"
+            csr_content: "{{ item.csr }}"
+            privatekey_path: "{{ sub_configuration_directories['certificates'] }}/external/{{ item.item.fqdn }}.pem.key"
+            provider: selfsigned
+            owner: "{{ lookup('env', 'USER') }}"
+            group: "{{ lookup('env', 'USER') }}"
+          loop: "{{ csr.results }}"
+
+    - name: "Generate internal certificates"
+      tags:
+        - never
+        - internal
+      delegate_to: localhost
+      vars:
+        hashistack_ca_key_path: "{{ sub_configuration_directories['certificates'] }}/internal/ca.key"
+        hashistack_ca_cert_path: "{{ sub_configuration_directories['certificates'] }}/internal/ca.pem"
+      block:
+        - name: "Create internal CA"  # noqa: run-once[task]
+          run_once: true
           block:
-            - name: "Create private keys"
-              community.crypto.openssl_privatekey:
-                path: "{{ sub_configuration_directories['certificates'] }}/external/{{ item.fqdn }}.pem.key"
+            - name: "Create temporary cert directory in {{ sub_configuration_directories['certificates'] }}"  # noqa: run-once[task]
+              ansible.builtin.file:
+                path: "{{ sub_configuration_directories['certificates'] }}/internal"
+                state: directory
                 owner: "{{ lookup('env', 'USER') }}"
                 group: "{{ lookup('env', 'USER') }}"
-              loop:
-                - name: nomad
-                  fqdn: "{{ nomad_fqdn }}"
-                - name: vault
-                  fqdn: "{{ vault_fqdn }}"
-                - name: consul
-                  fqdn: "{{ consul_fqdn }}"
+                mode: "0755"
 
-            - name: "Create certificate signing request"
+            - name: "Create CA private key"
+              community.crypto.openssl_privatekey:
+                path: "{{ hashistack_ca_key_path }}"
+                owner: "{{ lookup('env', 'USER') }}"
+                group: "{{ lookup('env', 'USER') }}"
+
+            - name: "Create CA signing request"
               community.crypto.openssl_csr_pipe:
-                privatekey_path: "{{ sub_configuration_directories['certificates'] }}/external/{{ item.fqdn }}.pem.key"
-                common_name: "{{ item.fqdn }}"
-                organization_name: Ansible, Inc.
-              register: csr
-              loop:
-                - name: nomad
-                  fqdn: "{{ nomad_fqdn }}"
-                - name: vault
-                  fqdn: "{{ vault_fqdn }}"
-                - name: consul
-                  fqdn: "{{ consul_fqdn }}"
+                privatekey_path: "{{ hashistack_ca_key_path }}"
+                common_name: "CA"
+                organization_name: EDNZ Cloud
+                use_common_name_for_san: false
+                basic_constraints:
+                  - CA:TRUE
+                basic_constraints_critical: true
+                key_usage:
+                  - keyCertSign
+                key_usage_critical: true
+              register: ca_csr
 
-            - name: "Create self-signed certificate from CSR"
+            - name: "Create self-signed CA certificate from CSR"
               community.crypto.x509_certificate:
-                path: "{{ sub_configuration_directories['certificates'] }}/external/{{ item.item.fqdn }}.pem"
-                csr_content: "{{ item.csr }}"
-                privatekey_path: "{{ sub_configuration_directories['certificates'] }}/external/{{ item.item.fqdn }}.pem.key"
+                path: "{{ hashistack_ca_cert_path }}"
+                csr_content: "{{ ca_csr.csr }}"
+                privatekey_path: "{{ hashistack_ca_key_path }}"
                 provider: selfsigned
                 owner: "{{ lookup('env', 'USER') }}"
                 group: "{{ lookup('env', 'USER') }}"
-              loop: "{{ csr.results }}"
 
-            - fail:
+        - name: "Create Vault certificates"
+          when:
+            - "'vault_servers' in group_names"
+          vars:
+            vault_private_key_path: "{{ sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}/key.pem"
+            vault_certificate_path: "{{ sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}/cert.pem"
+          block:
+            - name: "Create temporary cert directory in {{ sub_configuration_directories['certificates'] }}"  # noqa: run-once[task]
+              ansible.builtin.file:
+                path: "{{ sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}"
+                state: directory
+                owner: "{{ lookup('env', 'USER') }}"
+                group: "{{ lookup('env', 'USER') }}"
+                mode: "0755"
+
+            - name: "Create Vault certificate keys"
+              community.crypto.openssl_privatekey:
+                path: "{{ vault_private_key_path }}"
+                owner: "{{ lookup('env', 'USER') }}"
+                group: "{{ lookup('env', 'USER') }}"
+
+            - name: "Create CSRs for Vault servers"
+              community.crypto.openssl_csr_pipe:
+                privatekey_path: "{{ vault_private_key_path }}"
+                common_name: "{{ inventory_hostname }}"
+                subject_alt_name:
+                  - "DNS:{{ inventory_hostname }}"
+                  - "DNS:active.vault.service.consul"
+                  - "DNS:standby.vault.service.consul"
+                  - "DNS:vault.service.consul"
+                  - "DNS:localhost"
+                  - "IP:{{ api_interface_address }}"
+                  - "IP:127.0.0.1"
+                extended_key_usage:
+                  - TLS Web Server Authentication
+                  - TLS Web Client Authentication
+                organization_name: EDNZ Cloud
+                use_common_name_for_san: false
+              register: vault_csr
+
+            - name: "Sign certificates with internal CA"
+              community.crypto.x509_certificate:
+                path: "{{ vault_certificate_path }}"
+                csr_content: "{{ vault_csr.csr }}"
+                provider: ownca
+                ownca_path: "{{ hashistack_ca_cert_path }}"
+                ownca_privatekey_path: "{{ hashistack_ca_key_path }}"
+                ownca_not_after: "+365d"
+                ownca_not_before: "-1d"
+
+            - name: "Concatenate CA and Child certificates"
+              block:
+                - name: "Read content of ca.pem"
+                  ansible.builtin.slurp:
+                    src: "{{ hashistack_ca_cert_path }}"
+                  register: ca_pem_content
+
+                - name: "Read content of cert.pem"
+                  ansible.builtin.slurp:
+                    src: "{{ vault_certificate_path }}"
+                  register: cert_pem_content
+
+                - name: "Concatenate certificates"
+                  ansible.builtin.copy:
+                    content: |
+                      {{ cert_pem_content['content'] | b64decode }}{{ ca_pem_content['content'] | b64decode }}
+                    dest: "{{ vault_certificate_path }}"
+                    owner: "{{ lookup('env', 'USER') }}"
+                    group: "{{ lookup('env', 'USER') }}"
+                    mode: "0644"
+
+    - fail:

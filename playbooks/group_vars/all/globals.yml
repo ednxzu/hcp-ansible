@@ -165,7 +165,6 @@ vault_service_registration_configuration:
 #################
 
 vault_enable_plugins: true
-vault_plugin_directory: "{{ hashi_vault_extra_files_dst }}/plugin"
 
 ###########
 # logging #
@@ -189,3 +188,4 @@ extra_vault_container_volumes: []
 #####################
 
 vault_extra_configuration: {}
+vault_extra_files_list: []
