@@ -81,8 +81,8 @@ else:
     HAS_HVAC = True
 
 
-def unseal_vault(api_url: str, key_shares: list) -> Tuple[bool, dict]:
-    client = hvac.Client(url=api_url)
+def unseal_vault(api_url: str, tls_verify: bool, key_shares: list) -> Tuple[bool, dict]:
+    client = hvac.Client(url=api_url, verify=tls_verify)
 
     try:
         if client.sys.is_sealed():
@@ -96,13 +96,16 @@ def unseal_vault(api_url: str, key_shares: list) -> Tuple[bool, dict]:
 def run_module():
     module_args = dict(
         api_url=dict(type="str", required=True),
+        tls_verify=dict(type="bool", required=False, default=True),
         key_shares=dict(type="list", required=False, default=[]),
     )
     result = dict(changed=False, state="")
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=False)
 
-    client = hvac.Client(url=module.params["api_url"])
+    client = hvac.Client(
+        url=module.params["api_url"], verify=module.params["tls_verify"]
+    )
 
     if not client.sys.is_sealed():
         module.exit_json(**result)
@@ -113,10 +116,14 @@ def run_module():
                 msg="Missing required library: hvac", exception=HVAC_IMPORT_ERROR
             )
         vault_unseal_result, response_data = unseal_vault(
-            api_url=module.params["api_url"], key_shares=module.params["key_shares"]
+            api_url=module.params["api_url"],
+            tls_verify=module.params["tls_verify"],
+            key_shares=module.params["key_shares"],
         )
 
-        if hvac.Client(url=module.params["api_url"]).sys.is_sealed():
+        if hvac.Client(
+            url=module.params["api_url"], verify=module.params["tls_verify"]
+        ).sys.is_sealed():
             module.fail_json(
                 msg="Vault unsealing failed. The unseal operation worked, but the vault is still sealed, maybe you didn't pass enough keys ?"
             )

@@ -3,7 +3,7 @@
 # helper options #
 ##################
 
-# manage_pip_packages_allow_break_system_packages: true
+manage_pip_packages_allow_break_system_packages: true
 
 vault_versions:
   host: "{{ vault_version if vault_version != 'latest' else vault_version + '*' }}"
@@ -26,9 +26,13 @@ sub_configuration_directories:
 
 configuration_global_vars_file: "globals.yml"
 
+hashistack_remote_config_dir: "/etc/hashistack"
+hashistack_remote_data_dir: "/opt/hashistack"
+
 default_container_extra_volumes:
   - "/etc/timezone:/etc/timezone"
   - "/etc/localtime:/etc/localtime"
+  - "/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro"
 
 ###################
 # support options #

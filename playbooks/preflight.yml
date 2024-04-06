@@ -112,6 +112,7 @@
 
     - name: "Checking host OS distribution"
       #TODO: This needs to work with debian and ubuntu, major version works for debian but not ubuntu, simple version works the other way around...
+      #? seems to work
       ansible.builtin.assert:
         that:
           - "(ansible_facts.distribution | lower) in hashistack_supported_distributions"

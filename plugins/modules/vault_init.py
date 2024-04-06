@@ -92,9 +92,9 @@ else:
 
 
 def initialize_vault(
-    api_url: str, key_shares: int, key_threshold: int
+    api_url: str, tls_verify: bool, key_shares: int, key_threshold: int
 ) -> Tuple[bool, dict]:
-    client = hvac.Client(url=api_url)
+    client = hvac.Client(url=api_url, verify=tls_verify)
 
     try:
         if not client.sys.is_initialized():
@@ -108,6 +108,7 @@ def initialize_vault(
 def run_module():
     module_args = dict(
         api_url=dict(type="str", required=True),
+        tls_verify=dict(type="bool", required=False, default=True),
         key_shares=dict(type="int", required=False, default=5),
         key_threshold=dict(type="int", required=False, default=3),
     )
@@ -123,9 +124,10 @@ def run_module():
 
     try:
         vault_init_result, response_data = initialize_vault(
-            module.params["api_url"],
-            module.params["key_shares"],
-            module.params["key_threshold"],
+            api_url=module.params["api_url"],
+            tls_verify=module.params["tls_verify"],
+            key_shares=module.params["key_shares"],
+            key_threshold=module.params["key_threshold"],
         )
 
         result["changed"] = vault_init_result

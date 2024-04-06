@@ -51,7 +51,7 @@ hashi_consul_start_service: true
 hashi_consul_version: "{{ consul_versions[deployment_method] }}"
 hashi_consul_deploy_method: "{{ deployment_method }}"
 hashi_consul_env_variables: {}
-hashi_cosul_config_dir: "/etc/consul.d"
+hashi_consul_config_dir: "/etc/consul.d"
 hashi_consul_data_dir: "/opt/consul"
 hashi_consul_extra_files: false
 hashi_consul_extra_files_src: "{{ sub_configuration_directories.consul_servers }}/config"
@@ -83,7 +83,7 @@ hashi_consul_configuration:
   dns_config: "{{ consul_dns_configuration }}"
   ports:
     dns: 8600
-    http: 8500
+    http: "{{ ('8500'|int) if not  }}"
     https: -1
     grpc: 8502
     grpc_tls: 8503

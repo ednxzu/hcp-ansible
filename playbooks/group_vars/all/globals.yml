@@ -11,7 +11,7 @@ enable_nomad: "no"
 haproxy_version: "2.8"
 nomad_version: "latest"
 consul_version: "latest"
-vault_version: "latest"
+vault_version: "1.15.6"
 
 deployment_method: "docker"
 
@@ -96,6 +96,21 @@ consul_ui_configuration:
 consul_mesh_configuration:
   enabled: true
 
+############################
+# consul tls configuration #
+############################
+
+consul_enable_tls: false
+consul_tls_configuration:
+  default:
+    ca_file: "/etc/ssl/certs/ca-certificates.crt"
+    cert_file: "{{ hashi_consul_config_dir }}/tls/cert.pem"
+    key_file: "{{ hashi_consul_config_dir }}/tls/key.pem"
+    verify_incoming: false
+    verify_outgoing: true
+  internal_rpc:
+    verify_server_hostname: true
+
 #######################
 # extra configuration #
 #######################
@@ -126,7 +141,7 @@ vault_storage_configuration:
       [
       {% for host in groups['vault_servers'] %}
         {
-          'leader_api_addr': 'http://{{ hostvars[host].api_interface_address }}:8200'
+          'leader_api_addr': '{{ "https" if vault_enable_tls else "http"}}://{{ hostvars[host].api_interface_address }}:8200'
         }{% if not loop.last %},{% endif %}
       {% endfor %}
       ]
@@ -135,7 +150,8 @@ vault_storage_configuration:
 # vault listener #
 ##################
 
-vault_enable_tls: false
+vault_enable_tls: true
+vault_tls_verify: false
 vault_listener_configuration:
   tcp:
     address: "0.0.0.0:8200"
@@ -144,8 +160,9 @@ vault_listener_configuration:
 vault_tls_listener_configuration:
   tcp:
     tls_disable: false
-    tls_cert_file: "{{ hashi_vault_extra_files_dst }}/tls/cert.pem"
-    tls_key_file: "{{ hashi_vault_extra_files_dst }}/tls/key.pem"
+    tls_cert_file: "{{ vault_certificates_directory }}/cert.pem"
+    tls_key_file: "{{ vault_certificates_directory }}/key.pem"
+    tls_disable_client_certs: true
 
 vault_extra_listener_configuration: {}
 
@@ -164,7 +181,7 @@ vault_service_registration_configuration:
 # vault plugins #
 #################
 
-vault_enable_plugins: true
+vault_enable_plugins: false
 
 ###########
 # logging #

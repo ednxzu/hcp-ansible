@@ -27,7 +27,7 @@ vault_external_backend_options:
 vault_external_backend_servers: |
   [
     {% for host in groups['vault_servers'] %}
-      'server vault-{{ hostvars[host].api_interface_address }} {{ hostvars[host].api_interface_address }}:8200 check inter 5s'{% if not loop.last %},{% endif %}
+      'server vault-{{ hostvars[host].api_interface_address }} {{ hostvars[host].api_interface_address }}:8200 check {{ 'ssl verify none ' if vault_enable_tls }}inter 5s'{% if not loop.last %},{% endif %}
     {% endfor %}
   ]
 
@@ -38,7 +38,7 @@ vault_external_backend_servers: |
 vault_certificates_directory: "{{ hashi_vault_config_dir }}/tls"
 vault_certificates_extra_files_dir:
   - src: "{{ sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}"
-    dest: "{{ hashi_vault_config_dir }}/tls/cert"
+    dest: "{{ hashi_vault_config_dir }}/tls"
 
 #################
 # vault plugins #
@@ -71,8 +71,8 @@ hashi_vault_extra_files_dst: "{{ hashi_vault_config_dir }}/config"
 hashi_vault_extra_container_volumes: "{{ default_container_extra_volumes | union(extra_vault_container_volumes) | unique }}"
 hashi_vault_configuration:
   cluster_name: "{{ vault_cluster_name }}"
-  cluster_addr: "http://{{ api_interface_address }}:8201"
-  api_addr: "http://{{ api_interface_address }}:8200"
+  cluster_addr: "{{ 'https' if vault_enable_tls else 'http'}}://{{ api_interface_address }}:8201"
+  api_addr: "{{ 'https' if vault_enable_tls else 'http'}}://{{ api_interface_address }}:8200"
   ui: "{{ vault_enable_ui }}"
   disable_mlock: false
   disable_cache: false

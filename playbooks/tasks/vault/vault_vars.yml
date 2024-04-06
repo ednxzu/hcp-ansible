@@ -4,8 +4,8 @@
   ansible.builtin.set_fact:
     vault_listener_configuration: "{{
       vault_listener_configuration |
-      combine((vault_enable_tls | bool) | ternary(vault_tls_listener_configuration, {})) |
-      combine(vault_extra_listener_configuration | default({}))
+      combine((vault_enable_tls | bool) | ternary(vault_tls_listener_configuration, {}), recursive=True) |
+      combine(vault_extra_listener_configuration | default({}), recursive=True)
       }}"
 
 - name: "Vault | Merge service registration configuration"

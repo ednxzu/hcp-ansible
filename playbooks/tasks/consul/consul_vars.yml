@@ -6,7 +6,7 @@
   ansible.builtin.set_fact:
     hashi_consul_configuration: "{{
       hashi_consul_configuration |
-      combine(_config_to_merge|from_yaml)
+      combine(_config_to_merge|from_yaml, recursive=true)
       }}"
   when:
     - hashi_consul_configuration_string is defined
@@ -18,9 +18,20 @@
   ansible.builtin.set_fact:
     hashi_consul_configuration: "{{
       hashi_consul_configuration |
-      combine(_config_to_merge)
+      combine(_config_to_merge, recursive=true)
       }}"
   when: consul_address_configuration is defined
+
+- name: "Consul | Merge TLS configuration"
+  vars:
+    _config_to_merge:
+      tls: "{{ consul_tls_configuration }}"
+  ansible.builtin.set_fact:
+    hashi_consul_configuration: "{{
+      hashi_consul_configuration |
+      combine(_config_to_merge, recursive=true)
+      }}"
+  when: consul_enable_tls
 
 - name: "Consul | Merge token configuration"
   delegate_to: localhost
@@ -61,6 +72,6 @@
   ansible.builtin.set_fact:
     hashi_consul_configuration: "{{
       hashi_consul_configuration |
-      combine(_config_to_merge)
+      combine(_config_to_merge, recursive=true)
       }}"
   when: consul_extra_configuration is defined

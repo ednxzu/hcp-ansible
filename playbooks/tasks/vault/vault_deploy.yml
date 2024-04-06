@@ -8,6 +8,7 @@
     - name: "Initialize vault cluster" # noqa: run-once[task]
       ednz_cloud.hashistack.vault_init:
         api_url: "{{ hashi_vault_configuration['api_addr'] }}"
+        tls_verify: "{{ vault_tls_verify }}"
         key_shares: "{{ vault_seal_configuration['key_shares'] }}"
         key_threshold: "{{ vault_seal_configuration['key_threshold'] }}"
       run_once: true
@@ -36,6 +37,7 @@
     - name: "Unseal the bootstrap node" # noqa: run-once[task] no-handler
       ednz_cloud.hashistack.vault_unseal:
         api_url: "{{ hashi_vault_configuration['api_addr'] }}"
+        tls_verify: "{{ vault_tls_verify }}"
         key_shares: "{{ _vault_cluster_config['keys'] }}"
       run_once: true
       delegate_to: "{{ groups['vault_servers'] | first }}"
@@ -45,6 +47,7 @@
     - name: "Unseal all vault nodes"
       ednz_cloud.hashistack.vault_unseal:
         api_url: "{{ hashi_vault_configuration['api_addr'] }}"
+        tls_verify: "{{ vault_tls_verify }}"
         key_shares: "{{ _vault_cluster_config['keys'] }}"
       retries: 5
       delay: 5
