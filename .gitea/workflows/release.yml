@@ -10,7 +10,6 @@ jobs:
     if: "!startsWith(github.event.head_commit.message, 'bump:')"
     runs-on: ubuntu-latest
     name: Bump version and create changelog with commitizen
-    needs: deploy
     steps:
       - name: Get secrets from vault
         id: import-secrets
