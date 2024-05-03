@@ -1,68 +1,20 @@
 ---
 # hashistack variable injection playbook
 - name: "Load global variables"
-  block:
-    - name: "Stat global configuration file"
-      ansible.builtin.stat:
-        path: "{{ configuration_directory }}/{{ configuration_global_vars_file }}"
-      register: _global_config_file
-      delegate_to: localhost
+  ansible.builtin.import_tasks:
+    file: misc/load_global_vars.yml
 
-    - name: "Make sure global configuration file exists"
-      ansible.builtin.assert:
-        that:
-          - _global_config_file.stat.exists
-      delegate_to: localhost
-
-    - name: "Load global variables"
-      ansible.builtin.include_vars:
-        dir: "{{ configuration_directory }}"
-        files_matching: "{{ configuration_global_vars_file }}"
-        depth: 1
-      delegate_to: localhost
+- name: "Load credentials variables"
+  ansible.builtin.import_tasks:
+    file: misc/load_credentials_vars.yml
 
 - name: "Load group specific variables"
-  block:
-    - name: "Stat group specific config file"
-      ansible.builtin.stat:
-        path: "{{ configuration_directory }}/{{ group_name }}/{{ configuration_global_vars_file }}"
-      register: _group_config_file
-      loop: "{{ group_names }}"
-      loop_control:
-        loop_var: group_name
-
-    - name: Load group specific variables
-      ansible.builtin.include_vars:
-        dir: "{{ configuration_directory }}/{{ item.group_name }}"
-        files_matching: "{{ configuration_global_vars_file }}"
-        depth: 1
-      loop: "{{ _group_config_file.results }}"
-      when: item.stat.exists
-        and item.group_name in group_names
-      loop_control:
-        loop_var: item
-      delegate_to: localhost
+  ansible.builtin.import_tasks:
+    file: misc/load_group_vars.yml
 
 - name: "Load host specific variables"
-  block:
-    - name: "Stat host specific config file"
-      ansible.builtin.stat:
-        path: "{{ configuration_directory }}/{{ group_name }}/{{ inventory_hostname }}/{{ configuration_global_vars_file }}"
-      register: _host_config_file
-      loop: "{{ group_names }}"
-      loop_control:
-        loop_var: group_name
-      delegate_to: localhost
-
-    - name: Load host specific variables
-      ansible.builtin.include_vars:
-        dir: "{{ configuration_directory }}/{{ item.group_name }}/{{ inventory_hostname }}"
-        files_matching: "{{ configuration_global_vars_file }}"
-      loop: "{{ _host_config_file.results }}"
-      when: item.stat.exists
-      loop_control:
-        loop_var: item
-      delegate_to: localhost
+  ansible.builtin.import_tasks:
+    file: misc/load_host_vars.yml
 
 - name: "Ensure remote directories exists"
   ansible.builtin.file:
@@ -77,72 +29,8 @@
     - "{{ hashistack_remote_data_dir }}"
 
 - name: "Load custom CA certificates"
-  block:
-    - name: "Check if CA directory exists"
-      ansible.builtin.stat:
-        path: "{{ sub_configuration_directories['certificates'] }}/ca"
-      register: _hashistack_ca_directory
-      delegate_to: localhost
-
-    - name: "Find custom ca certificates to copy"
-      ansible.builtin.find:
-        paths: "{{ sub_configuration_directories['certificates'] }}/ca"
-        patterns: "*.crt"
-      register: _hashistack_cacert_files
-      delegate_to: localhost
-      when: _hashistack_ca_directory.stat.exists and _hashistack_ca_directory.stat.isdir
-
-    - ansible.builtin.debug:
-        msg: "{{ _hashistack_cacert_files }}"
-
-    - name: "Ensure remote ca directory exists"
-      ansible.builtin.file:
-        path: "{{ hashistack_remote_config_dir }}/ca"
-        state: directory
-        owner: root
-        group: root
-        mode: 0755
-
-    - name: "Copy custom ca certificates"
-      ansible.builtin.copy:
-        src: "{{ item.path }}"
-        dest: "{{ hashistack_remote_config_dir }}/ca/{{ item.path | basename }}"
-        owner: root
-        group: root
-        mode: 0644
-      loop: "{{ _hashistack_cacert_files.files }}"
-      register: _hashistack_copied_ca
-
-    - name: "Copy and update trust store"
-      block:
-        - name: "Copy ca certificates to /usr/loca/share/ca-certificates"
-          ansible.builtin.file:
-            state: link
-            src: "{{ item.dest }}"
-            dest: "/usr/local/share/ca-certificates/hashistack-customca-{{ item.dest | basename }}"
-            owner: root
-            group: root
-          loop: "{{ _hashistack_copied_ca.results }}"
-          register: _hashistack_usr_local_share_ca_certificates
-
-        - name: "Update the trust store"
-          ansible.builtin.command: update-ca-certificates
-          changed_when: false
-          when: _hashistack_usr_local_share_ca_certificates.changed
-
-    # - name: "Initialize list of CA certificates"
-    #   ansible.builtin.set_fact:
-    #     hashistack_cacert_extra_files: []
-    #   delegate_to: localhost
-
-    # - name: "Add custom CA to list of extra certificates"
-    #   ansible.builtin.set_fact:
-    #     hashistack_cacert_extra_files: "{{
-    #       hashistack_cacert_extra_files | default([])
-    #       + [{'src': item.path, 'dest': '/etc/ssl/certs/hashistack-custom-' + item.path | basename}] }}"
-    #   loop: "{{ _hashistack_cacert_files.files }}"
-    #   delegate_to: localhost
-    #   when: _hashistack_cacert_files.matched > 0
+  ansible.builtin.import_tasks:
+    file: misc/load_ca_certificates.yml
 
 - name: "Merge consul configurations"
   ansible.builtin.import_tasks:
@@ -157,10 +45,3 @@
   when:
     - enable_vault | bool
     - "'vault_servers' in group_names"
-
-- debug:
-    msg: "{{ deploy_haproxy_frontends }}"
-
-- debug:
-    msg: "{{ deploy_haproxy_backends }}"
-# - fail:
