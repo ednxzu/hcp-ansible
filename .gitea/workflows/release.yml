@@ -1,0 +1,55 @@
+---
+name: build-deploy
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  do-release:
+    if: "!startsWith(github.event.head_commit.message, 'bump:')"
+    runs-on: ubuntu-latest
+    name: Bump version and create changelog with commitizen
+    needs: deploy
+    steps:
+      - name: Get secrets from vault
+        id: import-secrets
+        uses: hashicorp/vault-action@v3
+        with:
+          url: "https://vault.ednz.fr"
+          method: approle
+          roleId: ${{ secrets.VAULT_APPROLE_ID }}
+          secretId: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+          secrets: |
+            kv/data/applications/gitea/users/actions username | GITEA_ACTIONS_USERNAME ;
+            kv/data/applications/gitea/users/actions token_write | GITEA_ACTIONS_TOKEN ;
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.import-secrets.outputs.GITEA_ACTIONS_TOKEN }}
+
+      - name: Install commitizen
+        run: pip3 install commitizen
+        shell: bash
+        working-directory: ./
+
+      - name: Configure git credentials
+        uses: oleksiyrudenko/gha-git-credentials@v2
+        with:
+          global: true
+          name: "Gitea-Actions Bot"
+          email: "gitea-actions@ednz.fr"
+          actor: ${{ steps.import-secrets.outputs.GITEA_ACTIONS_USERNAME }}
+          token: ${{ steps.import-secrets.outputs.GITEA_ACTIONS_TOKEN }}
+
+      - name: Do release
+        run: cz -nr 21 bump --yes
+        shell: bash
+        working-directory: ./
+
+      - name: Push release
+        run: git push && git push --tags
+        shell: bash
+        working-directory: ./
