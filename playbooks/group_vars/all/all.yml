@@ -3,7 +3,7 @@
 # helper options #
 ##################
 
-manage_pip_packages_allow_break_system_packages: true
+manage_pip_packages_allow_break_system_packages: "{{ ansible_distribution == 'Debian' and ansible_distribution_version == '12' }}"
 
 vault_versions:
   host: "{{ vault_version if vault_version != 'latest' else vault_version + '*' }}"
@@ -19,12 +19,14 @@ nomad_versions:
 
 configuration_directory: "{{ lookup('env', 'PWD') }}/etc/hashistack"
 sub_configuration_directories:
+  secrets: "{{ configuration_directory }}/secrets"
   certificates: "{{ configuration_directory }}/certificates"
   nomad_servers: "{{ configuration_directory }}/nomad_servers"
   vault_servers: "{{ configuration_directory }}/vault_servers"
   consul_servers: "{{ configuration_directory }}/consul_servers"
 
 configuration_global_vars_file: "globals.yml"
+configuration_credentials_vars_file: "credentials.yml"
 
 hashistack_remote_config_dir: "/etc/hashistack"
 hashistack_remote_data_dir: "/opt/hashistack"
