@@ -305,6 +305,3 @@
             fail_msg: >-
               The python sdk for docker is really out of date, you need to install
               a more recent version of it in order to use this tool.
-
-    # - name: "Fail"
-    #   fail:
