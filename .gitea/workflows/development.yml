@@ -1,0 +1,26 @@
+---
+name: development
+on:
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  commit-check:
+    name: Check commit compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install commitizen
+        run: pip3 install commitizen
+        shell: bash
+        working-directory: ./
+
+      - name: Verify commit message compliance
+        run: |
+          echo "cz check --message '${{ github.event.head_commit.message }}'"
+          cz check --message "${{ github.event.head_commit.message }}"
+        shell: bash
+        working-directory: ./
