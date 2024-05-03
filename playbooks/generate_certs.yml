@@ -1,5 +1,5 @@
 ---
-# hashistack deployment playbook
+# hashistack generate certificates playbook
 - name: "Generate certificates"
   hosts: all
   strategy: linear

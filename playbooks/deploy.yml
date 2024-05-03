@@ -11,10 +11,6 @@
         file: tasks/load_vars.yml
       tags:
         - always
-        # - haproxy
-        # - consul
-        # - vault
-        # - nomad
 
     - name: "Deploy Consul Control Plane"
       ansible.builtin.import_tasks:

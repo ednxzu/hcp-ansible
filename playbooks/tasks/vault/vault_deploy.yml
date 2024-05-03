@@ -20,8 +20,8 @@
 
     - name: "Write vault configuration to file" # noqa: run-once[task] no-handler
       ansible.builtin.copy:
-        content: "{{ _vault_init_secret.state | to_nice_yaml}}"
-        dest: "{{ sub_configuration_directories.vault_servers }}/vault_config.yml"
+        content: "{{ _vault_init_secret.state | to_nice_yaml(indent=2) }}"
+        dest: "{{ sub_configuration_directories.secrets }}/vault.yml"
         owner: "{{ lookup('env', 'USER') }}"
         group: "{{ lookup('env', 'USER') }}"
         mode: "0644"
@@ -29,16 +29,20 @@
       run_once: true
       delegate_to: localhost
 
+    # - name: "Load vault cluster variables necessary for unseal operation"
+    #   ansible.builtin.include_vars:
+    #     file: "{{ sub_configuration_directories.vault_servers }}/vault_config.yml"
+    #     name: _vault_cluster_config
+
     - name: "Load vault cluster variables necessary for unseal operation"
-      ansible.builtin.include_vars:
-        file: "{{ sub_configuration_directories.vault_servers }}/vault_config.yml"
-        name: _vault_cluster_config
+      ansible.builtin.import_tasks:
+        file: ../misc/load_credentials_vars.yml
 
     - name: "Unseal the bootstrap node" # noqa: run-once[task] no-handler
       ednz_cloud.hashistack.vault_unseal:
         api_url: "{{ hashi_vault_configuration['api_addr'] }}"
         tls_verify: "{{ vault_tls_verify }}"
-        key_shares: "{{ _vault_cluster_config['keys'] }}"
+        key_shares: "{{ _credentials.vault['keys'] }}"
       run_once: true
       delegate_to: "{{ groups['vault_servers'] | first }}"
       when: _vault_init_secret.changed
@@ -48,7 +52,7 @@
       ednz_cloud.hashistack.vault_unseal:
         api_url: "{{ hashi_vault_configuration['api_addr'] }}"
         tls_verify: "{{ vault_tls_verify }}"
-        key_shares: "{{ _vault_cluster_config['keys'] }}"
+        key_shares: "{{ _credentials.vault['keys'] }}"
       retries: 5
       delay: 5
       until: _unseal_status.changed or not _unseal_status.failed

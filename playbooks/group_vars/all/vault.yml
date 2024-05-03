@@ -65,6 +65,7 @@ hashi_vault_extra_files_list: "{{ ([] +
   (vault_plugin_extra_files_dir if vault_enable_plugins else []) +
   vault_extra_files_list)
   | unique
+  | sort
   }}"
 hashi_vault_extra_files_src: "{{ sub_configuration_directories.vault_servers }}/config"
 hashi_vault_extra_files_dst: "{{ hashi_vault_config_dir }}/config"

@@ -83,7 +83,7 @@ hashi_consul_configuration:
   dns_config: "{{ consul_dns_configuration }}"
   ports:
     dns: 8600
-    http: "{{ ('8500'|int) if not  }}"
+    http: 8500 # "{{ ('8500'|int) if not  }}"
     https: -1
     grpc: 8502
     grpc_tls: 8503

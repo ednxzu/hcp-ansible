@@ -1,0 +1,52 @@
+---
+- name: "Check if CA directory exists"
+  ansible.builtin.stat:
+    path: "{{ sub_configuration_directories['certificates'] }}/ca"
+  register: _hashistack_ca_directory
+  delegate_to: localhost
+
+- name: "Find custom ca certificates to copy"
+  ansible.builtin.find:
+    paths: "{{ sub_configuration_directories['certificates'] }}/ca"
+    patterns: "*.crt"
+  register: _hashistack_cacert_files
+  delegate_to: localhost
+  when: _hashistack_ca_directory.stat.exists and _hashistack_ca_directory.stat.isdir
+
+- ansible.builtin.debug:
+    msg: "{{ _hashistack_cacert_files }}"
+
+- name: "Ensure remote ca directory exists"
+  ansible.builtin.file:
+    path: "{{ hashistack_remote_config_dir }}/ca"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: "Copy custom ca certificates"
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "{{ hashistack_remote_config_dir }}/ca/{{ item.path | basename }}"
+    owner: root
+    group: root
+    mode: 0644
+  loop: "{{ _hashistack_cacert_files.files }}"
+  register: _hashistack_copied_ca
+
+- name: "Copy and update trust store"
+  block:
+    - name: "Copy ca certificates to /usr/loca/share/ca-certificates"
+      ansible.builtin.file:
+        state: link
+        src: "{{ item.dest }}"
+        dest: "/usr/local/share/ca-certificates/hashistack-customca-{{ item.dest | basename }}"
+        owner: root
+        group: root
+      loop: "{{ _hashistack_copied_ca.results }}"
+      register: _hashistack_usr_local_share_ca_certificates
+
+    - name: "Update the trust store"
+      ansible.builtin.command: update-ca-certificates
+      changed_when: false
+      when: _hashistack_usr_local_share_ca_certificates.changed
