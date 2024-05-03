@@ -5,3 +5,5 @@ roles/ednz_cloud.*
 vault_config.yml
 consul_config.yml
 **/certificates/**
+**/secrets/credentials.yml
+**/secrets/vault.yml
