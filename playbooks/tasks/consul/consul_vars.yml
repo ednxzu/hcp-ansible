@@ -36,35 +36,14 @@
 - name: "Consul | Merge token configuration"
   delegate_to: localhost
   block:
-    - name: "Consul | Stat consul secrets file"
-      ansible.builtin.stat:
-        path: "{{ sub_configuration_directories.consul_servers }}/consul_config.yml"
-      register: _consul_config_file
-
-    - name: "Consul | Load consul secrets file"
-      ansible.builtin.include_vars:
-        file: "{{ sub_configuration_directories.consul_servers }}/consul_config.yml"
-        name: _consul_cluster_config
-      when: _consul_config_file.stat.exists
-
     - name: "Consul | Merge token configuration"
       vars:
         _config_to_merge:
           acl:
-            tokens: "{{ _consul_cluster_config.tokens }}"
+            tokens:
+              agent: "{{ _credentials.consul.tokens.agent }}"
       ansible.builtin.set_fact:
         hashi_consul_configuration: "{{ hashi_consul_configuration | default({}) | combine(_config_to_merge, recursive=true) }}"
-      when: _consul_cluster_config.tokens is defined
-
-    - name: "Consul | Create secrets file if not present"
-      ansible.builtin.file:
-        path: "{{ sub_configuration_directories.consul_servers }}/consul_config.yml"
-        state: touch
-        owner: "{{ lookup('env', 'USER') }}"
-        group: "{{ lookup('env', 'USER') }}"
-        mode: "0644"
-      run_once: true
-      when: not _consul_config_file.stat.exists
 
 - name: "Consul | Merge extra configuration settings"
   vars:
