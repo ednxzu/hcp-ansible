@@ -80,7 +80,7 @@ hashi_consul_extra_files_list: "{{ ([] +
   | unique
   | sort
   }}"
-hashi_consul_extra_container_volumes: "{{ default_container_extra_volumes | union(extra_consul_container_volumes) | unique }}"
+hashi_consul_extra_container_volumes: "{{ default_container_extra_volumes | union(extra_consul_container_volumes) | unique | sort }}"
 hashi_consul_envoy_install: false
 hashi_consul_envoy_version: v1.27.2
 hashi_consul_configuration:

@@ -69,7 +69,7 @@ hashi_vault_extra_files_list: "{{ ([] +
   }}"
 hashi_vault_extra_files_src: "{{ sub_configuration_directories.vault_servers }}/config"
 hashi_vault_extra_files_dst: "{{ hashi_vault_config_dir }}/config"
-hashi_vault_extra_container_volumes: "{{ default_container_extra_volumes | union(extra_vault_container_volumes) | unique }}"
+hashi_vault_extra_container_volumes: "{{ default_container_extra_volumes | union(extra_vault_container_volumes) | unique | sort }}"
 hashi_vault_configuration:
   cluster_name: "{{ vault_cluster_name }}"
   cluster_addr: "{{ 'https' if vault_enable_tls else 'http'}}://{{ api_interface_address }}:8201"
