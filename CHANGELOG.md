@@ -1,3 +1,14 @@
+## 0.2.0 (2024-05-05)
+
+### Feat
+
+- **consul**: allow enabling consul internal TLS
+
+### Fix
+
+- **globals**: restore default globals.yml file, move changes to test directory
+- **vault/consul**: ensure idempotence of extra_volumes list to avoid restarting on each run due to slightly different service files
+
 ## 0.1.0 (2024-05-03)
 
 ### Feat
