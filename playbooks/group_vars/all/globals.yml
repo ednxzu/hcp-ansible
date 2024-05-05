@@ -6,12 +6,12 @@
 enable_haproxy: "yes"
 enable_vault: "yes"
 enable_consul: "yes"
-enable_nomad: "no"
+enable_nomad: "yes"
 
 haproxy_version: "2.8"
-nomad_version: "latest"
-consul_version: "latest"
-vault_version: "1.15.6"
+nomad_version: "1.7.7"
+consul_version: "1.18.1"
+vault_version: "1.16.2"
 
 deployment_method: "docker"
 
@@ -21,20 +21,17 @@ nomad_fqdn: nomad.ednz.lab
 
 hashistack_external_vip_interface: "eth0"
 hashistack_external_vip_addr: "192.168.121.100"
-hashistack_internal_vip_interface: "eth1"
-# hashistack_internal_vip_interface: "{{ hashistack_external_vip_interface }}"
-hashistack_internal_vip_addr: "192.168.100.100"
-# hashistack_internal_vip_addr: "{{ hashistack_external_vip_addr }}"
+hashistack_internal_vip_interface: "{{ hashistack_external_vip_interface }}"
+hashistack_internal_vip_addr: "{{ hashistack_external_vip_addr }}"
 
-# api_interface: "eth0"
-api_interface: "eth1"
+api_interface: "eth0"
 api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
 
 ########################
 # external tls options #
 ########################
 
-enable_tls_external: true
+enable_tls_external: false
 external_tls_externally_managed_certs: false
 
 #####################################################
@@ -100,7 +97,7 @@ consul_mesh_configuration:
 # consul tls configuration #
 ############################
 
-consul_enable_tls: true
+consul_enable_tls: false
 consul_tls_configuration:
   defaults:
     ca_file: "/etc/ssl/certs/ca-certificates.crt"
@@ -157,7 +154,7 @@ vault_storage_configuration:
 # vault listener #
 ##################
 
-vault_enable_tls: true
+vault_enable_tls: false
 vault_tls_verify: false
 vault_listener_configuration:
   tcp:
