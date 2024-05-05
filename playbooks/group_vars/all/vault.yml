@@ -38,7 +38,7 @@ vault_external_backend_servers: |
 vault_certificates_directory: "{{ hashi_vault_config_dir }}/tls"
 vault_certificates_extra_files_dir:
   - src: "{{ sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}"
-    dest: "{{ hashi_vault_config_dir }}/tls"
+    dest: "{{ vault_certificates_directory }}"
 
 #################
 # vault plugins #
@@ -47,7 +47,7 @@ vault_certificates_extra_files_dir:
 vault_plugin_directory: "{{ hashi_vault_config_dir }}/plugin"
 vault_plugin_extra_files_dir:
   - src: "{{ sub_configuration_directories['vault_servers'] }}/plugin"
-    dest: "{{ hashi_vault_config_dir }}/plugin"
+    dest: "{{ vault_plugin_directory }}"
 
 ########################
 # vault role variables #

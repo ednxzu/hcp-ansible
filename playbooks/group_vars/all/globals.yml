@@ -100,22 +100,29 @@ consul_mesh_configuration:
 # consul tls configuration #
 ############################
 
-consul_enable_tls: false
+consul_enable_tls: true
 consul_tls_configuration:
-  default:
+  defaults:
     ca_file: "/etc/ssl/certs/ca-certificates.crt"
-    cert_file: "{{ hashi_consul_config_dir }}/tls/cert.pem"
-    key_file: "{{ hashi_consul_config_dir }}/tls/key.pem"
+    cert_file: "{{ consul_certificates_directory }}/cert.pem"
+    key_file: "{{ consul_certificates_directory }}/key.pem"
     verify_incoming: false
     verify_outgoing: true
   internal_rpc:
     verify_server_hostname: true
+
+############################
+# consul container volumes #
+############################
+
+extra_consul_container_volumes: []
 
 #######################
 # extra configuration #
 #######################
 
 consul_extra_configuration: {}
+consul_extra_files_list: []
 
 #####################################################
 #                                                   #

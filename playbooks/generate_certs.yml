@@ -192,7 +192,7 @@
 
         - name: "Create Consul certificates"
           when:
-            - "'consul_servers' in group_names"
+            - "('consul_servers' in group_names) or ('consul_agents' in group_names)"
           vars:
             consul_private_key_path: "{{ sub_configuration_directories['certificates'] }}/consul/{{ inventory_hostname }}/key.pem"
             consul_certificate_path: "{{ sub_configuration_directories['certificates'] }}/consul/{{ inventory_hostname }}/cert.pem"
