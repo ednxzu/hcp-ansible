@@ -7,7 +7,7 @@
 
     - name: "Wait for consul cluster to initialize" # noqa: run-once[task]
       ansible.builtin.uri:
-        url: "http://{{ api_interface_address }}:8500" # TODO: this should be dynamic (http/https)
+        url: "{{ consul_api_addr }}"
         validate_certs: no
         return_content: yes
         status_code:
@@ -20,9 +20,9 @@
     - name: "Initialize consul cluster" # noqa: run-once[task]
       community.general.consul_acl_bootstrap:
         bootstrap_secret: "{{ _credentials.consul.root_token.secret_id }}"
-        host: "{{ hashi_consul_configuration['advertise_addr'] }}"
-        port: 8500
-        scheme: http
+        host: "{{ api_interface_address }}"
+        port: "{{ consul_api_port[consul_api_scheme] }}"
+        scheme: "{{ consul_api_scheme }}"
         state: present
       run_once: true
       delegate_to: "{{ groups['consul_servers'] | first }}"
@@ -63,8 +63,8 @@
               community.general.consul_policy:
                 token: "{{ _credentials.consul.root_token.secret_id }}"
                 host: "{{ api_interface_address }}"
-                port: 8500
-                scheme: http # TODO: this should be dynamic
+                port: "{{ consul_api_port[consul_api_scheme] }}"
+                scheme: "{{ consul_api_scheme }}"
                 validate_certs: false
                 state: present
                 name: agents-policy
@@ -73,14 +73,13 @@
 
             - name: "Create consul agents token"
               vars:
-                consul_full_url: "http://{{ hashi_consul_configuration['advertise_addr'] }}:8500"
                 consul_token_body:
                   Description: "Consul agents token"
                   SecretID: "{{ _credentials.consul.tokens.agent }}"
                   Policies:
                     - ID: "{{ _consul_agent_policy.policy.ID }}"
               ansible.builtin.uri:
-                url: "{{ consul_full_url }}/v1/acl/token"
+                url: "{{ consul_api_addr }}/v1/acl/token"
                 method: PUT
                 headers:
                   X-Consul-Token: "{{ _credentials.consul.root_token.secret_id  }}"

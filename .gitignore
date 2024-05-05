@@ -6,5 +6,6 @@ vault_config.yml
 consul_config.yml
 **/certificates/**
 **/secrets/credentials.yml
+**/secrets/credentials.decrypt.yml
 **/secrets/vault.yml
 **/.ansible-vault

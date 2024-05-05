@@ -5,6 +5,16 @@
 #                                                   #
 #####################################################
 
+#####################
+# consul api config #
+#####################
+
+consul_api_addr: "{{ consul_api_scheme }}://{{ api_interface_address }}:{{ consul_api_port[consul_api_scheme] }}"
+consul_api_scheme: "{{ 'https' if consul_enable_tls else 'http' }}"
+consul_api_port:
+  http: 8500
+  https: 8501
+
 ##########################
 # consul haproxy backend #
 ##########################
@@ -27,7 +37,7 @@ consul_external_backend_options:
 consul_external_backend_servers: |
   [
     {% for host in groups['consul_servers'] %}
-      'server consul-{{ hostvars[host].api_interface_address }} {{ hostvars[host].api_interface_address }}:{{ hashi_consul_configuration.ports.http }} check inter 5s'{% if not loop.last %},{% endif %}
+      'server consul-{{ hostvars[host].api_interface_address }} {{ hostvars[host].api_interface_address }}:{{ hostvars[host].consul_api_port[consul_api_scheme] }} check {{ 'ssl verify none ' if consul_enable_tls }}inter 5s'{% if not loop.last %},{% endif %}
     {% endfor %}
   ]
 
@@ -43,6 +53,15 @@ consul_default_agent_policy: |
     policy = "read"
   }
 
+#######################
+# consul internal tls #
+#######################
+
+consul_certificates_directory: "{{ hashi_consul_config_dir }}/tls"
+consul_certificates_extra_files_dir:
+  - src: "{{ sub_configuration_directories['certificates'] }}/consul/{{ inventory_hostname }}"
+    dest: "{{ consul_certificates_directory }}"
+
 #########################
 # consul role variables #
 #########################
@@ -53,9 +72,15 @@ hashi_consul_deploy_method: "{{ deployment_method }}"
 hashi_consul_env_variables: {}
 hashi_consul_config_dir: "/etc/consul.d"
 hashi_consul_data_dir: "/opt/consul"
-hashi_consul_extra_files: false
-hashi_consul_extra_files_src: "{{ sub_configuration_directories.consul_servers }}/config"
-hashi_consul_extra_files_dst: "{{ hashi_consul_config_dir }}/config"
+hashi_consul_extra_files: true
+hashi_consul_extra_files_list: "{{ ([] +
+  (consul_certificates_extra_files_dir if consul_enable_tls else []) +
+  (vault_plugin_extra_files_dir if vault_enable_plugins else []) +
+  vault_extra_files_list)
+  | unique
+  | sort
+  }}"
+hashi_consul_extra_container_volumes: "{{ default_container_extra_volumes | union(extra_consul_container_volumes) | unique | sort }}"
 hashi_consul_envoy_install: false
 hashi_consul_envoy_version: v1.27.2
 hashi_consul_configuration:
@@ -83,8 +108,6 @@ hashi_consul_configuration:
   dns_config: "{{ consul_dns_configuration }}"
   ports:
     dns: 8600
-    http: 8500 # "{{ ('8500'|int) if not  }}"
-    https: -1
     grpc: 8502
     grpc_tls: 8503
     server: 8300
@@ -98,3 +121,6 @@ hashi_consul_configuration:
 # this is used to circumvent jinja limitation to convert string to integer
 hashi_consul_configuration_string: |
   bootstrap_expect: {{ (groups['consul_servers'] | length) }}
+  ports:
+    http: {{ (consul_api_port.http|int) if not consul_enable_tls else ('-1' | int) }}
+    https: {{ (consul_api_port.https|int) if consul_enable_tls else ('-1' | int) }}

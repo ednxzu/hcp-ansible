@@ -1,0 +1,212 @@
+---
+##########################
+# General options ########
+##########################
+
+# enable_haproxy: "yes"
+# enable_vault: "yes"
+# enable_consul: "yes"
+# enable_nomad: "no"
+
+# haproxy_version: "2.8"
+# nomad_version: "1.7.7"
+# consul_version: "1.18.1"
+# vault_version: "1.16.2"
+
+# deployment_method: "docker"
+
+# consul_fqdn: consul.ednz.lab
+# vault_fqdn: vault.ednz.lab
+# nomad_fqdn: nomad.ednz.lab
+
+# hashistack_external_vip_interface: "eth0"
+# hashistack_external_vip_addr: "192.168.121.100"
+# hashistack_internal_vip_interface: "{{ hashistack_external_vip_interface }}"
+# hashistack_internal_vip_addr: "{{ hashistack_external_vip_addr }}"
+
+api_interface: "eth1"
+# api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
+
+########################
+# external tls options #
+########################
+
+enable_tls_external: true
+# external_tls_externally_managed_certs: false
+
+#####################################################
+#                                                   #
+#                Consul                             #
+#                                                   #
+#####################################################
+
+# consul_domain: consul
+# consul_datacenter: dc1
+# consul_primary_datacenter: dc1
+# consul_leave_on_terminate: true
+# consul_rejoin_after_leave: true
+# consul_enable_script_checks: true
+# consul_gossip_encryption_key: "{{ 'mysupersecretgossipencryptionkey'|b64encode }}"
+
+################################
+# consul address configuration #
+################################
+
+# consul_address_configuration:
+#   # The address to which Consul will bind client interfaces,
+#   # including the HTTP and DNS servers.
+#   client_addr: "0.0.0.0"
+#   # The address that should be bound to for internal cluster communications.
+#   bind_addr: "{{ api_interface_address }}"
+#   # The advertise address is used to change the address that we advertise to other nodes in the cluster.
+#   advertise_addr: "{{ api_interface_address }}"
+
+############################
+# consul ACL configuration #
+############################
+
+# consul_acl_configuration:
+#   enabled: true
+#   default_policy: "deny" # can be allow or deny
+#   enable_token_persistence: true
+
+############################
+# consul DNS configuration #
+############################
+
+# consul_dns_configuration:
+#   allow_stale: true
+#   enable_truncate: true
+#   only_passing: true
+
+###########################
+# consul ui configuration #
+###########################
+
+# consul_ui_configuration:
+#   enabled: "{{ 'consul_servers' in group_names }}"
+
+#####################################
+# consul service mesh configuration #
+#####################################
+
+# consul_mesh_configuration:
+#   enabled: true
+
+############################
+# consul tls configuration #
+############################
+
+consul_enable_tls: true
+# consul_tls_configuration:
+#   defaults:
+#     ca_file: "/etc/ssl/certs/ca-certificates.crt"
+#     cert_file: "{{ consul_certificates_directory }}/cert.pem"
+#     key_file: "{{ consul_certificates_directory }}/key.pem"
+#     verify_incoming: false
+#     verify_outgoing: true
+#   internal_rpc:
+#     verify_server_hostname: true
+
+############################
+# consul container volumes #
+############################
+
+# extra_consul_container_volumes: []
+
+#######################
+# extra configuration #
+#######################
+
+# consul_extra_configuration: {}
+# consul_extra_files_list: []
+
+#####################################################
+#                                                   #
+#                Vault                              #
+#                                                   #
+#####################################################
+
+# vault_cluster_name: vault
+# vault_enable_ui: true
+# vault_seal_configuration:
+#   key_shares: 3
+#   key_threshold: 2
+
+#################
+# vault storage #
+#################
+
+# vault_storage_configuration:
+#   raft:
+#     path: "{{ hashi_vault_data_dir }}/data"
+#     node_id: "{{ ansible_hostname }}"
+#     retry_join: |
+#       [
+#       {% for host in groups['vault_servers'] %}
+#         {
+#           'leader_api_addr': '{{ "https" if vault_enable_tls else "http"}}://{{ hostvars[host].api_interface_address }}:8200'
+#         }{% if not loop.last %},{% endif %}
+#       {% endfor %}
+#       ]
+
+##################
+# vault listener #
+##################
+
+vault_enable_tls: true
+# vault_tls_verify: false
+# vault_listener_configuration:
+#   tcp:
+#     address: "0.0.0.0:8200"
+#     tls_disable: true
+
+# vault_tls_listener_configuration:
+#   tcp:
+#     tls_disable: false
+#     tls_cert_file: "{{ vault_certificates_directory }}/cert.pem"
+#     tls_key_file: "{{ vault_certificates_directory }}/key.pem"
+#     tls_disable_client_certs: true
+
+# vault_extra_listener_configuration: {}
+
+########################
+# service registration #
+########################
+
+# vault_enable_service_registration: false
+# vault_service_registration_configuration:
+#   consul:
+#     address: "127.0.0.1:8500"
+#     scheme: "http"
+#     token: ""
+
+#################
+# vault plugins #
+#################
+
+# vault_enable_plugins: false
+
+###########
+# logging #
+###########
+
+# vault_enable_log_to_file: false
+# vault_logging_configuration:
+#   log_level: info
+#   log_format: standard
+#   log_rotate_duration: 24h
+#   log_rotate_max_files: 30
+
+###########################
+# vault container volumes #
+###########################
+
+# extra_vault_container_volumes: []
+
+#####################
+# extra configuration
+#####################
+
+# vault_extra_configuration: {}
+# vault_extra_files_list: []
