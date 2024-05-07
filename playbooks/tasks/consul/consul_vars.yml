@@ -41,7 +41,7 @@
         _config_to_merge:
           acl:
             tokens:
-              agent: "{{ _credentials.consul.tokens.agent }}"
+              agent: "{{ _credentials.consul.tokens.agent.secret_id }}"
       ansible.builtin.set_fact:
         hashi_consul_configuration: "{{ hashi_consul_configuration | default({}) | combine(_config_to_merge, recursive=true) }}"
 
