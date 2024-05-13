@@ -174,12 +174,12 @@ vault_extra_listener_configuration: {}
 # service registration #
 ########################
 
-vault_enable_service_registration: false
+vault_enable_service_registration: "{{ enable_consul | bool }}"
 vault_service_registration_configuration:
   consul:
-    address: "127.0.0.1:8500"
-    scheme: "http"
-    token: ""
+    address: "127.0.0.1:{{ hostvars[groups['consul_servers'][0]].consul_api_port[hostvars[groups['consul_servers'][0]].consul_api_scheme] }}"
+    scheme: "{{ hostvars[groups['consul_servers'][0]].consul_api_scheme }}"
+    token: "{{ _credentials.consul.tokens.vault.secret_id }}"
 
 #################
 # vault plugins #

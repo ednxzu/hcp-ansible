@@ -29,28 +29,6 @@
       register: _consul_init_secret
       when: hashi_consul_configuration.acl.enabled
 
-    # - name: "Write consul configuration to file" # noqa: run-once[task] no-handler
-    #   ansible.builtin.blockinfile:
-    #     marker: "## -- {root_token} ANSIBLE MANAGED BLOCK ##"
-    #     block: "{{
-    #       {
-    #       'root_token':{
-    #       'accessor_id': _consul_init_secret.result.AccessorID,
-    #       'secret_id': _consul_init_secret.result.SecretID
-    #       }
-    #       } | to_nice_yaml
-    #       }}"
-    #     path: "{{ sub_configuration_directories.consul_servers }}/consul_config.yml"
-    #     mode: "0644"
-    #   when: _consul_init_secret.result is defined
-    #   run_once: true
-    #   delegate_to: localhost
-
-    # - name: "Load consul cluster variables"
-    #   ansible.builtin.include_vars:
-    #     file: "{{ sub_configuration_directories.consul_servers }}/consul_config.yml"
-    #     name: _consul_cluster_config
-
     - name: "Create consul agents token"
       when:
         - _consul_init_secret.changed
@@ -72,22 +50,18 @@
               register: _consul_agent_policy
 
             - name: "Create consul agents token"
-              vars:
-                consul_token_body:
-                  Description: "Consul agents token"
-                  SecretID: "{{ _credentials.consul.tokens.agent }}"
-                  Policies:
-                    - ID: "{{ _consul_agent_policy.policy.ID }}"
-              ansible.builtin.uri:
-                url: "{{ consul_api_addr }}/v1/acl/token"
-                method: PUT
-                headers:
-                  X-Consul-Token: "{{ _credentials.consul.root_token.secret_id  }}"
-                body: "{{ consul_token_body | to_json }}"
-                status_code:
-                  - 200
+              community.general.consul_token:
+                token: "{{ _credentials.consul.root_token.secret_id }}"
+                host: "{{ api_interface_address }}"
+                port: "{{ consul_api_port[consul_api_scheme] }}"
+                scheme: "{{ consul_api_scheme }}"
+                validate_certs: false
+                accessor_id: "{{ _credentials.consul.tokens.agent.accessor_id }}"
+                secret_id: "{{ _credentials.consul.tokens.agent.secret_id }}"
+                policies:
+                  - id: "{{ _consul_agent_policy.policy.ID }}"
+                state: present
               register: _consul_agent_token
-              changed_when: _consul_agent_token.status == 200
 
             - name: "Restart consul service"
               ansible.builtin.service:
@@ -95,44 +69,3 @@
                 state: restarted
               throttle: 1
               when: _consul_agent_token.changed
-
-    # - name: "Write consul agents token to file" # no-handler
-    #   ansible.builtin.blockinfile:
-    #     marker: "## -- {tokens} ANSIBLE MANAGED BLOCK ##"
-    #     block: "{{
-    #       {
-    #       'tokens':{
-    #       'agent': _consul_agent_token.json.SecretID
-    #       }
-    #       } | to_nice_yaml
-    #       }}"
-    #     path: "{{ sub_configuration_directories.consul_servers }}/consul_config.yml"
-    #     mode: "0644"
-    #   when: "'OK' in _consul_agent_token.msg"
-
-    #         - name: "Merge token configuration"
-    #           delegate_to: localhost
-    #           block:
-    #             - name: "Stat consul secrets file"
-    #               ansible.builtin.stat:
-    #                 path: "{{ sub_configuration_directories.consul_servers }}/consul_config.yml"
-    #               register: _consul_config_file
-    #
-    #             - name: "Load consul secrets file"
-    #               ansible.builtin.include_vars:
-    #                 file: "{{ sub_configuration_directories.consul_servers }}/consul_config.yml"
-    #                 name: _consul_cluster_config
-    #               when: _consul_config_file.stat.exists
-    #
-    #             - name: "Merge token configuration"
-    #               vars:
-    #                 _config_to_merge:
-    #                   acl:
-    #                     tokens: "{{ _consul_cluster_config.tokens }}"
-    #               ansible.builtin.set_fact:
-    #                 hashi_consul_configuration: "{{ hashi_consul_configuration | default({}) | combine(_config_to_merge, recursive=true) }}"
-    #               when: _consul_cluster_config.tokens is defined
-
-    # - name: "Include ednz_cloud.hashistack.hashicorp_consul"
-    #   ansible.builtin.include_role:
-    #     name: ednz_cloud.hashistack.hashicorp_consul

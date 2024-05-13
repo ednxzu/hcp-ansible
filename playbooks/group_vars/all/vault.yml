@@ -49,6 +49,15 @@ vault_plugin_extra_files_dir:
   - src: "{{ sub_configuration_directories['vault_servers'] }}/plugin"
     dest: "{{ vault_plugin_directory }}"
 
+##############################
+# vault service registration #
+##############################
+
+vault_service_registration_policy: |
+  service "vault" {
+    policy = "write"
+  }
+
 ########################
 # vault role variables #
 ########################

@@ -1,6 +1,43 @@
 ---
 - name: "Vault"
   block:
+    - name: "Create consul token for service registration"
+      when:
+        - enable_consul
+        - vault_enable_service_registration
+      delegate_to: "{{ groups['consul_servers'] | first }}"
+      vars:
+        _consul_vault_sr_host: "{{ hostvars[groups['consul_servers'][0]].api_interface_address }}"
+        _consul_vault_sr_port: "{{ hostvars[groups['consul_servers'][0]].consul_api_port[hostvars[groups['consul_servers'][0]].consul_api_scheme] }}"
+        _consul_vault_sr_scheme: "{{ hostvars[groups['consul_servers'][0]].consul_api_scheme }}"
+      run_once: true
+      block:
+        - name: "Create consul vault policy"
+          community.general.consul_policy:
+            token: "{{ _credentials.consul.root_token.secret_id }}"
+            host: "{{ _consul_vault_sr_host }}"
+            port: "{{ _consul_vault_sr_port }}"
+            scheme: "{{ _consul_vault_sr_scheme }}"
+            validate_certs: false
+            state: present
+            name: vault-policy
+            rules: "{{ vault_service_registration_policy }}"
+          register: _consul_vault_policy
+
+        - name: "Create consul vault token"
+          community.general.consul_token:
+            token: "{{ _credentials.consul.root_token.secret_id }}"
+            host: "{{ _consul_vault_sr_host }}"
+            port: "{{ _consul_vault_sr_port }}"
+            scheme: "{{ _consul_vault_sr_scheme }}"
+            validate_certs: false
+            accessor_id: "{{ _credentials.consul.tokens.vault.accessor_id }}"
+            secret_id: "{{ _credentials.consul.tokens.vault.secret_id }}"
+            policies:
+              - id: "{{ _consul_vault_policy.policy.ID }}"
+            state: present
+          when: _consul_vault_policy.changed
+
     - name: "Include ednz_cloud.hashistack.hashicorp_consul"
       ansible.builtin.include_role:
         name: ednz_cloud.hashistack.hashicorp_vault
