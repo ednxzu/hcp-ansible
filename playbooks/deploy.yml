@@ -23,7 +23,7 @@
 
     - name: "Deploy Consul Agents"
       ansible.builtin.include_role:
-        name: ednz_cloud.hashistack.hashicorp_consul
+        name: ednz_cloud.hashicorp_consul
       when:
         - enable_consul | bool
         - "'consul_agents' in group_names"

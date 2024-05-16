@@ -38,9 +38,9 @@
             state: present
           when: _consul_vault_policy.changed
 
-    - name: "Include ednz_cloud.hashistack.hashicorp_consul"
+    - name: "Include ednz_cloud.hashicorp_consul"
       ansible.builtin.include_role:
-        name: ednz_cloud.hashistack.hashicorp_vault
+        name: ednz_cloud.hashicorp_vault
 
     - name: "Initialize vault cluster" # noqa: run-once[task]
       ednz_cloud.hashistack.vault_init:

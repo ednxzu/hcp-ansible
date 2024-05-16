@@ -1,9 +1,9 @@
 ---
 - name: "Consul"
   block:
-    - name: "Include ednz_cloud.hashistack.hashicorp_consul"
+    - name: "Include ednz_cloud.hashicorp_consul"
       ansible.builtin.include_role:
-        name: ednz_cloud.hashistack.hashicorp_consul
+        name: ednz_cloud.hashicorp_consul
 
     - name: "Wait for consul cluster to initialize" # noqa: run-once[task]
       ansible.builtin.uri:

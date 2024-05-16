@@ -46,7 +46,6 @@ consul_primary_datacenter: dc1
 consul_leave_on_terminate: true
 consul_rejoin_after_leave: true
 consul_enable_script_checks: true
-consul_gossip_encryption_key: "{{ 'mysupersecretgossipencryptionkey'|b64encode }}"
 
 ################################
 # consul address configuration #

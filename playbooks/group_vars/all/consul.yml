@@ -88,7 +88,7 @@ hashi_consul_configuration:
   datacenter: "{{ consul_datacenter }}"
   primary_datacenter: "{{ consul_primary_datacenter }}"
   data_dir: "{{ hashi_consul_data_dir }}"
-  encrypt: "{{ consul_gossip_encryption_key }}"
+  encrypt: "{{ _credentials.consul.gossip_encryption_key }}"
   server: "{{ 'consul_servers' in group_names }}"
   retry_join: "{{
     groups['consul_servers'] |
