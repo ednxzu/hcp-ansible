@@ -288,20 +288,3 @@
         that:
           - "ansible_facts.service_mgr == 'systemd'"
       when: inventory_hostname in groups['common']
-
-    - name: "Checking that python SDK for docker is installed"
-      when: deployment_method == 'docker'
-      vars:
-        wanted_docker_sdk_package: "python3-docker"
-      block:
-        - name: "Get packages facts"
-          ansible.builtin.package_facts:
-            manager: auto
-
-        - name: "Checking that python SDK for docker is installed"
-          ansible.builtin.assert:
-            that:
-              - "wanted_docker_sdk_package in ansible_facts.packages"
-            fail_msg: >-
-              The python sdk for docker is really out of date, you need to install
-              a more recent version of it in order to use this tool.

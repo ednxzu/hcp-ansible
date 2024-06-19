@@ -27,7 +27,7 @@
       run_once: true
       delegate_to: "{{ groups['consul_servers'] | first }}"
       register: _consul_init_secret
-      when: hashi_consul_configuration.acl.enabled
+      when: hashicorp_consul_configuration.acl.enabled
 
     - name: "Create consul agents token"
       when:
@@ -63,9 +63,9 @@
                 state: present
               register: _consul_agent_token
 
-            - name: "Restart consul service"
+            - name: "Restart consul service" # noqa: no-handler
               ansible.builtin.service:
-                name: "consul_container"
+                name: "{{ hashicorp_consul_service_name }}"
                 state: restarted
               throttle: 1
               when: _consul_agent_token.changed

@@ -53,7 +53,7 @@ The storage configuration for vault can be edited as well. By default, vault wil
 ```yaml
 vault_storage_configuration:
   raft:
-    path: "{{ hashi_vault_data_dir }}/data"
+    path: "{{ hashicorp_vault_data_dir }}/data"
     node_id: "{{ ansible_hostname }}"
     retry_join: |
       [

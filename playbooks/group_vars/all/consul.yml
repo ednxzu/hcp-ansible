@@ -57,7 +57,7 @@ consul_default_agent_policy: |
 # consul internal tls #
 #######################
 
-consul_certificates_directory: "{{ hashi_consul_config_dir }}/tls"
+consul_certificates_directory: "{{ hashicorp_consul_config_dir }}/tls"
 consul_certificates_extra_files_dir:
   - src: "{{ sub_configuration_directories['certificates'] }}/consul/{{ inventory_hostname }}"
     dest: "{{ consul_certificates_directory }}"
@@ -66,28 +66,27 @@ consul_certificates_extra_files_dir:
 # consul role variables #
 #########################
 
-hashi_consul_start_service: true
-hashi_consul_version: "{{ consul_versions[deployment_method] }}"
-hashi_consul_deploy_method: "{{ deployment_method }}"
-hashi_consul_env_variables: {}
-hashi_consul_config_dir: "/etc/consul.d"
-hashi_consul_data_dir: "/opt/consul"
-hashi_consul_extra_files: true
-hashi_consul_extra_files_list: "{{ ([] +
+hashicorp_consul_start_service: true
+hashicorp_consul_service_name: "consul"
+hashicorp_consul_version: "{{ consul_version }}"
+hashicorp_consul_env_variables: {}
+hashicorp_consul_config_dir: "/etc/consul.d"
+hashicorp_consul_data_dir: "/opt/consul"
+hashicorp_consul_extra_files: true
+hashicorp_consul_extra_files_list: "{{ ([] +
   (consul_certificates_extra_files_dir if consul_enable_tls else []) +
   (vault_plugin_extra_files_dir if vault_enable_plugins else []) +
   vault_extra_files_list)
   | unique
   | sort
   }}"
-hashi_consul_extra_container_volumes: "{{ default_container_extra_volumes | union(extra_consul_container_volumes) | unique | sort }}"
-hashi_consul_envoy_install: false
-hashi_consul_envoy_version: v1.27.2
-hashi_consul_configuration:
+hashicorp_consul_envoy_install: false
+hashicorp_consul_envoy_version: v1.27.2
+hashicorp_consul_configuration:
   domain: "{{ consul_domain }}"
   datacenter: "{{ consul_datacenter }}"
   primary_datacenter: "{{ consul_primary_datacenter }}"
-  data_dir: "{{ hashi_consul_data_dir }}"
+  data_dir: "{{ hashicorp_consul_data_dir }}"
   encrypt: "{{ _credentials.consul.gossip_encryption_key }}"
   server: "{{ 'consul_servers' in group_names }}"
   retry_join: "{{
@@ -102,7 +101,7 @@ hashi_consul_configuration:
   leave_on_terminate: "{{ consul_leave_on_terminate }}"
   rejoin_after_leave: "{{ consul_rejoin_after_leave }}"
   enable_script_checks: "{{ consul_enable_script_checks }}"
-  enable_syslog: "{{ deployment_method == 'host' }}"
+  enable_syslog: true
   log_level: INFO
   acl: "{{ consul_acl_configuration }}"
   dns_config: "{{ consul_dns_configuration }}"
@@ -119,7 +118,7 @@ hashi_consul_configuration:
     expose_max_port: 21755
 
 # this is used to circumvent jinja limitation to convert string to integer
-hashi_consul_configuration_string: |
+hashicorp_consul_configuration_string: |
   bootstrap_expect: {{ (groups['consul_servers'] | length) }}
   ports:
     http: {{ (consul_api_port.http|int) if not consul_enable_tls else ('-1' | int) }}

@@ -63,8 +63,9 @@ nomad_client_configuration:
   enabled: "{{ 'nomad_clients' in group_names | bool }}"
   state_dir: "{{ hashicorp_nomad_data_dir }}/client"
 
-hashicorp_nomad_cni_plugins_install: true
 hashicorp_nomad_start_service: true
+hashicorp_nomad_service_name: "nomad"
+hashicorp_nomad_cni_plugins_install: true
 hashicorp_nomad_cni_plugins_version: latest
 hashicorp_nomad_cni_plugins_install_path: /opt/cni/bin
 hashicorp_nomad_version: latest

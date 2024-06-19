@@ -221,8 +221,8 @@
                       'IP:' + api_interface_address,
                       'IP:127.0.0.1'
                   ] -%}
-                  {%- if hashi_consul_configuration.server -%}
-                    {%- set _ = sans_list.append('DNS:server.' ~ hashi_consul_configuration.datacenter ~ '.' ~ hashi_consul_configuration.domain) -%}
+                  {%- if hashicorp_consul_configuration.server -%}
+                    {%- set _ = sans_list.append('DNS:server.' ~ hashicorp_consul_configuration.datacenter ~ '.' ~ hashicorp_consul_configuration.domain) -%}
                   {%- endif -%}
                   {{ sans_list }}
               community.crypto.openssl_csr_pipe:

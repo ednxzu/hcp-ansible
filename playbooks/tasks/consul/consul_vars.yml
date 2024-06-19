@@ -2,22 +2,22 @@
 # hashistack configuration merging for consul
 - name: "Consul | Merge stringified configuration"
   vars:
-    _config_to_merge: "{{ hashi_consul_configuration_string }}"
+    _config_to_merge: "{{ hashicorp_consul_configuration_string }}"
   ansible.builtin.set_fact:
-    hashi_consul_configuration: "{{
-      hashi_consul_configuration |
+    hashicorp_consul_configuration: "{{
+      hashicorp_consul_configuration |
       combine(_config_to_merge|from_yaml, recursive=true)
       }}"
   when:
-    - hashi_consul_configuration_string is defined
+    - hashicorp_consul_configuration_string is defined
     - "'consul_servers' in group_names"
 
 - name: "Consul | Merge addresses configuration"
   vars:
     _config_to_merge: "{{ consul_address_configuration }}"
   ansible.builtin.set_fact:
-    hashi_consul_configuration: "{{
-      hashi_consul_configuration |
+    hashicorp_consul_configuration: "{{
+      hashicorp_consul_configuration |
       combine(_config_to_merge, recursive=true)
       }}"
   when: consul_address_configuration is defined
@@ -27,8 +27,8 @@
     _config_to_merge:
       tls: "{{ consul_tls_configuration }}"
   ansible.builtin.set_fact:
-    hashi_consul_configuration: "{{
-      hashi_consul_configuration |
+    hashicorp_consul_configuration: "{{
+      hashicorp_consul_configuration |
       combine(_config_to_merge, recursive=true)
       }}"
   when: consul_enable_tls
@@ -43,14 +43,14 @@
             tokens:
               agent: "{{ _credentials.consul.tokens.agent.secret_id }}"
       ansible.builtin.set_fact:
-        hashi_consul_configuration: "{{ hashi_consul_configuration | default({}) | combine(_config_to_merge, recursive=true) }}"
+        hashicorp_consul_configuration: "{{ hashicorp_consul_configuration | default({}) | combine(_config_to_merge, recursive=true) }}"
 
 - name: "Consul | Merge extra configuration settings"
   vars:
     _config_to_merge: "{{ consul_extra_configuration }}"
   ansible.builtin.set_fact:
-    hashi_consul_configuration: "{{
-      hashi_consul_configuration |
+    hashicorp_consul_configuration: "{{
+      hashicorp_consul_configuration |
       combine(_config_to_merge, recursive=true)
       }}"
   when: consul_extra_configuration is defined

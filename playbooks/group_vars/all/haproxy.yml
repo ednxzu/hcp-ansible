@@ -5,7 +5,7 @@
 #                                                   #
 #####################################################
 
-deploy_haproxy_deploy_method: "{{ deployment_method }}"
+deploy_haproxy_deploy_method: "host"
 deploy_haproxy_version: "{{ haproxy_version }}"
 
 deploy_haproxy_env_variables: {}
@@ -73,7 +73,7 @@ deploy_haproxy_listen:
       - monitor-uri /health
       - http-request use-service prometheus-exporter if { path /metrics }
 
-deploy_keepalived_deploy_method: "{{ deployment_method }}"
+deploy_keepalived_deploy_method: "host"
 deploy_keepalived_version: "latest"
 deploy_keepalived_start_service: true
 deploy_keepalived_env_variables: {}

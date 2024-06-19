@@ -13,8 +13,8 @@
     _config_to_merge:
       service_registration: "{{ vault_service_registration_configuration }}"
   ansible.builtin.set_fact:
-    hashi_vault_configuration: "{{
-      hashi_vault_configuration |
+    hashicorp_vault_configuration: "{{
+      hashicorp_vault_configuration |
       combine(_config_to_merge)
       }}"
   when: vault_enable_service_registration
@@ -24,8 +24,8 @@
     _config_to_merge:
       plugin_directory: "{{ vault_plugin_directory }}"
   ansible.builtin.set_fact:
-    hashi_vault_configuration: "{{
-      hashi_vault_configuration |
+    hashicorp_vault_configuration: "{{
+      hashicorp_vault_configuration |
       combine(_config_to_merge)
       }}"
   when: vault_enable_plugins
@@ -34,8 +34,8 @@
   vars:
     _config_to_merge: "{{ vault_logging_configuration }}"
   ansible.builtin.set_fact:
-    hashi_vault_configuration: "{{
-      hashi_vault_configuration |
+    hashicorp_vault_configuration: "{{
+      hashicorp_vault_configuration |
       combine(_config_to_merge)
       }}"
   when: vault_enable_log_to_file
@@ -44,8 +44,8 @@
   vars:
     _config_to_merge: "{{ vault_extra_configuration }}"
   ansible.builtin.set_fact:
-    hashi_vault_configuration: "{{
-      hashi_vault_configuration |
+    hashicorp_vault_configuration: "{{
+      hashicorp_vault_configuration |
       combine(_config_to_merge)
       }}"
   when: vault_extra_configuration is defined

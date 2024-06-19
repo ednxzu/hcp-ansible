@@ -13,8 +13,6 @@ enable_nomad: "no"
 # consul_version: "1.18.1"
 # vault_version: "1.16.2"
 
-# deployment_method: "docker"
-
 # consul_fqdn: consul.ednz.lab
 # vault_fqdn: vault.ednz.lab
 # nomad_fqdn: nomad.ednz.lab
@@ -139,7 +137,7 @@ consul_enable_tls: true
 
 # vault_storage_configuration:
 #   raft:
-#     path: "{{ hashi_vault_data_dir }}/data"
+#     path: "{{ hashicorp_vault_data_dir }}/data"
 #     node_id: "{{ ansible_hostname }}"
 #     retry_join: |
 #       [
