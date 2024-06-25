@@ -45,3 +45,10 @@
   when:
     - enable_vault | bool
     - "'vault_servers' in group_names"
+
+- name: "Merge nomad configurations"
+  ansible.builtin.import_tasks:
+    file: "nomad/nomad_vars.yml"
+  when:
+    - enable_nomad | bool
+    - "('nomad_servers' in group_names) or ('nomad_clients' in group_names)"

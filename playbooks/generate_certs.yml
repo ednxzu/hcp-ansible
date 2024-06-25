@@ -6,6 +6,12 @@
   gather_facts: true
   become: true
   tasks:
+    - name: "Import variables"
+      ansible.builtin.import_tasks:
+        file: tasks/load_vars.yml
+      tags:
+        - always
+
     - name: "Create temporary cert directory in {{ sub_configuration_directories['certificates'] }}"  # noqa: run-once[task]
       ansible.builtin.file:
         path: "{{ sub_configuration_directories['certificates'] }}/external"
@@ -271,5 +277,3 @@
                     owner: "{{ lookup('env', 'USER') }}"
                     group: "{{ lookup('env', 'USER') }}"
                     mode: "0644"
-
-    # - fail:

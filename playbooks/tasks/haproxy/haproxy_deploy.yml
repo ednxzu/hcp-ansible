@@ -15,6 +15,10 @@
         - name: "Register haproxy services in consul"
           community.general.consul:
             token: "{{ _credentials.consul.root_token.secret_id }}"
+            host: "127.0.0.1"
+            scheme: "{{ consul_api_scheme }}"
+            port: "{{ consul_api_port[consul_api_scheme] }}"
+            validate_certs: false
             service_name: haproxy
             service_port: 80
             interval: 20s

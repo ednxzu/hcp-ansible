@@ -6,7 +6,7 @@
 # enable_haproxy: "yes"
 # enable_vault: "yes"
 # enable_consul: "yes"
-enable_nomad: "no"
+# enable_nomad: "yes"
 
 # haproxy_version: "2.8"
 # nomad_version: "1.7.7"

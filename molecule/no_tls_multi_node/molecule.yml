@@ -11,7 +11,7 @@ platforms:
   - name: proxy01
     box: generic/${MOLECULE_TEST_OS}
     cpus: 2
-    memory: 4096
+    memory: 2048
     interfaces:
       - network_name: private_network
         ip: 192.168.100.91
@@ -24,7 +24,7 @@ platforms:
   - name: proxy02
     box: generic/${MOLECULE_TEST_OS}
     cpus: 2
-    memory: 4096
+    memory: 2048
     interfaces:
       - network_name: private_network
         ip: 192.168.100.92
@@ -37,7 +37,7 @@ platforms:
   - name: hashistack01
     box: generic/${MOLECULE_TEST_OS}
     cpus: 4
-    memory: 4096
+    memory: 2048
     interfaces:
       - network_name: private_network
         ip: 192.168.100.101
@@ -51,7 +51,7 @@ platforms:
   - name: hashistack02
     box: generic/${MOLECULE_TEST_OS}
     cpus: 4
-    memory: 4096
+    memory: 2048
     interfaces:
       - network_name: private_network
         ip: 192.168.100.102
@@ -65,7 +65,7 @@ platforms:
   - name: hashistack03
     box: generic/${MOLECULE_TEST_OS}
     cpus: 4
-    memory: 4096
+    memory: 2048
     interfaces:
       - network_name: private_network
         ip: 192.168.100.103
@@ -76,6 +76,19 @@ platforms:
       - vault_servers
       - consul_servers
       - nomad_servers
+  - name: hashistack04
+    box: generic/${MOLECULE_TEST_OS}
+    cpus: 4
+    memory: 2048
+    interfaces:
+      - network_name: private_network
+        ip: 192.168.100.104
+        auto_config: true
+        type: static
+    groups:
+      - common
+      - nomad_clients
+      - consul_agents
 provisioner:
   name: ansible
   config_options:

@@ -142,9 +142,6 @@
       delegate_to: localhost
       when: _hashistack_ca_directory.stat.exists and _hashistack_ca_directory.stat.isdir
 
-    - ansible.builtin.debug:
-        msg: "{{ _hashistack_cacert_files }}"
-
     - name: "Ensure remote ca directory exists"
       ansible.builtin.file:
         path: "{{ hashistack_remote_config_dir }}/ca"
@@ -207,10 +204,3 @@
   when:
     - enable_vault | bool
     - "'vault_servers' in group_names"
-
-- debug:
-    msg: "{{ deploy_haproxy_frontends }}"
-
-- debug:
-    msg: "{{ deploy_haproxy_backends }}"
-# - fail:

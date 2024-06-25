@@ -49,11 +49,11 @@ deploy_haproxy_frontends:
         {%- set haproxy_options = haproxy_options + tls_options -%}
       {%- endif -%}
 
-      {%- set haproxy_options = haproxy_options + consul_haproxy_frontend_options + vault_haproxy_frontend_options -%}
+      {%- set haproxy_options = haproxy_options + consul_haproxy_frontend_options + vault_haproxy_frontend_options + nomad_haproxy_frontend_options -%}
 
       {{ haproxy_options }}
 
-deploy_haproxy_backends: "{{ consul_haproxy_backends + vault_haproxy_backends }}"
+deploy_haproxy_backends: "{{ consul_haproxy_backends + vault_haproxy_backends + nomad_haproxy_backends }}"
 
 deploy_haproxy_listen:
   - name: monitoring

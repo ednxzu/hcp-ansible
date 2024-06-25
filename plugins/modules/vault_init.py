@@ -44,12 +44,12 @@ author:
 EXAMPLES = r"""
 # Example: Initialize HashiCorp Vault with default settings
 - name: Initialize HashiCorp Vault
-  my_namespace.my_collection.my_test:
+  ednz_cloud.hashistack.vault_init:
     api_url: https://vault.example.com
 
 # Example: Initialize HashiCorp Vault with custom key shares and threshold
 - name: Initialize HashiCorp Vault with custom settings
-  my_namespace.my_collection.my_test:
+  ednz_cloud.hashistack.vault_init:
     api_url: https://vault.example.com
     key_shares: 7
     key_threshold: 4

@@ -75,8 +75,7 @@ hashicorp_consul_data_dir: "/opt/consul"
 hashicorp_consul_extra_files: true
 hashicorp_consul_extra_files_list: "{{ ([] +
   (consul_certificates_extra_files_dir if consul_enable_tls else []) +
-  (vault_plugin_extra_files_dir if vault_enable_plugins else []) +
-  vault_extra_files_list)
+  consul_extra_files_list)
   | unique
   | sort
   }}"
@@ -102,13 +101,10 @@ hashicorp_consul_configuration:
   rejoin_after_leave: "{{ consul_rejoin_after_leave }}"
   enable_script_checks: "{{ consul_enable_script_checks }}"
   enable_syslog: true
-  log_level: INFO
   acl: "{{ consul_acl_configuration }}"
   dns_config: "{{ consul_dns_configuration }}"
   ports:
     dns: 8600
-    grpc: 8502
-    grpc_tls: 8503
     server: 8300
     serf_lan: 8301
     serf_wan: 8302
@@ -119,7 +115,11 @@ hashicorp_consul_configuration:
 
 # this is used to circumvent jinja limitation to convert string to integer
 hashicorp_consul_configuration_string: |
-  bootstrap_expect: {{ (groups['consul_servers'] | length) }}
   ports:
     http: {{ (consul_api_port.http|int) if not consul_enable_tls else ('-1' | int) }}
     https: {{ (consul_api_port.https|int) if consul_enable_tls else ('-1' | int) }}
+    grpc: {{ ('8502'|int) if not consul_enable_tls else ('-1' | int) }}
+    grpc_tls: {{ ('8503'|int) if consul_enable_tls else ('-1' | int) }}
+
+hashicorp_consul_servers_configuration_string: |
+  bootstrap_expect: {{ (groups['consul_servers'] | length) }}
