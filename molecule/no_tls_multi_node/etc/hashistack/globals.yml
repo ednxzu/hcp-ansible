@@ -9,7 +9,7 @@
 # enable_nomad: "yes"
 
 # haproxy_version: "2.8"
-# nomad_version: "1.7.7"
+# nomad_version: "1.8.1"
 # consul_version: "1.18.1"
 # vault_version: "1.16.2"
 
@@ -112,9 +112,9 @@ consul_enable_tls: true
 
 # extra_consul_container_volumes: []
 
-#######################
-# extra configuration #
-#######################
+##############################
+# consul extra configuration #
+##############################
 
 # consul_extra_configuration: {}
 # consul_extra_files_list: []
@@ -202,9 +202,76 @@ vault_enable_tls: true
 
 # extra_vault_container_volumes: []
 
-#####################
-# extra configuration
-#####################
+#############################
+# vault extra configuration #
+#############################
 
 # vault_extra_configuration: {}
 # vault_extra_files_list: []
+
+#####################################################
+#                                                   #
+#                Nomad                              #
+#                                                   #
+#####################################################
+
+# nomad_datacenter: dc1
+# nomad_region: global
+
+###########################
+# nomad ACL configuration #
+###########################
+
+# nomad_acl_configuration:
+#   enabled: true
+#   token_ttl: 30s
+#   policy_ttl: 60s
+#   role_ttl: 60s
+
+############################
+# nomad consul integration #
+############################
+
+# nomad_enable_consul_integration: "{{ enable_consul | bool }}"
+# nomad_consul_integration_configuration:
+#   address: "127.0.0.1:{{ hashicorp_consul_configuration.ports.https if consul_enable_tls else hashicorp_consul_configuration.ports.http }}"
+#   auto_advertise: true
+#   ssl: "{{ consul_enable_tls | bool }}"
+#   token: "{{ _credentials.consul.tokens.nomad.server.secret_id if nomad_enable_server else _credentials.consul.tokens.nomad.client.secret_id}}"
+#   tags: []
+
+############################
+# nomad vault integration #
+############################
+
+# nomad_enable_vault_integration: false
+# nomad_vault_integration_configuration: {}
+
+###############################
+# nomad drivers configuration #
+###############################
+
+######################
+# nomad internal tls #
+######################
+
+nomad_enable_tls: true
+nomad_tls_configuration:
+  http: true
+  rpc: true
+  rpc_upgrade_mode: true
+  ca_file: "/etc/ssl/certs/ca-certificates.crt"
+  cert_file: "{{ nomad_certificates_directory }}/cert.pem"
+  key_file: "{{ nomad_certificates_directory }}/key.pem"
+  verify_server_hostname: true
+# nomad_certificates_directory: "{{ hashicorp_nomad_config_dir }}/tls"
+# nomad_certificates_extra_files_dir:
+#   - src: "{{ sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}"
+#     dest: "{{ nomad_certificates_directory }}"
+
+#############################
+# nomad extra configuration #
+#############################
+
+# nomad_extra_configuration: {}
+# nomad_extra_files_list: []

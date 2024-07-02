@@ -76,6 +76,7 @@
       ednz_cloud.hashistack.nomad_acl_bootstrap:
         bootstrap_secret: "{{ _credentials.nomad.root_token.secret_id }}"
         api_url: "{{ nomad_api_addr }}"
+        tls_verify: false
       run_once: true
       delegate_to: "{{ groups['nomad_servers'] | first }}"
       register: _nomad_init_secret

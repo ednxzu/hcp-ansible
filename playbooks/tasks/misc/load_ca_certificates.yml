@@ -43,7 +43,7 @@
       loop: "{{ _hashistack_copied_ca.results }}"
       register: _hashistack_usr_local_share_ca_certificates
 
-    - name: "Update the trust store"
+    - name: "Update the trust store" # noqa: no-handler
       ansible.builtin.command: update-ca-certificates
       changed_when: false
       when: _hashistack_usr_local_share_ca_certificates.changed

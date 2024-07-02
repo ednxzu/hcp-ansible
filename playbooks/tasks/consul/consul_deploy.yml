@@ -31,7 +31,6 @@
 
     - name: "Create consul agents token"
       when:
-        # - _consul_init_secret.changed
         - consul_acl_configuration.enabled
       block:
         - name: "Create consul agents token" # noqa: run-once[task] no-handler

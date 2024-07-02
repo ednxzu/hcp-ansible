@@ -5,8 +5,6 @@
 #                                                   #
 #####################################################
 
-nomad_datacenter: dc1
-
 ####################
 # nomad api config #
 ####################
@@ -62,16 +60,6 @@ nomad_address_configuration:
     rpc: 4647
     serf: 4648
 
-###########################
-# nomad ACL configuration #
-###########################
-
-nomad_acl_configuration:
-  enabled: true
-  token_ttl: 30s
-  policy_ttl: 60s
-  role_ttl: 60s
-
 #################################
 # nomad autopilot configuration #
 #################################
@@ -81,14 +69,6 @@ nomad_autopilot_configuration: {}
 ############################
 # nomad consul integration #
 ############################
-
-nomad_enable_consul_integration: "{{ enable_consul | bool }}"
-nomad_consul_integration_configuration:
-  address: "127.0.0.1:{{ hashicorp_consul_configuration.ports.https if consul_enable_tls else hashicorp_consul_configuration.ports.http }}"
-  auto_advertise: true
-  ssl: "{{ consul_enable_tls | bool }}"
-  token: "{{ _credentials.consul.tokens.nomad.server.secret_id if nomad_enable_server else _credentials.consul.tokens.nomad.client.secret_id}}"
-  tags: []
 
 nomad_consul_integration_tls_configuration:
   ca_file: "/etc/ssl/certs/ca-certificates.crt"
@@ -126,13 +106,6 @@ nomad_consul_integration_client_policy: |
   service_prefix "" {
     policy = "write"
   }
-
-############################
-# nomad vault integration #
-############################
-
-nomad_enable_vault_integration: false
-nomad_vault_integration_configuration: {}
 
 #############################
 # nomad leave configuration #
@@ -179,26 +152,10 @@ nomad_client_configuration:
 # nomad internal tls #
 ######################
 
-nomad_enable_tls: false
-nomad_tls_configuration:
-  http: true
-  rpc: true
-  ca_file: "/etc/ssl/certs/ca-certificates.crt"
-  cert_file: "{{ nomad_certificates_directory }}/cert.pem"
-  key_file: "{{ nomad_certificates_directory }}/key.pem"
-  verify_server_hostname: true
-
 nomad_certificates_directory: "{{ hashicorp_nomad_config_dir }}/tls"
 nomad_certificates_extra_files_dir:
   - src: "{{ sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}"
     dest: "{{ nomad_certificates_directory }}"
-
-#######################
-# extra configuration #
-#######################
-
-nomad_extra_configuration: {}
-nomad_extra_files_list: []
 
 ########################
 # nomad role variables #
@@ -213,7 +170,7 @@ hashicorp_nomad_version: "{{ nomad_version }}"
 hashicorp_nomad_env_variables: {}
 hashicorp_nomad_config_dir: "/etc/nomad.d"
 hashicorp_nomad_data_dir: /opt/nomad
-hashicorp_nomad_extra_files: false
+hashicorp_nomad_extra_files: true
 hashicorp_nomad_extra_files_list: "{{ ([] +
   (nomad_certificates_extra_files_dir if nomad_enable_tls else []) +
   nomad_extra_files_list)
@@ -222,6 +179,7 @@ hashicorp_nomad_extra_files_list: "{{ ([] +
   }}"
 hashicorp_nomad_configuration:
   datacenter: "{{ nomad_datacenter }}"
+  region: "{{ nomad_region }}"
   bind_addr: "0.0.0.0"
   data_dir: "{{ hashicorp_nomad_data_dir }}"
   leave_on_interrupt: "{{ nomad_leave_on_interrupt }}"

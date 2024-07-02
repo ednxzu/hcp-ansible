@@ -91,18 +91,25 @@ def bootstrap_nomad_acl(
     if bootstrap_secret:
         payload["BootstrapSecret"] = bootstrap_secret
 
+    response = None
+
     try:
-        response = requests.put(
+        response = requests.post(
             f"{api_url}/v1/acl/bootstrap", json=payload, verify=tls_verify
         )
         response.raise_for_status()
         return True, response.json()
+    except requests.exceptions.HTTPError as e:
+        if response is not None and response.status_code == 400:
+            try:
+                error_message = response.json().get(
+                    "Errors", ["Nomad ACL bootstrap already done"]
+                )[0]
+            except ValueError:
+                error_message = response.text
+            return False, {"message": error_message}
+        raise ValueError(f"Nomad ACL bootstrap failed: {str(e)}")
     except requests.exceptions.RequestException as e:
-        if (
-            response.status_code == 400
-            and "ACL bootstrap already done" in response.text
-        ):
-            return False, {"message": "Nomad ACL system is already bootstrapped"}
         raise ValueError(f"Nomad ACL bootstrap failed: {str(e)}")
 
 

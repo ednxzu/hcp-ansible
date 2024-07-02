@@ -277,3 +277,89 @@
                     owner: "{{ lookup('env', 'USER') }}"
                     group: "{{ lookup('env', 'USER') }}"
                     mode: "0644"
+
+        - name: "Create Nomad certificates"
+          when:
+            - "('nomad_servers' in group_names) or ('nomad_clients' in group_names)"
+          vars:
+            nomad_private_key_path: "{{ sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}/key.pem"
+            nomad_certificate_path: "{{ sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}/cert.pem"
+          block:
+            - name: "Create temporary cert directory in {{ sub_configuration_directories['certificates'] }}"  # noqa: run-once[task]
+              ansible.builtin.file:
+                path: "{{ sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}"
+                state: directory
+                owner: "{{ lookup('env', 'USER') }}"
+                group: "{{ lookup('env', 'USER') }}"
+                mode: "0755"
+
+            - name: "Create Nomad certificate keys"
+              community.crypto.openssl_privatekey:
+                path: "{{ nomad_private_key_path }}"
+                owner: "{{ lookup('env', 'USER') }}"
+                group: "{{ lookup('env', 'USER') }}"
+
+            - name: "Create CSRs for Nomad servers"
+              vars:
+                nomad_csr_sans: >-
+                  {%- set sans_list = [
+                      'DNS:' + inventory_hostname,
+                      'DNS:localhost',
+                      'IP:' + api_interface_address,
+                      'IP:127.0.0.1'
+                  ] -%}
+                  {%- if hashicorp_nomad_configuration.server.enabled -%}
+                    {%- set _ = sans_list.append('DNS:server.' ~ hashicorp_nomad_configuration.region ~ '.nomad') -%}
+                    {%- if  (enable_consul | bool) -%}
+                      {%- set _ = sans_list.append('DNS:nomad.service.consul') -%}
+                    {%- endif -%}
+                  {%- endif -%}
+                  {%- if hashicorp_nomad_configuration.client.enabled -%}
+                    {%- set _ = sans_list.append('DNS:client.' ~ hashicorp_nomad_configuration.region ~ '.nomad') -%}
+                  {%- endif -%}
+                  {{ sans_list }}
+              community.crypto.openssl_csr_pipe:
+                privatekey_path: "{{ nomad_private_key_path }}"
+                common_name: "{{ inventory_hostname }}"
+                subject_alt_name: "{{ nomad_csr_sans }}"
+                key_usage_critical: true
+                key_usage:
+                  - Digital Signature
+                  - Key Encipherment
+                extended_key_usage:
+                  - TLS Web Server Authentication
+                  - TLS Web Client Authentication
+                organization_name: EDNZ Cloud
+                use_common_name_for_san: false
+              register: nomad_csr
+
+            - name: "Sign certificates with internal CA"
+              community.crypto.x509_certificate:
+                path: "{{ nomad_certificate_path }}"
+                csr_content: "{{ nomad_csr.csr }}"
+                provider: ownca
+                ownca_path: "{{ hashistack_ca_cert_path }}"
+                ownca_privatekey_path: "{{ hashistack_ca_key_path }}"
+                ownca_not_after: "+365d"
+                ownca_not_before: "-1d"
+
+            - name: "Concatenate CA and Child certificates"
+              block:
+                - name: "Read content of ca.crt"
+                  ansible.builtin.slurp:
+                    src: "{{ hashistack_ca_cert_path }}"
+                  register: ca_crt_content
+
+                - name: "Read content of cert.pem"
+                  ansible.builtin.slurp:
+                    src: "{{ nomad_certificate_path }}"
+                  register: cert_pem_content
+
+                - name: "Concatenate certificates"
+                  ansible.builtin.copy:
+                    content: |
+                      {{ cert_pem_content['content'] | b64decode }}{{ ca_crt_content['content'] | b64decode }}
+                    dest: "{{ nomad_certificate_path }}"
+                    owner: "{{ lookup('env', 'USER') }}"
+                    group: "{{ lookup('env', 'USER') }}"
+                    mode: "0644"
