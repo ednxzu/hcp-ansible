@@ -113,3 +113,19 @@ This will install roles that are not packaged with the collection, but are still
 You should now have some roles inside `./roles/`.
 
 ## Generate Credentials
+
+Before deploying your infrastructure with hashistack-ansible, you need to generate credentials that will be used to bootstrap the various clusters.
+
+This can be done by running the `generate_credentials.yml` playbook.
+
+```bash
+ansible-playbook -i inventory/inventory.ini ednz_cloud.hashistack.generate_credentials.yml
+```
+
+This will create and populate `etc/hashistack/secrets/credentials.yml`
+
+> :warning: This file is VERY SENSITIVE, as it holds the root tokens and other credentials for consul and nomad clusters.
+
+This does not generate vault credentials, as it is not possible to generate those in advance. These credentials will be generated, if you enable the vault deployment, during the bootstrap process of the vault cluster, and stored in `etc/hashistack/secrets/vault.yml`
+
+> :warning: It is HIGHLY recommended to encrypt these two files before enventually commiting them to source control. You can do so using tools like [ansible-vault](https://docs.ansible.com/ansible/latest/cli/ansible-vault.html) or [sops](https://github.com/getsops/sops).
