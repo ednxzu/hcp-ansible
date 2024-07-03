@@ -26,15 +26,7 @@ The vault version can either be `latest` or `X.Y.Z`.
 
 For production deployment, it is recommended to use the `X.Y.Z` syntax.
 
-The `deployment_method` variable will define how to install vault on the nodes.
-
-By default, it runs vault inside a docker container, but this can be changed to `host` to install vault from the package manager.
-
-```yaml
-deployment_method: "docker"
-```
-
-### General Settings
+### General settings
 
 First, you can change some general settings for vault.
 
@@ -46,7 +38,7 @@ vault_seal_configuration:
   key_threshold: 2
 ```
 
-### Storage Settings
+### Storage settings
 
 The storage configuration for vault can be edited as well. By default, vault will be configured to setup `raft` storage between all declared vault servers (in the `vault_servers` group).
 
@@ -79,9 +71,9 @@ vault_storage_configuration:
     database: "vault"
 ```
 
-### Listener Settings
+### Listener settings
 
-#### TCP Listeners
+#### TCP listeners
 
 By default, TLS is **disabled** for vault. This goes against the Hashicorp recommendations on the matter, but there is no simple way to force the use of TLS (yet), without adding a lot of complexity to the deployment.
 

@@ -111,3 +111,5 @@ ansible-galaxy install -r ./collections/ansible_collections/ednz_cloud/hashistac
 This will install roles that are not packaged with the collection, but are still required in order to run the playbooks.
 
 You should now have some roles inside `./roles/`.
+
+## Generate Credentials

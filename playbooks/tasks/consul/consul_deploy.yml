@@ -6,16 +6,24 @@
         name: ednz_cloud.hashicorp_consul
 
     - name: "Wait for consul cluster to initialize" # noqa: run-once[task]
-      ansible.builtin.uri:
-        url: "{{ consul_api_addr }}"
-        validate_certs: no
-        return_content: yes
-        status_code:
-          - 200
-      until: uri_output.status == 200
-      retries: 24
-      delay: 5
-      register: uri_output
+      block:
+        - name: "Wait for consul nodes to stabilize"
+          ansible.builtin.wait_for:
+            host: "{{ api_interface_address }}"
+            port: "{{ consul_api_port[consul_api_scheme] }}"
+            delay: 10
+
+        - name: "Waiting for consul api to respond"
+          ansible.builtin.uri:
+            url: "{{ consul_api_addr }}"
+            validate_certs: no
+            return_content: yes
+            status_code:
+              - 200
+          until: uri_output.status == 200
+          retries: 24
+          delay: 5
+          register: uri_output
 
     - name: "Initialize consul cluster" # noqa: run-once[task]
       community.general.consul_acl_bootstrap:
