@@ -1,3 +1,18 @@
+## 0.4.0 (2024-07-10)
+
+### Feat
+
+- add barebone driver options for nomad (not fully working)
+- add docs on generating credentials
+- **nomad**: move variables to globals.yml, adjust bootstrap module for nomad ACLs
+- add nomad deployment options, variables, and playbooks
+- use new vault and consul roles, and only allow for host deployment after docker support drop
+- add global variables for nomad deployment
+
+### Fix
+
+- implement longer wait to stabilize consul cluster before bootstrapping to avoid timeout errors
+
 ## 0.3.0 (2024-05-13)
 
 ### Feat
