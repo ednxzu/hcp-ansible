@@ -251,6 +251,14 @@ vault_enable_tls: true
 # nomad drivers configuration #
 ###############################
 
+# nomad_driver_enable_docker: yes
+# nomad_driver_enable_podman: no
+# nomad_driver_enable_raw_exec: no
+# nomad_driver_enable_java: no
+# nomad_driver_enable_qemu: no
+
+# nomad_driver_extra_configuration: {}
+
 ######################
 # nomad internal tls #
 ######################
@@ -259,7 +267,6 @@ nomad_enable_tls: true
 nomad_tls_configuration:
   http: true
   rpc: true
-  rpc_upgrade_mode: true
   ca_file: "/etc/ssl/certs/ca-certificates.crt"
   cert_file: "{{ nomad_certificates_directory }}/cert.pem"
   key_file: "{{ nomad_certificates_directory }}/key.pem"

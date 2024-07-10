@@ -250,6 +250,14 @@ nomad_vault_integration_configuration: {}
 # nomad drivers configuration #
 ###############################
 
+nomad_driver_enable_docker: yes
+nomad_driver_enable_podman: no
+nomad_driver_enable_raw_exec: no
+nomad_driver_enable_java: no
+nomad_driver_enable_qemu: no
+
+nomad_driver_extra_configuration: {}
+
 ######################
 # nomad internal tls #
 ######################

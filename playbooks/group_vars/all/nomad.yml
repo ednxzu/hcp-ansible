@@ -148,6 +148,10 @@ nomad_client_configuration:
 # nomad drivers configuration #
 ###############################
 
+nomad_driver_configuration:
+  raw_exec:
+    enabled: "{{ nomad_driver_enable_raw_exec | bool }}"
+
 ######################
 # nomad internal tls #
 ######################

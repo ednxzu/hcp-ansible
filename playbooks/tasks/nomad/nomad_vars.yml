@@ -100,6 +100,20 @@
       }}"
   when: nomad_enable_tls
 
+- name: "Nomad | Merge plugin configuration"
+  vars:
+    _config_to_merge:
+      plugin: "{{
+        nomad_driver_configuration |
+        combine(nomad_driver_extra_configuration, recursive=true)
+        }}"
+  ansible.builtin.set_fact:
+    hashicorp_nomad_configuration: "{{
+      hashicorp_nomad_configuration |
+      combine(_config_to_merge, recursive=true)
+      }}"
+  when: "'nomad_clients' in group_names"
+
 - name: "Nomad | Merge extra configuration settings"
   vars:
     _config_to_merge: "{{ nomad_extra_configuration }}"
