@@ -5,18 +5,6 @@
 
 manage_pip_packages_allow_break_system_packages: "{{ ansible_distribution == 'Debian' and ansible_distribution_version == '12' }}"
 
-vault_versions:
-  host: "{{ vault_version if vault_version != 'latest' else vault_version + '*' }}"
-  docker: "{{ vault_version }}"
-
-consul_versions:
-  host: "{{ consul_version if consul_version != 'latest' else consul_version + '*' }}"
-  docker: "{{ consul_version }}"
-
-nomad_versions:
-  host: "{{ nomad_version if nomad_version != 'latest' else nomad_version + '*' }}"
-  docker: "{{ nomad_version }}"
-
 configuration_directory: "{{ lookup('env', 'PWD') }}/etc/hashistack"
 sub_configuration_directories:
   secrets: "{{ configuration_directory }}/secrets"

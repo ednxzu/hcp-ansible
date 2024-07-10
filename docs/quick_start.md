@@ -60,7 +60,7 @@ source /path/to/venv/bin/activate
 pip install -U pip
 ```
 
-4. Install [Ansible](http://www.ansible.com/). Hashistack Ansible requires at least Ansible **7**(or ansible-core **2.15**)
+4. Install [Ansible](http://www.ansible.com/). Hashistack-Ansible requires at least Ansible **7**(or ansible-core **2.15**)
 
 ```bash
 pip install 'ansible-core>=2.15'
@@ -111,3 +111,34 @@ ansible-galaxy install -r ./collections/ansible_collections/ednz_cloud/hashistac
 This will install roles that are not packaged with the collection, but are still required in order to run the playbooks.
 
 You should now have some roles inside `./roles/`.
+
+## Generate Credentials
+
+Before deploying your infrastructure with Hashistack-Ansible, you need to generate credentials that will be used to bootstrap the various clusters.
+
+This can be done by running the `generate_credentials.yml` playbook.
+
+```bash
+ansible-playbook -i inventory/inventory.ini ednz_cloud.hashistack.generate_credentials.yml
+```
+
+This will create and populate `etc/hashistack/secrets/credentials.yml`
+
+> [!WARNING]
+> This file is VERY SENSITIVE, as it holds the root tokens and other credentials for consul and nomad clusters.
+
+This does not generate vault credentials, as it is not possible to generate those in advance. These credentials will be generated, if you enable the vault deployment, during the bootstrap process of the vault cluster, and stored in `etc/hashistack/secrets/vault.yml`
+
+> [!WARNING]
+> It is HIGHLY recommended to encrypt these two files before enventually commiting them to source control. You can do so using tools like [ansible-vault](https://docs.ansible.com/ansible/latest/cli/ansible-vault.html) or [sops](https://github.com/getsops/sops).
+
+## Running preflight checks and bootstrap playbooks
+
+Before running the main deployment playbook, you might want to run the `bootstrap` and `preflight` playbooks, which do a number of checks to ensure all hosts are setup correctly for deployment.
+
+```bash
+ansible-playbook -i inventory/inventory.ini ednz_cloud.hashistack.bootstrap.yml
+ansible-playbook -i inventory/inventory.ini ednz_cloud.hashistack.preflight.yml
+```
+
+These playbooks will run a number of checks, and installations, in order to ensure the target hosts, as well as your deployment environment are correctly setup in order to install all the components.

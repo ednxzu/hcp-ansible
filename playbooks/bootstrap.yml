@@ -35,13 +35,11 @@
         install_docker_auto_update: false
         install_docker_start_service: true
         install_docker_compose: false
-        install_docker_compose_version: latest
-        install_docker_python_packages: true
-        install_docker_python_packages_version: latest
+        install_docker_python_packages: false
         install_docker_users:
           - "{{ ansible_user }}"
         install_docker_daemon_options: {}
-      when: deployment_method == 'docker'
+      #! when: "'nomad_agents' in group_names"
 
     - name: "Ensure /etc/localtime exists"
       ansible.builtin.file:

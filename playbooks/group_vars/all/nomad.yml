@@ -1,18 +1,199 @@
+---
 #####################################################
 #                                                   #
-#                Nomad Configuration                #
+#                Non-Editable                       #
 #                                                   #
 #####################################################
 
-hashi_nomad_cni_plugins_install: true
-hashi_nomad_start_service: true
-hashi_nomad_cni_plugins_version: latest
-hashi_nomad_cni_plugins_install_path: /opt/cni/bin
-hashi_nomad_version: latest
-hashi_nomad_deploy_method: host # deployment method, either host or docker
-hashi_nomad_env_variables: {}
-hashi_nomad_data_dir: /opt/nomad
-hashi_nomad_extra_files: false
-hashi_nomad_extra_files_src: /tmp/extra_files
-hashi_nomad_extra_files_dst: /etc/nomad.d/extra_files
-hashi_nomad_configuration: {}
+####################
+# nomad api config #
+####################
+
+nomad_api_addr: "{{ nomad_api_scheme }}://{{ api_interface_address }}:{{ nomad_api_port[nomad_api_scheme] }}"
+nomad_api_scheme: "{{ 'https' if nomad_enable_tls else 'http' }}"
+nomad_api_port:
+  http: "{{ nomad_address_configuration.ports.http }}"
+  https: "{{ nomad_address_configuration.ports.http }}"
+
+#########################
+# nomad haproxy backend #
+#########################
+
+nomad_haproxy_frontend_options:
+  - acl is_nomad hdr(host) -i {{ nomad_fqdn }}
+  - use_backend nomad_external if is_nomad
+
+nomad_haproxy_backends:
+  - name: nomad_external
+    options: "{{ nomad_external_backend_options + nomad_external_backend_servers }}"
+
+nomad_external_backend_options:
+  - description nomad external http backend
+  - option forwardfor
+  - option httpchk
+  - http-check send meth GET uri /
+  - default-server inter 2s fastinter 1s downinter 1s
+
+nomad_external_backend_servers: |
+  [
+    {% for host in groups['nomad_servers'] %}
+      'server nomad-{{ hostvars[host].api_interface_address }} {{ hostvars[host].api_interface_address }}:{{ hostvars[host].nomad_api_port[nomad_api_scheme] }} check {{ 'ssl verify none ' if nomad_enable_tls }}inter 5s'{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+
+###############################
+# nomad address configuration #
+###############################
+
+nomad_address_configuration:
+  bind_addr: "{{ api_interface_address }}"
+  addresses:
+    http: "{{ api_interface_address }}"
+    rpc: "{{ api_interface_address }}"
+    serf: "{{ api_interface_address }}"
+  advertise:
+    http: "{{ api_interface_address }}"
+    rpc: "{{ api_interface_address }}"
+    serf: "{{ api_interface_address }}"
+  ports:
+    http: 4646
+    rpc: 4647
+    serf: 4648
+
+#################################
+# nomad autopilot configuration #
+#################################
+
+nomad_autopilot_configuration: {}
+
+############################
+# nomad consul integration #
+############################
+
+nomad_consul_integration_tls_configuration:
+  ca_file: "/etc/ssl/certs/ca-certificates.crt"
+
+nomad_consul_integration_server_configuration:
+  server_auto_join: true
+
+nomad_consul_integration_client_configuration:
+  client_auto_join: true
+  grpc_address: "127.0.0.1:{{ hashicorp_consul_configuration.ports.grpc_tls if consul_enable_tls else hashicorp_consul_configuration.ports.grpc }}"
+
+nomad_consul_integration_client_tls_configuration:
+  grpc_ca_file: "/etc/ssl/certs/ca-certificates.crt"
+
+nomad_consul_integration_server_policy: |
+  agent_prefix "" {
+    policy = "read"
+  }
+  node_prefix "" {
+    policy = "read"
+  }
+  service_prefix "" {
+    policy = "write"
+  }
+  acl  = "write"
+  mesh = "write"
+
+nomad_consul_integration_client_policy: |
+  agent_prefix "" {
+    policy = "read"
+  }
+  node_prefix "" {
+    policy = "read"
+  }
+  service_prefix "" {
+    policy = "write"
+  }
+
+#############################
+# nomad leave configuration #
+#############################
+
+# node will leave the cluster if the process is stopped
+# and if it is only a client
+nomad_leave_on_interrupt: "{{ (('nomad_clients' in group_names) and not ('nomad_servers' in group_names)) | bool }}"
+nomad_leave_on_terminate: "{{ (('nomad_clients' in group_names) and not ('nomad_servers' in group_names)) | bool }}"
+
+##########################
+# nomad ui configuration #
+##########################
+
+nomad_ui_configuration:
+  enabled: "{{ ('nomad_servers' in group_names) | bool }}"
+
+##############################
+# nomad server configuration #
+##############################
+
+nomad_enable_server: "{{ ('nomad_servers' in group_names) | bool }}"
+nomad_server_configuration:
+  enabled: "{{ nomad_enable_server }}"
+  data_dir: "{{ hashicorp_nomad_data_dir }}/server"
+  encrypt: "{{ _credentials.nomad.gossip_encryption_key }}"
+
+##############################
+# nomad client configuration #
+##############################
+
+nomad_enable_client: "{{ ('nomad_clients' in group_names) | bool }}"
+nomad_client_configuration:
+  enabled: "{{ nomad_enable_client }}"
+  state_dir: "{{ hashicorp_nomad_data_dir }}/client"
+  bridge_network_name: nomad
+  bridge_network_subnet: "172.26.64.0/20"
+
+###############################
+# nomad drivers configuration #
+###############################
+
+nomad_driver_configuration:
+  raw_exec:
+    enabled: "{{ nomad_driver_enable_raw_exec | bool }}"
+
+######################
+# nomad internal tls #
+######################
+
+nomad_certificates_directory: "{{ hashicorp_nomad_config_dir }}/tls"
+nomad_certificates_extra_files_dir:
+  - src: "{{ sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}"
+    dest: "{{ nomad_certificates_directory }}"
+
+########################
+# nomad role variables #
+########################
+
+hashicorp_nomad_start_service: true
+hashicorp_nomad_service_name: "nomad"
+hashicorp_nomad_cni_plugins_install: true
+hashicorp_nomad_cni_plugins_version: latest
+hashicorp_nomad_cni_plugins_install_path: /opt/cni/bin
+hashicorp_nomad_version: "{{ nomad_version }}"
+hashicorp_nomad_env_variables: {}
+hashicorp_nomad_config_dir: "/etc/nomad.d"
+hashicorp_nomad_data_dir: /opt/nomad
+hashicorp_nomad_extra_files: true
+hashicorp_nomad_extra_files_list: "{{ ([] +
+  (nomad_certificates_extra_files_dir if nomad_enable_tls else []) +
+  nomad_extra_files_list)
+  | unique
+  | sort
+  }}"
+hashicorp_nomad_configuration:
+  datacenter: "{{ nomad_datacenter }}"
+  region: "{{ nomad_region }}"
+  bind_addr: "0.0.0.0"
+  data_dir: "{{ hashicorp_nomad_data_dir }}"
+  leave_on_interrupt: "{{ nomad_leave_on_interrupt }}"
+  leave_on_terminate: "{{ nomad_leave_on_terminate }}"
+  acl: "{{ nomad_acl_configuration }}"
+  server: "{{ nomad_server_configuration }}"
+  client: "{{ nomad_client_configuration }}"
+  ui: "{{ nomad_ui_configuration }}"
+
+# this is used to circumvent jinja limitation to convert string to integer
+hashicorp_nomad_configuration_string: |
+  server:
+    bootstrap_expect: {{ (groups['nomad_servers'] | length) }}

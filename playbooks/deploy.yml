@@ -12,23 +12,23 @@
       tags:
         - always
 
-    - name: "Deploy Consul Control Plane"
-      ansible.builtin.import_tasks:
-        file: tasks/consul/consul_deploy.yml
-      when:
-        - enable_consul | bool
-        - "'consul_servers' in group_names"
+    - name: "Deploy Consul"
       tags:
         - consul
+      when:
+        - enable_consul | bool
+      block:
+        - name: "Deploy Consul Control Plane"
+          ansible.builtin.import_tasks:
+            file: tasks/consul/consul_deploy.yml
+          when:
+            - "'consul_servers' in group_names"
 
-    - name: "Deploy Consul Agents"
-      ansible.builtin.include_role:
-        name: ednz_cloud.hashistack.hashicorp_consul
-      when:
-        - enable_consul | bool
-        - "'consul_agents' in group_names"
-      tags:
-        - consul
+        - name: "Deploy Consul Agents"
+          ansible.builtin.include_role:
+            name: ednz_cloud.hashicorp_consul
+          when:
+            - "'consul_agents' in group_names"
 
     - name: "Deploy Haproxy & Keepalived"
       ansible.builtin.import_tasks:
@@ -47,3 +47,22 @@
         - "'vault_servers' in group_names"
       tags:
         - vault
+
+    - name: "Deploy Nomad"
+      tags:
+        - nomad
+      when:
+        - enable_nomad | bool
+      block:
+        - name: "Deploy Nomad Control Plane"
+          ansible.builtin.import_tasks:
+            file: tasks/nomad/nomad_deploy.yml
+          when:
+            - "('nomad_servers' in group_names)"
+
+        - name: "Deploy Nomad Clients"
+          ansible.builtin.include_role:
+            name: ednz_cloud.hashicorp_nomad
+          when:
+            - "('nomad_clients' in group_names)"
+            - "('nomad_servers' not in group_names)"

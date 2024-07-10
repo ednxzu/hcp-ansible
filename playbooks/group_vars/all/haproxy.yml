@@ -5,7 +5,7 @@
 #                                                   #
 #####################################################
 
-deploy_haproxy_deploy_method: "{{ deployment_method }}"
+deploy_haproxy_deploy_method: "host"
 deploy_haproxy_version: "{{ haproxy_version }}"
 
 deploy_haproxy_env_variables: {}
@@ -49,11 +49,11 @@ deploy_haproxy_frontends:
         {%- set haproxy_options = haproxy_options + tls_options -%}
       {%- endif -%}
 
-      {%- set haproxy_options = haproxy_options + consul_haproxy_frontend_options + vault_haproxy_frontend_options -%}
+      {%- set haproxy_options = haproxy_options + consul_haproxy_frontend_options + vault_haproxy_frontend_options + nomad_haproxy_frontend_options -%}
 
       {{ haproxy_options }}
 
-deploy_haproxy_backends: "{{ consul_haproxy_backends + vault_haproxy_backends }}"
+deploy_haproxy_backends: "{{ consul_haproxy_backends + vault_haproxy_backends + nomad_haproxy_backends }}"
 
 deploy_haproxy_listen:
   - name: monitoring
@@ -73,7 +73,7 @@ deploy_haproxy_listen:
       - monitor-uri /health
       - http-request use-service prometheus-exporter if { path /metrics }
 
-deploy_keepalived_deploy_method: "{{ deployment_method }}"
+deploy_keepalived_deploy_method: "host"
 deploy_keepalived_version: "latest"
 deploy_keepalived_start_service: true
 deploy_keepalived_env_variables: {}

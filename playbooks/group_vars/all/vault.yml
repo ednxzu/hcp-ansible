@@ -35,7 +35,7 @@ vault_external_backend_servers: |
 # vault internal tls #
 ######################
 
-vault_certificates_directory: "{{ hashi_vault_config_dir }}/tls"
+vault_certificates_directory: "{{ hashicorp_vault_config_dir }}/tls"
 vault_certificates_extra_files_dir:
   - src: "{{ sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}"
     dest: "{{ vault_certificates_directory }}"
@@ -44,7 +44,7 @@ vault_certificates_extra_files_dir:
 # vault plugins #
 #################
 
-vault_plugin_directory: "{{ hashi_vault_config_dir }}/plugin"
+vault_plugin_directory: "{{ hashicorp_vault_config_dir }}/plugin"
 vault_plugin_extra_files_dir:
   - src: "{{ sub_configuration_directories['vault_servers'] }}/plugin"
     dest: "{{ vault_plugin_directory }}"
@@ -62,24 +62,24 @@ vault_service_registration_policy: |
 # vault role variables #
 ########################
 
-hashi_vault_start_service: true
-hashi_vault_version: "{{ vault_versions[deployment_method] }}"
-hashi_vault_deploy_method: "{{ deployment_method }}"
-hashi_vault_env_variables: {}
-hashi_vault_config_dir: "/etc/vault.d"
-hashi_vault_data_dir: "/opt/vault"
-hashi_vault_extra_files: true
-hashi_vault_extra_files_list: "{{ ([] +
+hashicorp_vault_start_service: true
+hashicorp_vault_service_name: "vault"
+hashicorp_vault_version: "{{ vault_version }}"
+hashicorp_vault_env_variables: {}
+hashicorp_vault_config_dir: "/etc/vault.d"
+hashicorp_vault_data_dir: "/opt/vault"
+hashicorp_vault_extra_files: true
+hashicorp_vault_extra_files_list: "{{ ([] +
   (vault_certificates_extra_files_dir if vault_enable_tls else []) +
   (vault_plugin_extra_files_dir if vault_enable_plugins else []) +
   vault_extra_files_list)
   | unique
   | sort
   }}"
-hashi_vault_extra_files_src: "{{ sub_configuration_directories.vault_servers }}/config"
-hashi_vault_extra_files_dst: "{{ hashi_vault_config_dir }}/config"
-hashi_vault_extra_container_volumes: "{{ default_container_extra_volumes | union(extra_vault_container_volumes) | unique | sort }}"
-hashi_vault_configuration:
+hashicorp_vault_extra_files_src: "{{ sub_configuration_directories.vault_servers }}/config"
+hashicorp_vault_extra_files_dst: "{{ hashicorp_vault_config_dir }}/config"
+hashicorp_vault_extra_container_volumes: "{{ default_container_extra_volumes | union(extra_vault_container_volumes) | unique | sort }}"
+hashicorp_vault_configuration:
   cluster_name: "{{ vault_cluster_name }}"
   cluster_addr: "{{ 'https' if vault_enable_tls else 'http'}}://{{ api_interface_address }}:8201"
   api_addr: "{{ 'https' if vault_enable_tls else 'http'}}://{{ api_interface_address }}:8200"

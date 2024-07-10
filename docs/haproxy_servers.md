@@ -35,7 +35,7 @@ Note that not all versions of haproxy are available as a package on all supporte
 deployment_method: "docker"
 ```
 
-### General Settings
+### General settings
 
 There aren't many settings that you can configure to deploy the HAProxy frontends. First you'll need to configure a Virtual IP, and pass it in the `globals.yml` configuration file.
 
