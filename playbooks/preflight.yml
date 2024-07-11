@@ -1,7 +1,7 @@
 ---
 # hashistack deployment playbook
 - name: "Preflight"
-  hosts: all
+  hosts: all, !deployment
   strategy: linear
   gather_facts: true
   become: true
