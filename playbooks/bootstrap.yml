@@ -1,10 +1,19 @@
 ---
 # hashistack prepare playbook
 - name: "Bootstrap"
-  hosts: all
+  hosts: all, !deployment
   gather_facts: true
   become: true
   tasks:
+    - name: "Isntall unzip with package manager"
+      ansible.builtin.include_role:
+        name: ednz_cloud.manage_apt_packages
+      vars:
+        manage_apt_packages_list:
+          - name: unzip
+            version: latest
+            state: present
+
     - name: "Install hvac library with pip"
       ansible.builtin.include_role:
         name: ednz_cloud.manage_pip_packages
@@ -39,7 +48,7 @@
         install_docker_users:
           - "{{ ansible_user }}"
         install_docker_daemon_options: {}
-      #! when: "'nomad_agents' in group_names"
+      when: "'nomad_agents' in group_names"
 
     - name: "Ensure /etc/localtime exists"
       ansible.builtin.file:
