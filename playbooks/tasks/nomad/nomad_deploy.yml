@@ -3,14 +3,13 @@
   block:
     - name: "Create consul tokens for service registration"
       when:
+        - nomad_init_server
         - enable_consul
         - nomad_enable_consul_integration
-      delegate_to: "{{ groups['consul_servers'] | first }}"
       vars:
         _consul_host: "{{ hostvars[groups['consul_servers'][0]].api_interface_address }}"
         _consul_port: "{{ hostvars[groups['consul_servers'][0]].consul_api_port[hostvars[groups['consul_servers'][0]].consul_api_scheme] }}"
         _consul_scheme: "{{ hostvars[groups['consul_servers'][0]].consul_api_scheme }}"
-      run_once: true
       block:
         - name: "Create server credentials"
           block:
@@ -77,7 +76,7 @@
         bootstrap_secret: "{{ _credentials.nomad.root_token.secret_id }}"
         api_url: "{{ nomad_api_addr }}"
         tls_verify: false
-      run_once: true
-      delegate_to: "{{ groups['nomad_servers'] | first }}"
       register: _nomad_init_secret
-      when: hashicorp_nomad_configuration.acl.enabled
+      when:
+        - nomad_init_server
+        - hashicorp_nomad_configuration.acl.enabled

@@ -5,6 +5,8 @@
 #                                                   #
 #####################################################
 
+nomad_init_server: "{{ (inventory_hostname == groups['nomad_servers'][0]) | bool }}"
+
 ####################
 # nomad api config #
 ####################

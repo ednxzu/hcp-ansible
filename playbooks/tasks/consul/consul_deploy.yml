@@ -32,17 +32,17 @@
         port: "{{ consul_api_port[consul_api_scheme] }}"
         scheme: "{{ consul_api_scheme }}"
         state: present
-      run_once: true
-      delegate_to: "{{ groups['consul_servers'] | first }}"
       register: _consul_init_secret
-      when: hashicorp_consul_configuration.acl.enabled
+      when:
+        - consul_init_server
+        - hashicorp_consul_configuration.acl.enabled
 
     - name: "Create consul agents token"
       when:
-        - consul_acl_configuration.enabled
+        - consul_init_server
+        - hashicorp_consul_configuration.acl.enabled
       block:
         - name: "Create consul agents token" # noqa: run-once[task] no-handler
-          run_once: true
           block:
             - name: "Create consul agent policy"
               community.general.consul_policy:

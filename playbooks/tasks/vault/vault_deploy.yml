@@ -3,14 +3,13 @@
   block:
     - name: "Create consul token for service registration"
       when:
+        - vault_init_cluster
         - enable_consul
         - vault_enable_service_registration
-      delegate_to: "{{ groups['consul_servers'] | first }}"
       vars:
         _consul_vault_sr_host: "{{ hostvars[groups['consul_servers'][0]].api_interface_address }}"
         _consul_vault_sr_port: "{{ hostvars[groups['consul_servers'][0]].consul_api_port[hostvars[groups['consul_servers'][0]].consul_api_scheme] }}"
         _consul_vault_sr_scheme: "{{ hostvars[groups['consul_servers'][0]].consul_api_scheme }}"
-      run_once: true
       block:
         - name: "Create consul vault policy"
           community.general.consul_policy:
@@ -48,12 +47,11 @@
         tls_verify: "{{ vault_tls_verify }}"
         key_shares: "{{ vault_seal_configuration['key_shares'] }}"
         key_threshold: "{{ vault_seal_configuration['key_threshold'] }}"
-      run_once: true
       retries: 5
       delay: 5
-      delegate_to: "{{ groups['vault_servers'] | first }}"
       register: _vault_init_secret
       until: not _vault_init_secret.failed
+      when: vault_init_cluster
 
     - name: "Write vault configuration to file" # noqa: run-once[task] no-handler
       ansible.builtin.copy:
@@ -62,14 +60,10 @@
         owner: "{{ lookup('env', 'USER') }}"
         group: "{{ lookup('env', 'USER') }}"
         mode: "0644"
-      when: _vault_init_secret.changed
-      run_once: true
+      when:
+        - vault_init_cluster
+        - _vault_init_secret.changed
       delegate_to: localhost
-
-    # - name: "Load vault cluster variables necessary for unseal operation"
-    #   ansible.builtin.include_vars:
-    #     file: "{{ sub_configuration_directories.vault_servers }}/vault_config.yml"
-    #     name: _vault_cluster_config
 
     - name: "Load vault cluster variables necessary for unseal operation"
       ansible.builtin.import_tasks:
@@ -80,9 +74,9 @@
         api_url: "{{ hashicorp_vault_configuration['api_addr'] }}"
         tls_verify: "{{ vault_tls_verify }}"
         key_shares: "{{ _credentials.vault['keys'] }}"
-      run_once: true
-      delegate_to: "{{ groups['vault_servers'] | first }}"
-      when: _vault_init_secret.changed
+      when:
+        - vault_init_cluster
+        - _vault_init_secret.changed
       register: _vault_unseal_secret
 
     - name: "Unseal all vault nodes"

@@ -5,6 +5,8 @@
 #                                                   #
 #####################################################
 
+consul_init_server: "{{ (inventory_hostname == groups['consul_servers'][0]) | bool }}"
+
 #####################
 # consul api config #
 #####################

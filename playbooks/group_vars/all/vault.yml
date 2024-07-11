@@ -5,6 +5,8 @@
 #                                                   #
 #####################################################
 
+vault_init_cluster: "{{ (inventory_hostname == groups['vault_servers'][0]) | bool }}"
+
 #########################
 # vault haproxy backend #
 #########################
