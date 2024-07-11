@@ -40,7 +40,7 @@ external_tls_externally_managed_certs: false
 
 consul_domain: consul
 consul_datacenter: dc1
-consul_primary_datacenter: dc1
+consul_primary_datacenter: "{{ consul_datacenter }}"
 consul_leave_on_terminate: true
 consul_rejoin_after_leave: true
 consul_enable_script_checks: true
@@ -50,12 +50,8 @@ consul_enable_script_checks: true
 ################################
 
 consul_address_configuration:
-  # The address to which Consul will bind client interfaces,
-  # including the HTTP and DNS servers.
   client_addr: "0.0.0.0"
-  # The address that should be bound to for internal cluster communications.
   bind_addr: "{{ api_interface_address }}"
-  # The advertise address is used to change the address that we advertise to other nodes in the cluster.
   advertise_addr: "{{ api_interface_address }}"
 
 ############################
