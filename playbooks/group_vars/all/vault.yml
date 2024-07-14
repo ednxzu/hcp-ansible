@@ -5,7 +5,7 @@
 #                                                   #
 #####################################################
 
-vault_init_cluster: "{{ (inventory_hostname == groups['vault_servers'][0]) | bool }}"
+vault_init_server: "{{ (inventory_hostname == groups['vault_servers'][0]) | bool }}"
 
 #########################
 # vault haproxy backend #
@@ -60,6 +60,17 @@ vault_service_registration_policy: |
     policy = "write"
   }
 
+#################
+# vault logging #
+#################
+
+vault_enable_log_to_file: "{{ enable_log_to_file | bool }}"
+vault_logging_configuration:
+  log_file: "{{ hashistack_remote_log_dir }}/vault/vault.log"
+  log_level: info
+  log_rotate_duration: 24h
+  log_rotate_max_files: 30
+
 ########################
 # vault role variables #
 ########################
@@ -68,8 +79,8 @@ hashicorp_vault_start_service: true
 hashicorp_vault_service_name: "vault"
 hashicorp_vault_version: "{{ vault_version }}"
 hashicorp_vault_env_variables: {}
-hashicorp_vault_config_dir: "/etc/vault.d"
-hashicorp_vault_data_dir: "/opt/vault"
+hashicorp_vault_config_dir: "{{ hashistack_remote_config_dir }}/vault.d"
+hashicorp_vault_data_dir: "{{ hashistack_remote_data_dir }}/vault"
 hashicorp_vault_extra_files: true
 hashicorp_vault_extra_files_list: "{{ ([] +
   (vault_certificates_extra_files_dir if vault_enable_tls else []) +
@@ -78,9 +89,6 @@ hashicorp_vault_extra_files_list: "{{ ([] +
   | unique
   | sort
   }}"
-hashicorp_vault_extra_files_src: "{{ sub_configuration_directories.vault_servers }}/config"
-hashicorp_vault_extra_files_dst: "{{ hashicorp_vault_config_dir }}/config"
-hashicorp_vault_extra_container_volumes: "{{ default_container_extra_volumes | union(extra_vault_container_volumes) | unique | sort }}"
 hashicorp_vault_configuration:
   cluster_name: "{{ vault_cluster_name }}"
   cluster_addr: "{{ 'https' if vault_enable_tls else 'http'}}://{{ api_interface_address }}:8201"

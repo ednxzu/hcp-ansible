@@ -163,6 +163,17 @@ nomad_certificates_extra_files_dir:
   - src: "{{ sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}"
     dest: "{{ nomad_certificates_directory }}"
 
+#################
+# nomad logging #
+#################
+
+nomad_enable_log_to_file: "{{ enable_log_to_file | bool }}"
+nomad_logging_configuration:
+  log_file: "{{ hashistack_remote_log_dir }}/nomad/nomad.log"
+  log_level: info
+  log_rotate_duration: 24h
+  log_rotate_max_files: 30
+
 ########################
 # nomad role variables #
 ########################
@@ -174,8 +185,8 @@ hashicorp_nomad_cni_plugins_version: latest
 hashicorp_nomad_cni_plugins_install_path: /opt/cni/bin
 hashicorp_nomad_version: "{{ nomad_version }}"
 hashicorp_nomad_env_variables: {}
-hashicorp_nomad_config_dir: "/etc/nomad.d"
-hashicorp_nomad_data_dir: /opt/nomad
+hashicorp_nomad_config_dir: "{{ hashistack_remote_config_dir }}/nomad.d"
+hashicorp_nomad_data_dir: "{{ hashistack_remote_data_dir }}/nomad"
 hashicorp_nomad_extra_files: true
 hashicorp_nomad_extra_files_list: "{{ ([] +
   (nomad_certificates_extra_files_dir if nomad_enable_tls else []) +

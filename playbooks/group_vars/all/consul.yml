@@ -64,6 +64,17 @@ consul_certificates_extra_files_dir:
   - src: "{{ sub_configuration_directories['certificates'] }}/consul/{{ inventory_hostname }}"
     dest: "{{ consul_certificates_directory }}"
 
+##################
+# consul logging #
+##################
+
+consul_enable_log_to_file: "{{ enable_log_to_file | bool }}"
+consul_logging_configuration:
+  log_file: "{{ hashistack_remote_log_dir }}/consul/consul.log"
+  log_level: info
+  log_rotate_duration: 24h
+  log_rotate_max_files: 30
+
 #########################
 # consul role variables #
 #########################
@@ -72,8 +83,8 @@ hashicorp_consul_start_service: true
 hashicorp_consul_service_name: "consul"
 hashicorp_consul_version: "{{ consul_version }}"
 hashicorp_consul_env_variables: {}
-hashicorp_consul_config_dir: "/etc/consul.d"
-hashicorp_consul_data_dir: "/opt/consul"
+hashicorp_consul_config_dir: "{{ hashistack_remote_config_dir }}/consul.d"
+hashicorp_consul_data_dir: "{{ hashistack_remote_data_dir }}/consul"
 hashicorp_consul_extra_files: true
 hashicorp_consul_extra_files_list: "{{ ([] +
   (consul_certificates_extra_files_dir if consul_enable_tls else []) +

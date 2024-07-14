@@ -25,6 +25,12 @@ hashistack_internal_vip_addr: "{{ hashistack_external_vip_addr }}"
 api_interface: "eth0"
 api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
 
+###################
+# logging options #
+###################
+
+enable_log_to_file: true
+
 ########################
 # external tls options #
 ########################
@@ -180,17 +186,6 @@ vault_service_registration_configuration:
 
 vault_enable_plugins: false
 
-###########
-# logging #
-###########
-
-vault_enable_log_to_file: false
-vault_logging_configuration:
-  log_level: info
-  log_format: standard
-  log_rotate_duration: 24h
-  log_rotate_max_files: 30
-
 ###########################
 # vault container volumes #
 ###########################
@@ -246,11 +241,11 @@ nomad_vault_integration_configuration: {}
 # nomad drivers configuration #
 ###############################
 
-nomad_driver_enable_docker: yes
-nomad_driver_enable_podman: no
-nomad_driver_enable_raw_exec: no
-nomad_driver_enable_java: no
-nomad_driver_enable_qemu: no
+nomad_driver_enable_docker: true
+nomad_driver_enable_podman: false
+nomad_driver_enable_raw_exec: false
+nomad_driver_enable_java: false
+nomad_driver_enable_qemu: false
 
 nomad_driver_extra_configuration: {}
 

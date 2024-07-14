@@ -18,6 +18,7 @@ configuration_credentials_vars_file: "credentials.yml"
 
 hashistack_remote_config_dir: "/etc/hashistack"
 hashistack_remote_data_dir: "/opt/hashistack"
+hashistack_remote_log_dir: /var/log/hashistack
 
 default_container_extra_volumes:
   - "/etc/timezone:/etc/timezone"
@@ -44,4 +45,6 @@ preflight_enable_host_ntp_checks: true
 haproxy_required_ports: [80, 443]
 vault_required_ports: [8200, 8201]
 consul_required_ports: [8300, 8301, 8302, 8500, 8501, 8502, 8503, 8600]
-nomad_required_ports: []
+nomad_required_ports: [4646, 4647, 4648]
+
+target: all, !deployment
