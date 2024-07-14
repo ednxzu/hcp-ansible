@@ -36,20 +36,6 @@
             state: present
       when: "'haproxy_servers' in group_names"
 
-    - name: "Include ednz_cloud.install_docker"
-      ansible.builtin.include_role:
-        name: ednz_cloud.install_docker
-      vars:
-        install_docker_edition: ce
-        install_docker_auto_update: false
-        install_docker_start_service: true
-        install_docker_compose: false
-        install_docker_python_packages: false
-        install_docker_users:
-          - "{{ ansible_user }}"
-        install_docker_daemon_options: {}
-      when: "'nomad_agents' in group_names"
-
     - name: "Ensure /etc/localtime exists"
       ansible.builtin.file:
         src: /etc/timezone
