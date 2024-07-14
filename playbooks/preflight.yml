@@ -111,8 +111,8 @@
             - enable_vault | bool
 
     - name: "Checking host OS distribution"
-      #TODO: This needs to work with debian and ubuntu, major version works for debian but not ubuntu, simple version works the other way around...
-      #? seems to work
+      # TODO: This needs to work with debian and ubuntu, major version works for debian but not ubuntu, simple version works the other way around...
+      # ? seems to work
       ansible.builtin.assert:
         that:
           - "(ansible_facts.distribution | lower) in hashistack_supported_distributions"
@@ -259,7 +259,7 @@
               when: vault_port_results.results | length > 0
 
         - name: "Checking if consul ports are available"
-          when: inventory_hostname in groups['consul_servers']
+          when: inventory_hostname in groups['consul_servers'] or inventory_hostname in groups['consul_agents']
           block:
             - name: "Checking if consul ports are available"
               ansible.builtin.wait_for:
@@ -277,6 +277,26 @@
                   - item.failed == false
               with_items: "{{ consul_port_results.results }}"
               when: consul_port_results.results | length > 0
+
+        - name: "Checking if nomad ports are available"
+          when: inventory_hostname in groups['nomad_servers'] or inventory_hostname in groups['nomad_clients']
+          block:
+            - name: "Checking if nomad ports are available"
+              ansible.builtin.wait_for:
+                host: "{{ inventory_hostname }}"
+                port: "{{ item }}"
+                state: "stopped"
+                timeout: 5
+              loop: "{{ nomad_required_ports }}"
+              ignore_errors: true
+              register: nomad_port_results
+
+            - name: "Assert that nomad ports are not currently in use"
+              ansible.builtin.assert:
+                that:
+                  - item.failed == false
+              with_items: "{{ nomad_port_results.results }}"
+              when: nomad_port_results.results | length > 0
 
     - name: "Checking if system uses systemd"
       become: true
