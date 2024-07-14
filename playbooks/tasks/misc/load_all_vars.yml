@@ -121,7 +121,6 @@
     owner: root
     group: root
     mode: 0755
-    recurse: yes
   loop:
     - "{{ hashistack_remote_config_dir }}"
     - "{{ hashistack_remote_data_dir }}"

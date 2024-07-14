@@ -23,7 +23,6 @@
     owner: root
     group: root
     mode: 0755
-    recurse: yes
   loop:
     - "{{ hashistack_remote_config_dir }}"
     - "{{ hashistack_remote_data_dir }}"
@@ -52,3 +51,8 @@
   when:
     - enable_nomad | bool
     - "('nomad_servers' in group_names) or ('nomad_clients' in group_names)"
+# - name: "Print all config"
+#   ansible.builtin.debug:
+#     msg: "{{ hostvars[inventory_hostname] }}"
+#
+# - fail:

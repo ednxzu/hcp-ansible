@@ -1,4 +1,11 @@
 ---
+- name: "Include all default variables"
+  ansible.builtin.include_vars:
+    dir: "../../group_vars/all"
+    depth: 1
+    extensions: ["yml"]
+  delegate_to: localhost
+
 - name: "Stat global configuration file"
   ansible.builtin.stat:
     path: "{{ configuration_directory }}/{{ configuration_global_vars_file }}"
