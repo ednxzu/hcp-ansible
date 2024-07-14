@@ -1,9 +1,10 @@
 ---
 # hashistack deployment playbook
 - name: "Deploy"
-  hosts: all, !deployment
+  hosts: "{{ target | default('all, !deployment') }}"
   strategy: linear
   gather_facts: true
+  any_errors_fatal: true
   become: true
   tasks:
     - name: "Import variables"
@@ -12,57 +13,42 @@
       tags:
         - always
 
+    # Consul nodes deployment
     - name: "Deploy Consul"
       tags:
         - consul
       when:
         - enable_consul | bool
-      block:
-        - name: "Deploy Consul Control Plane"
-          ansible.builtin.import_tasks:
-            file: tasks/consul/consul_deploy.yml
-          when:
-            - "'consul_servers' in group_names"
-
-        - name: "Deploy Consul Agents"
-          ansible.builtin.include_role:
-            name: ednz_cloud.hashicorp_consul
-          when:
-            - "'consul_agents' in group_names"
-
-    - name: "Deploy Haproxy & Keepalived"
       ansible.builtin.import_tasks:
-        file: tasks/haproxy/haproxy_deploy.yml
-      when:
-        - enable_haproxy | bool
-        - "'haproxy_servers' in group_names"
+        file: tasks/consul/consul_deploy.yml
+
+    # Haproxy nodes deployment
+    - name: "Deploy Proxies"
       tags:
         - haproxy
-
-    - name: "Deploy Vault"
-      ansible.builtin.import_tasks:
-        file: tasks/vault/vault_deploy.yml
       when:
-        - enable_vault | bool
-        - "'vault_servers' in group_names"
+        - enable_haproxy | bool
+      block:
+        - name: "Deploy Haproxy & Keepalived"
+          ansible.builtin.import_tasks:
+            file: tasks/haproxy/haproxy_deploy.yml
+          when:
+            - "'haproxy_servers' in group_names"
+
+    # Vault nodes deployment
+    - name: "Deploy Vault"
       tags:
         - vault
+      when:
+        - enable_vault | bool
+      ansible.builtin.import_tasks:
+        file: tasks/vault/vault_deploy.yml
 
+    # Nomad nodes deployment
     - name: "Deploy Nomad"
       tags:
         - nomad
       when:
         - enable_nomad | bool
-      block:
-        - name: "Deploy Nomad Control Plane"
-          ansible.builtin.import_tasks:
-            file: tasks/nomad/nomad_deploy.yml
-          when:
-            - "('nomad_servers' in group_names)"
-
-        - name: "Deploy Nomad Clients"
-          ansible.builtin.include_role:
-            name: ednz_cloud.hashicorp_nomad
-          when:
-            - "('nomad_clients' in group_names)"
-            - "('nomad_servers' not in group_names)"
+      ansible.builtin.import_tasks:
+        file: tasks/nomad/nomad_deploy.yml

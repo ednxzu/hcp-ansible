@@ -1,82 +1,19 @@
 ---
 - name: "Nomad"
   block:
-    - name: "Create consul tokens for service registration"
+    - name: "Deploy Nomad Control Plane"
+      ansible.builtin.import_tasks:
+        file: nomad_control_plane.yml
       when:
-        - nomad_init_server
-        - enable_consul
-        - nomad_enable_consul_integration
-      vars:
-        _consul_host: "{{ hostvars[groups['consul_servers'][0]].api_interface_address }}"
-        _consul_port: "{{ hostvars[groups['consul_servers'][0]].consul_api_port[hostvars[groups['consul_servers'][0]].consul_api_scheme] }}"
-        _consul_scheme: "{{ hostvars[groups['consul_servers'][0]].consul_api_scheme }}"
-      block:
-        - name: "Create server credentials"
-          block:
-            - name: "Create consul server policy"
-              community.general.consul_policy:
-                token: "{{ _credentials.consul.root_token.secret_id }}"
-                host: "{{ _consul_host }}"
-                port: "{{ _consul_port }}"
-                scheme: "{{ _consul_scheme }}"
-                validate_certs: false
-                state: present
-                name: nomad-server-policy
-                rules: "{{ nomad_consul_integration_server_policy }}"
-              register: _consul_nomad_server_policy
+        - "'nomad_servers' in group_names"
+      tags:
+        - nomad_servers
 
-            - name: "Create consul server token"
-              community.general.consul_token:
-                token: "{{ _credentials.consul.root_token.secret_id }}"
-                host: "{{ _consul_host }}"
-                port: "{{ _consul_port }}"
-                scheme: "{{ _consul_scheme }}"
-                validate_certs: false
-                accessor_id: "{{ _credentials.consul.tokens.nomad.server.accessor_id }}"
-                secret_id: "{{ _credentials.consul.tokens.nomad.server.secret_id }}"
-                policies:
-                  - id: "{{ _consul_nomad_server_policy.policy.ID }}"
-                state: present
-              when: _consul_nomad_server_policy.changed
-
-        - name: "Create client credentials"
-          block:
-            - name: "Create consul client policy"
-              community.general.consul_policy:
-                token: "{{ _credentials.consul.root_token.secret_id }}"
-                host: "{{ _consul_host }}"
-                port: "{{ _consul_port }}"
-                scheme: "{{ _consul_scheme }}"
-                validate_certs: false
-                state: present
-                name: nomad-client-policy
-                rules: "{{ nomad_consul_integration_client_policy }}"
-              register: _consul_nomad_client_policy
-
-            - name: "Create consul client token"
-              community.general.consul_token:
-                token: "{{ _credentials.consul.root_token.secret_id }}"
-                host: "{{ _consul_host }}"
-                port: "{{ _consul_port }}"
-                scheme: "{{ _consul_scheme }}"
-                validate_certs: false
-                accessor_id: "{{ _credentials.consul.tokens.nomad.client.accessor_id }}"
-                secret_id: "{{ _credentials.consul.tokens.nomad.client.secret_id }}"
-                policies:
-                  - id: "{{ _consul_nomad_client_policy.policy.ID }}"
-                state: present
-              when: _consul_nomad_client_policy.changed
-
-    - name: "Include ednz_cloud.hashicorp_nomad"
-      ansible.builtin.include_role:
-        name: ednz_cloud.hashicorp_nomad
-
-    - name: "Initialize nomad cluster" # noqa: run-once[task]
-      ednz_cloud.hashistack.nomad_acl_bootstrap:
-        bootstrap_secret: "{{ _credentials.nomad.root_token.secret_id }}"
-        api_url: "{{ nomad_api_addr }}"
-        tls_verify: false
-      register: _nomad_init_secret
+    - name: "Deploy Nomad Clients"
+      ansible.builtin.import_tasks:
+        file: nomad_clients.yml
       when:
-        - nomad_init_server
-        - hashicorp_nomad_configuration.acl.enabled
+        - "'nomad_clients' in group_names"
+        - "'nomad_servers' not in group_names"
+      tags:
+        - nomad_clients

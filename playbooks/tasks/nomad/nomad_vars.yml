@@ -123,7 +123,3 @@
       combine(_config_to_merge, recursive=true)
       }}"
   when: nomad_extra_configuration is defined
-
-- name: "Print nomad configuration"
-  ansible.builtin.debug:
-    msg: "{{ hashicorp_nomad_configuration }}"

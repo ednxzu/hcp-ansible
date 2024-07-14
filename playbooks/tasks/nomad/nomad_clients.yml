@@ -1,0 +1,11 @@
+---
+- name: "Nomad clients"
+  block:
+    - name: "Install docker driver"
+      ansible.builtin.include_role:
+        name: ednz_cloud.install_docker
+      when: nomad_driver_enable_docker
+
+    - name: "Deploy Nomad Clients"
+      ansible.builtin.include_role:
+        name: ednz_cloud.hashicorp_nomad
