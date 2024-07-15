@@ -24,10 +24,10 @@ roles:
     version: main
   - name: ednz_cloud.hashicorp_nomad
     src: https://github.com/ednz-cloud/hashicorp_nomad.git
-    version: v0.4.0
+    version: v0.4.1
   - name: ednz_cloud.hashicorp_consul
     src: https://github.com/ednz-cloud/hashicorp_consul.git
-    version: v0.2.0
+    version: v0.2.1
   - name: ednz_cloud.hashicorp_vault
     src: https://github.com/ednz-cloud/hashicorp_vault.git
-    version: v0.2.0
+    version: v0.2.1
