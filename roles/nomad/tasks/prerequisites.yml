@@ -1,0 +1,46 @@
+---
+# task/prerequisites file for hashicorp_nomad
+- name: "Nomad | Create group {{ nomad_group }}"
+  ansible.builtin.group:
+    name: "{{ nomad_user }}"
+    state: present
+
+- name: "Nomad | Create user {{ nomad_user }}"
+  ansible.builtin.user:
+    name: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    shell: /bin/false
+    state: present
+
+- name: "Nomad | Create directory {{ nomad_config_dir }}"
+  ansible.builtin.file:
+    path: "{{ nomad_config_dir }}"
+    state: directory
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0755"
+
+- name: "Nomad | Create directory {{ nomad_data_dir }}"
+  ansible.builtin.file:
+    path: "{{ nomad_data_dir }}"
+    state: directory
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0755"
+
+- name: "Nomad | Create directory {{ nomad_certs_dir }}"
+  ansible.builtin.file:
+    path: "{{ nomad_certs_dir }}"
+    state: directory
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0755"
+
+- name: "Nomad | Create directory {{ nomad_logs_dir }}"
+  ansible.builtin.file:
+    path: "{{ nomad_logs_dir }}"
+    state: directory
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0755"
+  when: nomad_enable_log_to_file

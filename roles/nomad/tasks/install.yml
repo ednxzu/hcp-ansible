@@ -1,0 +1,140 @@
+---
+- name: "Nomad | Get latest release of nomad"
+  when: nomad_version == 'latest'
+  block:
+    - name: "Nomad | Get latest nomad release from github api"
+      ansible.builtin.uri:
+        url: "{{ nomad_github_api }}/hashicorp/nomad/releases/latest"
+        return_content: true
+      register: _nomad_latest_release
+
+    - name: "Nomad | Set wanted nomad version to latest tag"
+      ansible.builtin.set_fact:
+        _nomad_wanted_version: "{{ _nomad_latest_release.json['tag_name']|regex_replace('v', '') }}"
+
+- name: "Nomad | Set wanted nomad version to {{ nomad_version }}"
+  ansible.builtin.set_fact:
+    _nomad_wanted_version: "{{ nomad_version|regex_replace('v', '') }}"
+  when: nomad_version != 'latest'
+
+- name: "Nomad | Get current nomad version"
+  block:
+    - name: "Nomad | Stat nomad version file"
+      ansible.builtin.stat:
+        path: "{{ nomad_config_dir }}/.version"
+      changed_when: false
+      check_mode: false
+      register: _nomad_version_file
+
+    - name: "Nomad | Get current nomad version"
+      ansible.builtin.slurp:
+        src: "{{ _nomad_version_file.stat.path }}"
+      when:
+        - _nomad_version_file.stat.exists
+        - _nomad_version_file.stat.isreg
+      register: _nomad_current_version
+
+- name: "Nomad | Download and install nomad binary"
+  when: _nomad_current_version is not defined
+    or _nomad_wanted_version != (_nomad_current_version.content|default('')|b64decode)
+  block:
+    - name: "Nomad | Set nomad package name to download"
+      ansible.builtin.set_fact:
+        _nomad_package_name: >-
+          nomad_{{ _nomad_wanted_version }}_linux_{{ nomad_deb_architecture_map[ansible_architecture] }}.zip
+        _nomad_shasum_file_name: >-
+          nomad_{{ _nomad_wanted_version }}_SHA256SUMS
+
+    - name: "Nomad | Download checksum file for nomad archive"
+      ansible.builtin.get_url:
+        url: "{{ nomad_repository_url }}/{{ _nomad_wanted_version }}/{{ _nomad_shasum_file_name }}"
+        dest: "/tmp/{{ _nomad_shasum_file_name }}"
+        mode: "0644"
+      register: _nomad_checksum_file
+      until: _nomad_checksum_file is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+
+    - name: "Nomad | Extract correct checksum from checksum file"
+      ansible.builtin.command:
+        cmd: 'grep "{{ _nomad_package_name }}" /tmp/{{ _nomad_shasum_file_name }}'
+      changed_when: false
+      register: _nomad_expected_checksum_line
+
+    - name: "Nomad | Parse the expected checksum"
+      ansible.builtin.set_fact:
+        _nomad_expected_checksum: "{{ _nomad_expected_checksum_line.stdout.split()[0] }}"
+
+    - name: "Nomad | Download nomad binary archive"
+      ansible.builtin.get_url:
+        url: "{{ nomad_repository_url }}/{{ _nomad_wanted_version }}/{{ _nomad_package_name }}"
+        dest: "/tmp/{{ _nomad_package_name }}"
+        mode: "0644"
+        checksum: "sha256:{{ _nomad_expected_checksum }}"
+      register: _nomad_binary_archive
+      until: _nomad_binary_archive is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+
+    - name: "Nomad | Create temporary directory for archive decompression"
+      ansible.builtin.file:
+        path: /tmp/nomad
+        state: directory
+        mode: "0755"
+
+    - name: "Nomad | Unpack nomad archive"
+      ansible.builtin.unarchive:
+        src: "/tmp/{{ _nomad_package_name }}"
+        dest: "/tmp/nomad"
+        owner: "{{ nomad_user }}"
+        group: "{{ nomad_group }}"
+        mode: "0755"
+        remote_src: true
+
+    - name: "Nomad | Copy nomad binary to {{ nomad_binary_path }}"
+      ansible.builtin.copy:
+        src: /tmp/nomad/nomad
+        dest: "{{ nomad_binary_path }}"
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+        force: true
+
+    - name: "Nomad | Update nomad version file"
+      ansible.builtin.copy:
+        content: "{{ _nomad_wanted_version }}"
+        dest: "{{ nomad_config_dir }}/.version"
+        owner: "{{ nomad_user }}"
+        group: "{{ nomad_group }}"
+        mode: "0600"
+
+    - name: "Nomad | Set restart-check variable"
+      ansible.builtin.set_fact:
+        _nomad_service_need_restart: true
+
+    - name: "Nomad | Cleanup temporary directory"
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/nomad
+        - /tmp/{{ _nomad_package_name }}
+        - /tmp/{{ _nomad_shasum_file_name }}
+
+- name: "Nomad | Copy systemd service file for nomad"
+  ansible.builtin.template:
+    src: "nomad.service.j2"
+    dest: "/etc/systemd/system/nomad.service"
+    owner: root
+    group: root
+    mode: "0644"
+  register: _nomad_unit_file
+
+- name: "Nomad | Set reload-check & restart-check variable"
+  ansible.builtin.set_fact:
+    _nomad_service_need_reload: true
+    _nomad_service_need_restart: true
+  when: _nomad_unit_file.changed # noqa: no-handler

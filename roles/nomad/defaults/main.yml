@@ -1,0 +1,204 @@
+---
+# defaults file for hashicorp_nomad
+
+nomad_version: "latest"
+nomad_start_service: true
+nomad_config_dir: "/etc/nomad.d"
+nomad_data_dir: "/opt/nomad"
+nomad_certs_dir: "{{ nomad_config_dir }}/tls"
+nomad_logs_dir: "/var/log/nomad"
+
+nomad_cni_plugins_install: true
+nomad_cni_plugins_version: latest
+nomad_cni_plugins_install_path: /opt/cni/bin
+
+nomad_extra_files: false
+nomad_extra_files_list: []
+
+nomad_env_variables: {}
+
+#######################
+# extra configuration #
+#######################
+
+# You should prioritize adding configuration
+# to the configuration entries below, this
+# option should be used to add pieces of configuration not
+# available through standard variables.
+
+nomad_extra_configuration: {}
+
+###########
+# general #
+###########
+
+nomad_region: global
+nomad_datacenter: dc1
+
+#########################
+# address configuration #
+#########################
+
+nomad_bind_addr: "0.0.0.0"
+nomad_advertise_addr: "{{ ansible_default_ipv4.address }}"
+nomad_address_configuration:
+  bind_addr: "{{ nomad_bind_addr }}"
+  addresses:
+    http: "{{ nomad_advertise_addr }}"
+    rpc: "{{ nomad_advertise_addr }}"
+    serf: "{{ nomad_advertise_addr }}"
+  advertise:
+    http: "{{ nomad_advertise_addr }}"
+    rpc: "{{ nomad_advertise_addr }}"
+    serf: "{{ nomad_advertise_addr }}"
+  ports:
+    http: 4646
+    rpc: 4647
+    serf: 4648
+
+###########################
+# autopilot configuration #
+###########################
+
+nomad_autopilot_configuration: {}
+
+#######################
+# leave configuration #
+#######################
+
+nomad_leave_on_interrupt: false
+nomad_leave_on_terminate: false
+
+########################
+# server configuration #
+########################
+
+nomad_enable_server: true
+nomad_server_bootstrap_expect: 1
+nomad_server_configuration:
+  enabled: "{{ nomad_enable_server }}"
+  data_dir: "{{ nomad_data_dir }}/server"
+  encrypt: "{{ 'mysupersecretgossipencryptionkey'|b64encode }}"
+  server_join:
+    retry_join:
+      - "{{ ansible_default_ipv4.address }}"
+
+##############################
+# client configuration #
+##############################
+
+nomad_enable_client: false
+nomad_client_configuration:
+  enabled: "{{ nomad_enable_client }}"
+  state_dir: "{{ nomad_data_dir }}/client"
+  cni_path: "{{ nomad_cni_plugins_install_path }}" # "/opt/cni/bin"
+  bridge_network_name: nomad
+  bridge_network_subnet: "172.26.64.0/20"
+
+####################
+# ui configuration #
+####################
+
+nomad_ui_configuration:
+  enabled: "{{ nomad_enable_server }}"
+
+#########################
+# drivers configuration #
+#########################
+
+nomad_driver_enable_docker: true
+nomad_driver_enable_podman: false
+nomad_driver_enable_raw_exec: false
+nomad_driver_enable_java: false
+nomad_driver_enable_qemu: false
+
+nomad_driver_configuration:
+  raw_exec:
+    enabled: false
+
+nomad_driver_extra_configuration: {}
+
+###########
+# logging #
+###########
+
+nomad_log_level: info
+nomad_enable_log_to_file: false
+nomad_log_to_file_configuration:
+  log_file: "{{ nomad_logs_dir }}/nomad.log"
+  log_rotate_duration: 24h
+  log_rotate_max_files: 30
+
+#####################
+# ACL configuration #
+#####################
+
+nomad_acl_configuration:
+  enabled: false
+  token_ttl: 30s
+  policy_ttl: 60s
+  role_ttl: 60s
+
+################
+# internal tls #
+################
+
+nomad_enable_tls: false
+nomad_tls_configuration:
+  http: true
+  rpc: true
+  ca_file: "/etc/ssl/certs/ca-certificates.crt"
+  cert_file: "{{ nomad_certs_dir }}/cert.pem"
+  key_file: "{{ nomad_certs_dir }}/key.pem"
+  verify_server_hostname: true
+
+nomad_certificates_extra_files_dir:
+  []
+  # - src: ""
+  #   dest: "{{ nomad_certs_dir }}"
+
+###########################
+# telemetry configuration #
+###########################
+
+nomad_telemetry_configuration:
+  collection_interval: 10s
+  disable_hostname: false
+  use_node_name: false
+  publish_allocation_metrics: false
+  publish_node_metrics: false
+  prefix_filter: []
+  disable_dispatched_job_summary_metrics: false
+  prometheus_metrics: false
+
+######################
+# consul integration #
+######################
+
+nomad_enable_consul_integration: false
+nomad_consul_integration_configuration:
+  address: "127.0.0.1:8500"
+  auto_advertise: true
+  ssl: false
+  token: ""
+  tags: []
+
+nomad_consul_integration_tls_configuration:
+  ca_file: "/etc/ssl/certs/ca-certificates.crt"
+
+nomad_consul_integration_server_configuration:
+  server_auto_join: true
+
+nomad_consul_integration_client_configuration:
+  client_auto_join: true
+  grpc_address: "127.0.0.1:8502"
+
+nomad_consul_integration_client_tls_configuration:
+  grpc_ca_file: "/etc/ssl/certs/ca-certificates.crt"
+
+############################
+# nomad vault integration #
+############################
+
+nomad_enable_vault_integration: false
+nomad_vault_integration_configuration: {}

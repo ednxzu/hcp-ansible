@@ -1,0 +1,33 @@
+[Unit]
+Description=Nomad
+Documentation=https://developer.hashicorp.com/nomad/docs
+Wants=network-online.target
+After=network-online.target
+ConditionFileNotEmpty={{ nomad_config_dir }}/nomad.json
+{% if nomad_configuration.consul.address is defined %}
+Wants=consul.service
+After=consul.service
+{% endif %}
+
+[Service]
+EnvironmentFile=-{{ nomad_config_dir }}/nomad.env
+{% if not (nomad_configuration.client.enabled is defined and nomad_configuration.client.enabled) %}
+User={{ nomad_user }}
+Group={{ nomad_group }}
+{% else %}
+User=root
+Group=root
+{% endif %}
+ExecStart={{ nomad_binary_path }} agent -config {{ nomad_config_dir }}/nomad.json
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+KillSignal=SIGINT
+Restart=on-failure
+LimitNOFILE=65536
+LimitNPROC=infinity
+RestartSec=2
+TasksMax=infinity
+OOMScoreAdjust=-1000
+
+[Install]
+WantedBy=multi-user.target
