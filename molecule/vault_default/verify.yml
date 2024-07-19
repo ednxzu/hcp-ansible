@@ -1,0 +1,185 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: "Test: vault user and group"
+      block:
+        - name: "Getent user vault"
+          ansible.builtin.getent:
+            database: passwd
+            key: vault
+          register: vault_user
+
+        - name: "Getent group vault"
+          ansible.builtin.getent:
+            database: group
+            key: vault
+          register: vault_group
+
+        - name: "Verify vault user and group"
+          ansible.builtin.assert:
+            that:
+              - not vault_user.failed
+              - not vault_group.failed
+              - "'vault' in vault_user.ansible_facts.getent_passwd.keys()"
+              - "'/home/vault' in vault_user.ansible_facts.getent_passwd['vault']"
+              - "'/bin/false' in vault_user.ansible_facts.getent_passwd['vault']"
+              - "'vault' in vault_group.ansible_facts.getent_group.keys()"
+
+    - name: "Test: binary /usr/local/bin/vault"
+      block:
+        - name: "Stat binary /usr/local/bin/vault"
+          ansible.builtin.stat:
+            path: "/usr/local/bin/vault"
+          register: stat_usr_local_bin_vault
+
+        - name: "Verify binary /usr/local/bin/vault"
+          ansible.builtin.assert:
+            that:
+              - stat_usr_local_bin_vault.stat.exists
+              - stat_usr_local_bin_vault.stat.isreg
+              - stat_usr_local_bin_vault.stat.pw_name == 'root'
+              - stat_usr_local_bin_vault.stat.gr_name == 'root'
+              - stat_usr_local_bin_vault.stat.mode == '0755'
+
+    - name: "Test: directory /etc/vault.d"
+      block:
+        - name: "Stat directory /etc/vault.d"
+          ansible.builtin.stat:
+            path: "/etc/vault.d"
+          register: stat_etc_vault_d
+
+        - name: "Stat file /etc/vault.d/vault.env"
+          ansible.builtin.stat:
+            path: "/etc/vault.d/vault.env"
+          register: stat_etc_vault_d_vault_env
+
+        - name: "Stat file /etc/vault.d/vault.json"
+          ansible.builtin.stat:
+            path: "/etc/vault.d/vault.json"
+          register: stat_etc_vault_d_vault_json
+
+        - name: "Slurp file /etc/vault.d/vault.json"
+          ansible.builtin.slurp:
+            src: "/etc/vault.d/vault.json"
+          register: slurp_etc_vault_d_vault_json
+
+        - name: "Verify directory /etc/vault.d"
+          ansible.builtin.assert:
+            that:
+              - stat_etc_vault_d.stat.exists
+              - stat_etc_vault_d.stat.isdir
+              - stat_etc_vault_d.stat.pw_name == 'vault'
+              - stat_etc_vault_d.stat.gr_name == 'vault'
+              - stat_etc_vault_d.stat.mode == '0755'
+              - stat_etc_vault_d_vault_env.stat.exists
+              - stat_etc_vault_d_vault_env.stat.isreg
+              - stat_etc_vault_d_vault_env.stat.pw_name == 'vault'
+              - stat_etc_vault_d_vault_env.stat.gr_name == 'vault'
+              - stat_etc_vault_d_vault_env.stat.mode == '0600'
+              - stat_etc_vault_d_vault_json.stat.exists
+              - stat_etc_vault_d_vault_json.stat.isreg
+              - stat_etc_vault_d_vault_json.stat.pw_name == 'vault'
+              - stat_etc_vault_d_vault_json.stat.gr_name == 'vault'
+              - stat_etc_vault_d_vault_json.stat.mode == '0600'
+              - slurp_etc_vault_d_vault_json.content != ''
+
+    - name: "Test: directory /opt/vault"
+      block:
+        - name: "Stat directory /opt/vault"
+          ansible.builtin.stat:
+            path: "/opt/vault"
+          register: stat_opt_vault
+
+        - name: "Verify directory /opt/vault"
+          ansible.builtin.assert:
+            that:
+              - stat_opt_vault.stat.exists
+              - stat_opt_vault.stat.isdir
+              - stat_opt_vault.stat.pw_name == 'vault'
+              - stat_opt_vault.stat.gr_name == 'vault'
+              - stat_opt_vault.stat.mode == '0755'
+
+    - name: "Test: service vault"
+      block:
+        - name: "Get service vault"
+          ansible.builtin.service_facts:
+
+        - name: "Stat file /etc/systemd/system/vault.service"
+          ansible.builtin.stat:
+            path: "/etc/systemd/system/vault.service"
+          register: stat_etc_systemd_system_vault_service
+
+        - name: "Slurp file /etc/systemd/system/vault.service"
+          ansible.builtin.slurp:
+            src: "/etc/systemd/system/vault.service"
+          register: slurp_etc_systemd_system_vault_service
+
+        - name: "Verify service vault"
+          ansible.builtin.assert:
+            that:
+              - stat_etc_systemd_system_vault_service.stat.exists
+              - stat_etc_systemd_system_vault_service.stat.isreg
+              - stat_etc_systemd_system_vault_service.stat.pw_name == 'root'
+              - stat_etc_systemd_system_vault_service.stat.gr_name == 'root'
+              - stat_etc_systemd_system_vault_service.stat.mode == '0644'
+              - slurp_etc_systemd_system_vault_service.content != ''
+              - ansible_facts.services['vault.service'] is defined
+              - ansible_facts.services['vault.service']['source'] == 'systemd'
+              - ansible_facts.services['vault.service']['state'] == 'running'
+              - ansible_facts.services['vault.service']['status'] == 'enabled'
+
+    - name: "Test: bootstrap vault cluster"
+      block:
+        - name: "Command vault operator init"
+          ansible.builtin.command: "vault operator init -non-interactive -key-shares=3 -key-threshold=2 -format=json"
+          environment:
+            VAULT_ADDR: http://{{ ansible_default_ipv4.address }}:8200
+          changed_when: false
+          register: vault_operator_init
+
+    - name: "Test: unseal vault cluster"
+      vars:
+        vault_unseal_keys: "{{ vault_operator_init.stdout|from_json|json_query('unseal_keys_hex') }}"
+      block:
+        - name: "Command vault operator unseal"
+          ansible.builtin.command: "vault operator unseal -format=json {{ vault_unseal_keys[0] }}"
+          environment:
+            VAULT_ADDR: http://{{ ansible_default_ipv4.address }}:8200
+          changed_when: false
+          register: vault_operator_unseal_0
+
+        - name: "Command vault operator unseal"
+          ansible.builtin.command: "vault operator unseal -format=json {{ vault_unseal_keys[1] }}"
+          environment:
+            VAULT_ADDR: http://{{ ansible_default_ipv4.address }}:8200
+          changed_when: false
+          register: vault_operator_unseal_1
+
+        - name: "Verify vault operator unseal"
+          vars:
+            vault_seal_state_0: "{{ vault_operator_unseal_0.stdout|from_json|json_query('sealed') }}"
+            vault_seal_state_1: "{{ vault_operator_unseal_1.stdout|from_json|json_query('sealed') }}"
+          ansible.builtin.assert:
+            that:
+              - vault_seal_state_0
+              - not vault_seal_state_1
+
+    - name: "Test: vault interaction"
+      vars:
+        root_token: "{{ vault_operator_init.stdout|from_json|json_query('root_token') }}"
+      block:
+        - name: "Command vault secret enable"
+          ansible.builtin.command: "vault secrets enable -version=1 kv"
+          environment:
+            VAULT_ADDR: http://{{ ansible_default_ipv4.address }}:8200
+            VAULT_TOKEN: "{{ root_token }}"
+          changed_when: false
+          register: vault_secret_enable
+
+        - name: "Verify vault interaction"
+          ansible.builtin.assert:
+            that:
+              - vault_secret_enable.stdout == 'Success! Enabled the kv secrets engine at: kv/'

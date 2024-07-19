@@ -1,0 +1,96 @@
+---
+# defaults file for hashicorp_vault
+vault_version: latest
+vault_start_service: true
+vault_config_dir: "/etc/vault.d"
+vault_data_dir: "/opt/vault"
+vault_certs_dir: "{{ vault_config_dir }}/tls"
+vault_logs_dir: "/var/log/vault"
+
+vault_extra_files: false
+vault_extra_files_list: []
+
+vault_env_variables: {}
+
+#######################
+# extra configuration #
+#######################
+
+# You should prioritize adding configuration
+# to the configuration entries below, this
+# option should be used to add pieces of configuration not
+# available through standard variables.
+
+vault_extra_configuration: {}
+
+###########
+# general #
+###########
+
+vault_cluster_name: vault
+vault_bind_addr: "0.0.0.0"
+vault_cluster_addr: "{{ ansible_default_ipv4.address }}"
+vault_enable_ui: true
+vault_disable_mlock: false
+vault_disable_cache: false
+
+#########################
+# storage configuration #
+#########################
+
+vault_storage_configuration:
+  file:
+    path: "{{ vault_data_dir }}"
+
+##########################
+# listener configuration #
+##########################
+
+vault_enable_tls: false
+vault_listener_configuration:
+  tcp:
+    address: "{{ vault_cluster_addr }}:8200"
+    tls_disable: true
+
+vault_tls_listener_configuration:
+  tcp:
+    tls_disable: false
+    tls_cert_file: "{{ vault_certs_dir }}/cert.pem"
+    tls_key_file: "{{ vault_certs_dir }}/key.pem"
+    tls_disable_client_certs: true
+
+vault_certificates_extra_files_dir:
+  []
+  # - src: ""
+  #   dest: "{{ vault_certs_dir }}"
+
+vault_extra_listener_configuration: {}
+
+########################
+# service registration #
+########################
+
+vault_enable_service_registration: false
+vault_service_registration_configuration:
+  consul:
+    address: "127.0.0.1:8500"
+    scheme: "http"
+    token: ""
+
+#########################
+# plugins configuration #
+#########################
+
+vault_enable_plugins: false
+vault_plugins_directory: "{{ vault_config_dir }}/plugins"
+
+#################
+# vault logging #
+#################
+
+vault_log_level: info
+vault_enable_log_to_file: false
+vault_log_to_file_configuration:
+  log_file: "{{ vault_logs_dir }}/vault.log"
+  log_rotate_duration: 24h
+  log_rotate_max_files: 30

@@ -1,0 +1,26 @@
+---
+# vars file for hashicorp_vault
+vault_user: "vault"
+vault_group: "vault"
+vault_binary_path: /usr/local/bin/vault
+vault_deb_architecture_map:
+  x86_64: "amd64"
+  aarch64: "arm64"
+  armv7l: "arm"
+  armv6l: "arm"
+vault_architecture: "{{ vault_deb_architecture_map[ansible_architecture] | default(ansible_architecture) }}"
+vault_service_name: "vault"
+vault_github_api: https://api.github.com/repos
+vault_github_project: hashicorp/vault
+vault_github_url: https://github.com
+vault_repository_url: https://releases.hashicorp.com/vault
+
+vault_configuration:
+  cluster_name: "{{ vault_cluster_name }}"
+  cluster_addr: "{{ 'https' if vault_enable_tls else 'http'}}://{{ vault_cluster_addr }}:8201"
+  api_addr: "{{ 'https' if vault_enable_tls else 'http'}}://{{ vault_cluster_addr }}:8200"
+  ui: "{{ vault_enable_ui }}"
+  disable_mlock: "{{ vault_disable_mlock }}"
+  disable_cache: "{{ vault_disable_cache }}"
+  listener: "{{ vault_listener_configuration }}"
+  storage: "{{ vault_storage_configuration }}"

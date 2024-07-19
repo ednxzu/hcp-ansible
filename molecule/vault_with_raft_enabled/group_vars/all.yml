@@ -1,0 +1,13 @@
+---
+# defaults file for hashicorp_vault
+
+#########################
+# storage configuration #
+#########################
+
+vault_storage_configuration:
+  raft:
+    path: "{{ vault_data_dir }}"
+    node_id: "{{ ansible_hostname }}"
+    retry_join:
+      - leader_api_addr: "http://{{ vault_cluster_addr }}:8200"

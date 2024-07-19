@@ -1,0 +1,74 @@
+---
+# task/configure file for hashicorp_vault
+- name: "Vault | Create vault.env"
+  ansible.builtin.template:
+    src: vault.env.j2
+    dest: "{{ vault_config_dir }}/vault.env"
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    mode: "0600"
+  register: _vault_env_file
+
+- name: "Vault | Copy vault.json template"
+  ansible.builtin.template:
+    src: vault.json.j2
+    dest: "{{ vault_config_dir }}/vault.json"
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    mode: "0600"
+  register: _vault_config_file
+
+- name: "Vault | Set restart-check variable"
+  ansible.builtin.set_fact:
+    _vault_service_need_restart: true
+  when: _vault_env_file.changed or
+    _vault_config_file.changed
+
+- name: "Vault | Copy extra configuration files"
+  when: vault_extra_files
+  block:
+    - name: "Vault | Get extra file types"
+      ansible.builtin.stat:
+        path: "{{ item.src }}"
+      loop: "{{ vault_extra_files_list }}"
+      register: vault_extra_file_stat
+      delegate_to: localhost
+
+    - name: "Vault | Set list for file sources"
+      vars:
+        _vault_file_sources: []
+      ansible.builtin.set_fact:
+        _vault_file_sources: "{{ _vault_file_sources + [item.item] }}"
+      when: item.stat.isreg
+      loop: "{{ vault_extra_file_stat.results }}"
+      loop_control:
+        loop_var: item
+      delegate_to: localhost
+
+    - name: "Vault | Set list for directory sources"
+      vars:
+        _vault_dir_sources: []
+      ansible.builtin.set_fact:
+        _vault_dir_sources: "{{ _vault_dir_sources + [item.item] }}"
+      when: item.stat.isdir
+      loop: "{{ vault_extra_file_stat.results }}"
+      loop_control:
+        loop_var: item
+      delegate_to: localhost
+
+    - name: "Vault | Template extra file sources"
+      ansible.builtin.template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest | regex_replace('\\.j2$', '') }}"
+        owner: "{{ vault_user }}"
+        group: "{{ vault_group }}"
+        mode: "0700"
+      loop: "{{ _vault_file_sources }}"
+      when: _vault_file_sources is defined
+
+    - name: "Vault | Template extra directory sources"
+      ansible.builtin.include_tasks: recursive_copy_extra_dirs.yml
+      loop: "{{ _vault_dir_sources }}"
+      loop_control:
+        loop_var: dir_source_item
+      when: _vault_dir_sources is defined

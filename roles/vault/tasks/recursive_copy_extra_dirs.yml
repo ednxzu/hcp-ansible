@@ -1,0 +1,26 @@
+---
+# task/recursive_copy_extra_dirs file for hashicorp_vault
+- name: "Vault | Ensure destination directory exists"
+  ansible.builtin.file:
+    path: "{{ dir_source_item.dest }}"
+    recurse: true
+    state: directory
+    mode: "0775"
+
+- name: "Vault | Create extra directory sources"
+  ansible.builtin.file:
+    path: "{{ dir_source_item.dest }}/{{ item.path }}"
+    state: directory
+    mode: "0775"
+  with_community.general.filetree: "{{ dir_source_item.src }}/"
+  when: item.state == 'directory'
+
+- name: "Vault | Template extra directory sources"
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ dir_source_item.dest }}/{{ item.path | regex_replace('\\.j2$', '') }}"
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    mode: "0700"
+  with_community.general.filetree: "{{ dir_source_item.src }}/"
+  when: item.state == 'file'

@@ -1,0 +1,73 @@
+---
+# task/merge_variables file for hashicorp_vault
+- name: "Vault | Merge listener configuration"
+  block:
+    - name: "Vault | Merge tls listener configuration"
+      vars:
+        _config_to_merge: "{{ vault_tls_listener_configuration }}"
+      ansible.builtin.set_fact:
+        vault_listener_configuration: "{{
+          vault_listener_configuration |
+          combine(_config_to_merge, recursive=true)
+          }}"
+      when: vault_enable_tls
+
+    - name: "Vault | Merge extra listener configuration"
+      vars:
+        _config_to_merge: "{{ vault_extra_listener_configuration }}"
+      ansible.builtin.set_fact:
+        vault_listener_configuration: "{{
+          vault_listener_configuration |
+          combine(_config_to_merge, recursive=true)
+          }}"
+
+    - name: "Vault | Add certificates directory to extra_files_dir"
+      ansible.builtin.set_fact:
+        vault_extra_files_list: "{{
+          vault_extra_files_list +
+          vault_certificates_extra_files_dir
+          | unique
+          | sort
+          }}"
+
+- name: "Vault | Merge service registration configuration"
+  vars:
+    _config_to_merge:
+      service_registration: "{{ vault_service_registration_configuration }}"
+  ansible.builtin.set_fact:
+    vault_configuration: "{{
+      vault_configuration |
+      combine(_config_to_merge, recursive=true)
+      }}"
+  when: vault_enable_service_registration
+
+- name: "Vault | Merge plugins configuration"
+  vars:
+    _config_to_merge:
+      plugin_directory: "{{ vault_plugins_directory }}"
+  ansible.builtin.set_fact:
+    vault_configuration: "{{
+      vault_configuration |
+      combine(_config_to_merge, recursive=true)
+      }}"
+  when: vault_enable_plugins
+
+- name: "Vault | Merge logging configuration"
+  vars:
+    _config_to_merge: "{{ vault_log_to_file_configuration }}"
+  ansible.builtin.set_fact:
+    vault_configuration: "{{
+      vault_configuration |
+      combine(_config_to_merge, recursive=true)
+      }}"
+  when: vault_enable_log_to_file
+
+- name: "Vault | Merge extra configuration settings"
+  vars:
+    _config_to_merge: "{{ vault_extra_configuration }}"
+  ansible.builtin.set_fact:
+    vault_configuration: "{{
+      vault_configuration |
+      combine(_config_to_merge, recursive=true)
+      }}"
+  when: vault_extra_configuration is defined
