@@ -1,0 +1,23 @@
+---
+#####################
+# ACL configuration #
+#####################
+
+consul_acl_configuration:
+  enabled: true
+  default_policy: "deny"
+  enable_token_persistence: true
+  tokens:
+    initial_management: "1a1f2ce5-3730-47de-9a9c-89e037376bab"
+    agent: "1a1f2ce5-3730-47de-9a9c-89e037376bab"
+
+###########
+# logging #
+###########
+
+consul_log_level: info
+consul_enable_log_to_file: true
+consul_log_to_file_configuration:
+  log_file: "{{ consul_logs_dir }}/consul.log"
+  log_rotate_duration: 24h
+  log_rotate_max_files: 30

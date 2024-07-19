@@ -1,0 +1,20 @@
+[Unit]
+Description=Consul
+Documentation=https://developer.hashicorp.com/consul/docs
+Requires=network-online.target
+After=network-online.target
+ConditionFileNotEmpty={{ consul_config_dir }}/consul.json
+
+[Service]
+EnvironmentFile=-{{ consul_config_dir }}/consul.env
+User={{ consul_user }}
+Group={{ consul_group }}
+ExecStart={{ consul_binary_path }} agent -config-dir={{ consul_config_dir }}
+ExecReload=/bin/kill --signal HUP $MAINPID
+KillMode=process
+KillSignal=SIGTERM
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

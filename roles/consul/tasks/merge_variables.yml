@@ -1,0 +1,94 @@
+---
+# task/merge_variables file for hashicorp_consul
+- name: "Consul | Merge stringified configuration"
+  vars:
+    _config_to_merge: "{{ consul_configuration_string }}"
+  ansible.builtin.set_fact:
+    consul_configuration: "{{
+      consul_configuration |
+      combine(_config_to_merge|from_yaml, recursive=true)
+      }}"
+
+- name: "Consul | Merge server specific stringified configuration"
+  vars:
+    _config_to_merge: "{{ consul_server_configuration_string }}"
+  ansible.builtin.set_fact:
+    consul_configuration: "{{
+      consul_configuration |
+      combine(_config_to_merge|from_yaml, recursive=true)
+      }}"
+  when:
+    - consul_enable_server
+
+- name: "Consul | Merge addresses configuration"
+  vars:
+    _config_to_merge: "{{ consul_address_configuration }}"
+  ansible.builtin.set_fact:
+    consul_configuration: "{{
+      consul_configuration |
+      combine(_config_to_merge, recursive=true)
+      }}"
+
+- name: "Consul | Merge TLS configuration"
+  when: consul_enable_tls
+  block:
+    - name: "Consul | Merge TLS configuration"
+      vars:
+        _config_to_merge:
+          tls: "{{ consul_tls_configuration }}"
+      ansible.builtin.set_fact:
+        consul_configuration: "{{
+          consul_configuration |
+          combine(_config_to_merge, recursive=true)
+          }}"
+
+    - name: "Consul | Add certificates directory to extra_files_dir"
+      ansible.builtin.set_fact:
+        consul_extra_files_list: "{{
+          consul_extra_files_list +
+          consul_certificates_extra_files_dir
+          | unique
+          | sort
+          }}"
+
+- name: "Consul | Merge extra configuration settings"
+  vars:
+    _config_to_merge: "{{ consul_extra_configuration }}"
+  ansible.builtin.set_fact:
+    consul_configuration: "{{
+      consul_configuration |
+      combine(_config_to_merge, recursive=true)
+      }}"
+
+- name: "Consul | Merge log to file configuration"
+  vars:
+    _config_to_merge: "{{ consul_log_to_file_configuration }}"
+  ansible.builtin.set_fact:
+    consul_configuration: "{{
+      consul_configuration |
+      combine(_config_to_merge, recursive=true)
+      }}"
+  when: consul_enable_log_to_file
+
+- name: "Consul | Merge telemetry configuration"
+  block:
+    - name: "Consul | Merge prometheus metrics configuration"
+      vars:
+        _config_to_merge:
+          prometheus_retention_time: "{{ consul_prometheus_retention_time }}"
+      ansible.builtin.set_fact:
+        consul_telemetry_configuration: "{{
+          consul_telemetry_configuration |
+          combine(_config_to_merge, recursive=true)
+          }}"
+      when: consul_enable_prometheus_metrics
+
+    - name: "Consul | Merge telemtry configuration"
+      vars:
+        _config_to_merge:
+          telemetry: "{{ consul_telemetry_configuration }}"
+      ansible.builtin.set_fact:
+        consul_configuration: "{{
+          consul_configuration |
+          combine(_config_to_merge, recursive=true)
+          }}"

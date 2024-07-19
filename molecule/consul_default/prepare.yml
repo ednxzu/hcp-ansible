@@ -1,0 +1,13 @@
+---
+- name: Prepare
+  hosts: all
+  become: true
+  tasks:
+    - name: "Install pre-required system packages"
+      ansible.builtin.include_role:
+        name: ednz_cloud.manage_apt_packages
+      vars:
+        manage_apt_packages_list:
+          - name: unzip
+            version: latest
+            state: present

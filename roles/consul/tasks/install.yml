@@ -1,0 +1,141 @@
+---
+# task/install file for hashicorp_consul
+- name: "Consul | Get latest release of consul"
+  when: consul_version == 'latest'
+  block:
+    - name: "Consul | Get latest consul release from github api"
+      ansible.builtin.uri:
+        url: "{{ consul_github_api }}/{{ consul_github_project }}/releases/latest"
+        return_content: true
+      register: _consul_latest_release
+
+    - name: "Consul | Set wanted consul version to latest tag"
+      ansible.builtin.set_fact:
+        _consul_wanted_version: "{{ _consul_latest_release.json['tag_name']|regex_replace('v', '') }}"
+
+- name: "Consul | Set wanted consul version to {{ consul_version }}"
+  ansible.builtin.set_fact:
+    _consul_wanted_version: "{{ consul_version|regex_replace('v', '') }}"
+  when: consul_version != 'latest'
+
+- name: "Consul | Get current consul version"
+  block:
+    - name: "Consul | Stat consul version file"
+      ansible.builtin.stat:
+        path: "{{ consul_config_dir }}/.version"
+      changed_when: false
+      check_mode: false
+      register: _consul_version_file
+
+    - name: "Consul | Get current consul version"
+      ansible.builtin.slurp:
+        src: "{{ _consul_version_file.stat.path }}"
+      when:
+        - _consul_version_file.stat.exists
+        - _consul_version_file.stat.isreg
+      register: _consul_current_version
+
+- name: "Consul | Download and install consul binary"
+  when: _consul_current_version is not defined
+    or _consul_wanted_version != (_consul_current_version.content|default('')|b64decode)
+  block:
+    - name: "Consul | Set consul package name to download"
+      ansible.builtin.set_fact:
+        _consul_package_name: >-
+          consul_{{ _consul_wanted_version }}_linux_{{ consul_deb_architecture_map[ansible_architecture] }}.zip
+        _consul_shasum_file_name: >-
+          consul_{{ _consul_wanted_version }}_SHA256SUMS
+
+    - name: "Consul | Download checksum file for consul archive"
+      ansible.builtin.get_url:
+        url: "{{ consul_repository_url }}/{{ _consul_wanted_version }}/{{ _consul_shasum_file_name }}"
+        dest: "/tmp/{{ _consul_shasum_file_name }}"
+        mode: "0644"
+      register: _consul_checksum_file
+      until: _consul_checksum_file is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+
+    - name: "Consul | Extract correct checksum from checksum file"
+      ansible.builtin.command:
+        cmd: 'grep "{{ _consul_package_name }}" /tmp/{{ _consul_shasum_file_name }}'
+      changed_when: false
+      register: _consul_expected_checksum_line
+
+    - name: "Consul | Parse the expected checksum"
+      ansible.builtin.set_fact:
+        _consul_expected_checksum: "{{ _consul_expected_checksum_line.stdout.split()[0] }}"
+
+    - name: "Consul | Download consul binary archive"
+      ansible.builtin.get_url:
+        url: "{{ consul_repository_url }}/{{ _consul_wanted_version }}/{{ _consul_package_name }}"
+        dest: "/tmp/{{ _consul_package_name }}"
+        mode: "0644"
+        checksum: "sha256:{{ _consul_expected_checksum }}"
+      register: _consul_binary_archive
+      until: _consul_binary_archive is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+
+    - name: "Consul | Create temporary directory for archive decompression"
+      ansible.builtin.file:
+        path: /tmp/consul
+        state: directory
+        mode: "0755"
+
+    - name: "Consul | Unpack consul archive"
+      ansible.builtin.unarchive:
+        src: "/tmp/{{ _consul_package_name }}"
+        dest: "/tmp/consul"
+        owner: "{{ consul_user }}"
+        group: "{{ consul_group }}"
+        mode: "0755"
+        remote_src: true
+
+    - name: "Consul | Copy consul binary to {{ consul_binary_path }}"
+      ansible.builtin.copy:
+        src: /tmp/consul/consul
+        dest: "{{ consul_binary_path }}"
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+        force: true
+
+    - name: "Consul | Update consul version file"
+      ansible.builtin.copy:
+        content: "{{ _consul_wanted_version }}"
+        dest: "{{ consul_config_dir }}/.version"
+        owner: "{{ consul_user }}"
+        group: "{{ consul_group }}"
+        mode: "0600"
+
+    - name: "Consul | Set restart-check variable"
+      ansible.builtin.set_fact:
+        _consul_service_need_restart: true
+
+    - name: "Consul | Cleanup temporary directory"
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/consul
+        - /tmp/{{ _consul_package_name }}
+        - /tmp/{{ _consul_shasum_file_name }}
+
+- name: "Consul | Copy systemd service file for consul"
+  ansible.builtin.template:
+    src: "consul.service.j2"
+    dest: "/etc/systemd/system/{{ consul_service_name }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  register: _consul_unit_file
+
+- name: "Consul | Set reload-check & restart-check variable"
+  ansible.builtin.set_fact:
+    _consul_service_need_reload: true
+    _consul_service_need_restart: true
+  when: _consul_unit_file.changed # noqa: no-handler

@@ -1,0 +1,58 @@
+---
+# vars file for hashicorp_consul
+consul_user: consul
+consul_group: consul
+consul_binary_path: /usr/local/bin/consul
+consul_envoy_binary_path: /usr/local/bin/envoy
+consul_deb_architecture_map:
+  x86_64: "amd64"
+  aarch64: "arm64"
+  armv7l: "arm"
+  armv6l: "arm"
+consul_envoy_architecture_map:
+  x86_64: "x86_64"
+  aarch64: "aarch64"
+consul_architecture: "{{ consul_deb_architecture_map[ansible_architecture] | default(ansible_architecture) }}"
+consul_envoy_architecture: "{{ consul_envoy_architecture_map[ansible_architecture] | default(ansible_architecture) }}"
+consul_service_name: "consul"
+consul_github_api: https://api.github.com/repos
+consul_envoy_github_project: envoyproxy/envoy
+consul_github_project: hashicorp/consul
+consul_github_url: https://github.com
+consul_repository_url: https://releases.hashicorp.com/consul
+
+consul_configuration:
+  domain: "{{ consul_domain }}"
+  datacenter: "{{ consul_datacenter }}"
+  primary_datacenter: "{{ consul_primary_datacenter }}"
+  data_dir: "{{ consul_data_dir }}"
+  encrypt: "{{ consul_gossip_encryption_key }}"
+  server: "{{ consul_enable_server }}"
+  ui_config: "{{ consul_ui_configuration }}"
+  connect: "{{ consul_mesh_configuration }}"
+  leave_on_terminate: "{{ consul_leave_on_terminate }}"
+  rejoin_after_leave: "{{ consul_rejoin_after_leave }}"
+  enable_script_checks: "{{ consul_enable_script_checks }}"
+  enable_syslog: true
+  acl: "{{ consul_acl_configuration }}"
+  dns_config: "{{ consul_dns_configuration }}"
+  log_level: "{{ consul_log_level }}"
+  ports:
+    dns: 8600
+    server: 8300
+    serf_lan: 8301
+    serf_wan: 8302
+    sidecar_min_port: 21000
+    sidecar_max_port: 21255
+    expose_min_port: 21500
+    expose_max_port: 21755
+
+consul_configuration_string: |
+  ports:
+    http: {{ ('8500'|int) if not consul_enable_tls else ('-1' | int) }}
+    https: {{ ('8501'|int) if consul_enable_tls else ('-1' | int) }}
+    grpc: {{ ('8502'|int) if not consul_enable_tls else ('-1' | int) }}
+    grpc_tls: {{ ('8503'|int) if consul_enable_tls else ('-1' | int) }}
+
+consul_server_configuration_string: |
+  bootstrap_expect: {{ consul_bootstrap_expect }}

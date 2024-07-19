@@ -1,0 +1,65 @@
+---
+# task/install_envoy file for hashicorp_consul
+- name: "Consul | Get release for envoy:{{ consul_envoy_version }}"
+  vars:
+    _envoy_url_ext: "{% if consul_envoy_version == 'latest'%}releases{% else %}releases/tags{% endif %}"
+  ansible.builtin.uri:
+    url: "{{ consul_github_api }}/{{ consul_envoy_github_project }}/{{ _envoy_url_ext }}/{{ consul_envoy_version }}"
+    return_content: true
+  register: _envoy_new_release
+
+- name: "Consul | Check if envoy is already installed"
+  ansible.builtin.stat:
+    path: "{{ consul_data_dir }}/envoy/version"
+  changed_when: false
+  check_mode: false
+  register: _envoy_is_installed
+
+- name: "Consul | Check current envoy version"
+  ansible.builtin.command: "cat {{ consul_data_dir }}/envoy/version"
+  changed_when: false
+  check_mode: false
+  register: _envoy_old_release
+  when: _envoy_is_installed.stat.exists
+
+- name: "Consul | Set facts for wanted envoy release"
+  ansible.builtin.set_fact:
+    consul_envoy_wanted_version: "{{ _envoy_new_release.json['tag_name']|regex_replace('v', '') }}"
+  when: _envoy_new_release.json is defined
+    and (_envoy_new_release.json | length > 0)
+
+- name: "Consul | Set facts for current envoy release"
+  ansible.builtin.set_fact:
+    consul_envoy_current_version: "{{ _envoy_old_release.stdout | regex_replace('v', '') }}"
+  when: _envoy_old_release.stdout is defined
+    and (_envoy_old_release.stdout | length > 0)
+
+- name: "Consul | Create envoy directory"
+  ansible.builtin.file:
+    path: "{{ consul_data_dir }}/envoy"
+    state: directory
+    mode: "0775"
+
+- name: "Consul | Install envoy"
+  when: consul_envoy_current_version is not defined
+    or consul_envoy_wanted_version not in consul_envoy_current_version
+  block:
+    - name: "Consul | Remove old compose binary if different"
+      ansible.builtin.file:
+        path: "{{ consul_envoy_binary_path }}"
+        state: absent
+      register: _envoy_binary_removed
+
+    - name: "Consul | Download and install envoy version:{{ consul_envoy_version }}"
+      ansible.builtin.get_url:
+        url: "{{ consul_github_url }}/{{ consul_envoy_github_project }}/releases/download/v{{ consul_envoy_wanted_version }}/envoy-{{ consul_envoy_wanted_version }}-linux-{{ consul_envoy_architecture }} "
+        dest: "{{ consul_envoy_binary_path }}"
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: "Consul | Update version file"
+      ansible.builtin.copy:
+        content: "{{ consul_envoy_wanted_version }}"
+        dest: "{{ consul_data_dir }}/envoy/version"
+        mode: "0600"

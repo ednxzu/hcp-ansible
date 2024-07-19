@@ -1,0 +1,47 @@
+---
+# task/main file for hashicorp_consul
+- name: "Consul | Set reload-check & restart-check variable"
+  ansible.builtin.set_fact:
+    _consul_service_need_reload: false
+    _consul_service_need_restart: false
+
+- name: "Consul | Import merge_variables.yml"
+  ansible.builtin.include_tasks: merge_variables.yml
+
+- name: "Consul | Import prerequisites.yml"
+  ansible.builtin.include_tasks: prerequisites.yml
+
+- name: "Consul | Import install_envoy.yml"
+  ansible.builtin.include_tasks: install_envoy.yml
+  when: consul_envoy_install
+
+- name: "Consul | Import install.yml"
+  ansible.builtin.include_tasks: "install.yml"
+
+- name: "Consul | Import configure.yml"
+  ansible.builtin.include_tasks: configure.yml
+
+- name: "Consul | Populate service facts"
+  ansible.builtin.service_facts:
+
+- name: "Consul | Set restart-check variable"
+  ansible.builtin.set_fact:
+    _consul_service_need_restart: true
+  when: ansible_facts.services[consul_service_name~'.service'].state != 'running'
+
+- name: "Consul | Enable service: {{ consul_service_name }}"
+  ansible.builtin.service:
+    name: "{{ consul_service_name }}"
+    enabled: true
+
+- name: "Consul | Reload systemd daemon"
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: _consul_service_need_reload
+
+- name: "Consul | Start service: {{ consul_service_name }}"
+  ansible.builtin.service:
+    name: "{{ consul_service_name }}"
+    state: restarted
+  throttle: 1
+  when: _consul_service_need_restart

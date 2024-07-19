@@ -1,0 +1,46 @@
+---
+# task/prerequisites file for hashicorp_consul
+- name: "Consul | Create group {{ consul_group }}"
+  ansible.builtin.group:
+    name: "{{ consul_group }}"
+    state: present
+
+- name: "Consul | Create user {{ consul_user }}"
+  ansible.builtin.user:
+    name: "{{ consul_user }}"
+    group: "{{ consul_group }}"
+    shell: /bin/false
+    state: present
+
+- name: "Consul | Create directory {{ consul_config_dir }}"
+  ansible.builtin.file:
+    path: "{{ consul_config_dir }}"
+    state: directory
+    owner: "{{ consul_user }}"
+    group: "{{ consul_group }}"
+    mode: "0755"
+
+- name: "Consul | Create directory {{ consul_data_dir}}"
+  ansible.builtin.file:
+    path: "{{ consul_data_dir }}"
+    state: directory
+    owner: "{{ consul_user }}"
+    group: "{{ consul_group }}"
+    mode: "0755"
+
+- name: "Consul | Create directory {{ consul_certs_dir }}"
+  ansible.builtin.file:
+    path: "{{ consul_certs_dir }}"
+    state: directory
+    owner: "{{ consul_user }}"
+    group: "{{ consul_group }}"
+    mode: "0755"
+
+- name: "Consul | Create directory {{ consul_logs_dir }}"
+  ansible.builtin.file:
+    path: "{{ consul_logs_dir }}"
+    state: directory
+    owner: "{{ consul_user }}"
+    group: "{{ consul_group }}"
+    mode: "0755"
+  when: consul_enable_log_to_file
