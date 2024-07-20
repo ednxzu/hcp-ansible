@@ -20,6 +20,15 @@
   when:
     - consul_enable_server
 
+- name: "Consul | Merge join configuration"
+  vars:
+    _config_to_merge: "{{ consul_join_configuration }}"
+  ansible.builtin.set_fact:
+    consul_configuration: "{{
+      consul_configuration |
+      combine(_config_to_merge|from_yaml, recursive=true)
+      }}"
+
 - name: "Consul | Merge addresses configuration"
   vars:
     _config_to_merge: "{{ consul_address_configuration }}"
