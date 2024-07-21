@@ -6,20 +6,24 @@
       vars:
         _config_to_merge: "{{ vault_tls_listener_configuration }}"
       ansible.builtin.set_fact:
-        vault_listener_configuration: "{{
-          vault_listener_configuration |
-          combine(_config_to_merge, recursive=true)
-          }}"
+        vault_listener_configuration: >-
+          {{
+            vault_listener_configuration |
+            zip(vault_tls_listener_configuration) |
+            map('combine', list_merge='append', recursive=true) |
+            list
+          }}
       when: vault_enable_tls
 
     - name: "Vault | Merge extra listener configuration"
       vars:
         _config_to_merge: "{{ vault_extra_listener_configuration }}"
       ansible.builtin.set_fact:
-        vault_listener_configuration: "{{
-          vault_listener_configuration |
-          combine(_config_to_merge, recursive=true)
-          }}"
+        vault_listener_configuration: >-
+          {{
+            vault_listener_configuration +
+            vault_extra_listener_configuration
+          }}
 
     - name: "Vault | Add certificates directory to extra_files_dir"
       ansible.builtin.set_fact:
