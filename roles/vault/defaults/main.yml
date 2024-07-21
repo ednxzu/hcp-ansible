@@ -48,23 +48,23 @@ vault_storage_configuration:
 
 vault_enable_tls: false
 vault_listener_configuration:
-  tcp:
-    address: "{{ vault_cluster_addr }}:8200"
-    tls_disable: true
+  - tcp:
+      address: "{{ vault_cluster_addr }}:8200"
+      tls_disable: true
 
 vault_tls_listener_configuration:
-  tcp:
-    tls_disable: false
-    tls_cert_file: "{{ vault_certs_dir }}/cert.pem"
-    tls_key_file: "{{ vault_certs_dir }}/key.pem"
-    tls_disable_client_certs: true
+  - tcp:
+      tls_disable: false
+      tls_cert_file: "{{ vault_certs_dir }}/cert.pem"
+      tls_key_file: "{{ vault_certs_dir }}/key.pem"
+      tls_disable_client_certs: true
 
 vault_certificates_extra_files_dir:
   []
   # - src: ""
   #   dest: "{{ vault_certs_dir }}"
 
-vault_extra_listener_configuration: {}
+vault_extra_listener_configuration: []
 
 ########################
 # service registration #
