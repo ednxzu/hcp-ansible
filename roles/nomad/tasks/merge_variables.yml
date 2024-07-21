@@ -79,8 +79,8 @@
         _config_to_merge:
           consul: "{{ nomad_consul_integration_configuration }}"
       ansible.builtin.set_fact:
-        hashicorp_nomad_configuration: "{{
-          hashicorp_nomad_configuration |
+        nomad_configuration: "{{
+          nomad_configuration |
           combine(_config_to_merge, recursive=true)
           }}"
 
