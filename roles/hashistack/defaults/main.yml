@@ -1,0 +1,17 @@
+---
+# defaults file for hashistack
+hashistack_configuration_directory: "{{ lookup('env', 'PWD') }}/etc/hashistack"
+hashistack_sub_configuration_directories:
+  secrets: "{{ hashistack_configuration_directory }}/secrets"
+  certificates: "{{ hashistack_configuration_directory }}/certificates"
+  nomad_servers: "{{ hashistack_configuration_directory }}/nomad_servers"
+  vault_servers: "{{ hashistack_configuration_directory }}/vault_servers"
+  consul_servers: "{{ hashistack_configuration_directory }}/consul_servers"
+
+hashistack_configuration_global_vars_file: "globals.yml"
+hashistack_configuration_credentials_vars_file: "credentials.yml"
+
+hashistack_remote_config_dir: "/etc/hashistack"
+hashistack_remote_log_dir: "/var/log/hashistack"
+
+hashistack_only_load_credentials: false

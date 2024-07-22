@@ -1,0 +1,29 @@
+---
+# task/load_global_vars file for hashistack
+- name: "Variables | Include all default variables"
+  ansible.builtin.include_vars:
+    dir: "{{ playbook_dir }}/group_vars/all/"
+    depth: 1
+    extensions: ["yml"]
+  delegate_to: localhost
+
+- name: "Variables | Stat global configuration file"
+  ansible.builtin.stat:
+    path: "{{ hashistack_configuration_directory }}/{{ hashistack_configuration_global_vars_file }}"
+  register: _global_config_file
+  delegate_to: localhost
+
+- name: "Variables | Make sure global configuration file exists"
+  ansible.builtin.assert:
+    that:
+      - _global_config_file.stat.exists
+    fail_msg: >-
+      Main configuration file {{ _global_config_file.stat.path }} was not found, cannot continue without it.
+  delegate_to: localhost
+
+- name: "Variables | Load global variables"
+  ansible.builtin.include_vars:
+    dir: "{{ hashistack_configuration_directory }}"
+    files_matching: "{{ hashistack_configuration_global_vars_file }}"
+    depth: 1
+  delegate_to: localhost
