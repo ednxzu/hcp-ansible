@@ -1,0 +1,7 @@
+---
+# defaults file for cni
+cni_plugins_version: "latest"
+cni_plugins_install_path: /opt/cni/bin
+cni_plugins_install_consul_cni: false
+cni_user: nomad
+cni_group: nomad

@@ -1,0 +1,11 @@
+---
+cni_github_api: https://api.github.com/repos
+cni_github_project: containernetworking/plugins
+cni_github_url: https://github.com
+cni_deb_architecture_map:
+  x86_64: "amd64"
+  aarch64: "arm64"
+  armv7l: "arm"
+  armv6l: "arm"
+cni_architecture: "{{ cni_deb_architecture_map[ansible_architecture] | default(ansible_architecture) }}"
+cni_consul_cni_repository_url: https://releases.hashicorp.com/consul-cni

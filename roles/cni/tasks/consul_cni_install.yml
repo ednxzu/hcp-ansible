@@ -1,0 +1,114 @@
+---
+# task/consul_cni_install file for cni
+- name: "CNI Plugins | Set wanted consul-cni version to latest tag"
+  ansible.builtin.set_fact:
+    _cni_consul_cni_wanted_version: "{{ _cni_plugins_latest_release.json['tag_name']|regex_replace('v', '') }}"
+  when: cni_plugins_version == 'latest'
+
+- name: "CNI Plugins | Set wanted consul-cni version to {{ cni_plugins_version }}"
+  ansible.builtin.set_fact:
+    _cni_consul_cni_wanted_version: "{{ cni_plugins_version|regex_replace('v', '') }}"
+  when: cni_plugins_version != 'latest'
+
+- name: "CNI Plugins | Get current consul-cni version"
+  block:
+    - name: "CNI Plugins | Stat consul-cni version file"
+      ansible.builtin.stat:
+        path: "{{ cni_plugins_install_path }}/.consul-cni-version"
+      changed_when: false
+      check_mode: false
+      register: _cni_consul_cni_version_file
+
+    - name: "CNI Plugins | Get current consul-cni version"
+      ansible.builtin.slurp:
+        src: "{{ _cni_consul_cni_version_file.stat.path }}"
+      when:
+        - _cni_consul_cni_version_file.stat.exists
+        - _cni_consul_cni_version_file.stat.isreg
+      register: _cni_consul_cni_current_version
+
+- name: "CNI Plugins | Download and install consul-cni binary"
+  when: _cni_consul_cni_current_version is not defined
+    or _cni_consul_cni_wanted_version != (_cni_consul_cni_current_version.content|default('')|b64decode)
+  block:
+    - name: "CNI Plugins | Set consul-cni package name to download"
+      ansible.builtin.set_fact:
+        _cni_consul_cni_package_name: >-
+          consul-cni_{{ _cni_consul_cni_wanted_version }}_linux_{{ cni_deb_architecture_map[ansible_architecture] }}.zip
+        _cni_consul_cni_shasum_file_name: >-
+          consul-cni_{{ _cni_consul_cni_wanted_version }}_SHA256SUMS
+
+    - name: "CNI Plugins | Download checksum file for consul-cni archive"
+      ansible.builtin.get_url:
+        url: "{{ cni_consul_cni_repository_url }}/{{ _cni_consul_cni_wanted_version }}/{{ _cni_consul_cni_shasum_file_name }}"
+        dest: "/tmp/{{ _cni_consul_cni_shasum_file_name }}"
+        mode: "0644"
+      register: _cni_consul_cni_checksum_file
+      until: _cni_consul_cni_checksum_file is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+
+    - name: "CNI Plugins | Extract correct checksum from checksum file"
+      ansible.builtin.command:
+        cmd: 'grep "{{ _cni_consul_cni_package_name }}" /tmp/{{ _cni_consul_cni_shasum_file_name }}'
+      changed_when: false
+      register: _cni_consul_cni_expected_checksum_line
+
+    - name: "CNI Plugins | Parse the expected checksum"
+      ansible.builtin.set_fact:
+        _cni_consul_cni_expected_checksum: "{{ _cni_consul_cni_expected_checksum_line.stdout.split()[0] }}"
+
+    - name: "CNI Plugins | Download consul-cni binary archive"
+      ansible.builtin.get_url:
+        url: "{{ cni_consul_cni_repository_url }}/{{ _cni_consul_cni_wanted_version }}/{{ _cni_consul_cni_package_name }}"
+        dest: "/tmp/{{ _cni_consul_cni_package_name }}"
+        mode: "0644"
+        checksum: "sha256:{{ _cni_consul_cni_expected_checksum }}"
+      register: _cni_consul_cni_binary_archive
+      until: _cni_consul_cni_binary_archive is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+
+    - name: "CNI Plugins | Create temporary directory for archive decompression"
+      ansible.builtin.file:
+        path: /tmp/consul-cni
+        state: directory
+        mode: "0755"
+
+    - name: "CNI Plugins | Unpack consul-cni archive"
+      ansible.builtin.unarchive:
+        src: "/tmp/{{ _cni_consul_cni_package_name }}"
+        dest: "/tmp/consul-cni"
+        owner: "{{ cni_user }}"
+        group: "{{ cni_group }}"
+        mode: "0755"
+        remote_src: true
+
+    - name: "CNI Plugins | Copy consul-cni binary to {{ cni_plugins_install_path }}"
+      ansible.builtin.copy:
+        src: /tmp/consul-cni/consul-cni
+        dest: "{{ cni_plugins_install_path }}"
+        owner: "{{ cni_user }}"
+        group: "{{ cni_user }}"
+        mode: "0755"
+        remote_src: true
+        force: true
+
+    - name: "CNI Plugins | Update consul-cni version file"
+      ansible.builtin.copy:
+        content: "{{ _cni_consul_cni_wanted_version }}"
+        dest: "{{ cni_plugins_install_path }}/.consul-cni-version"
+        owner: "{{ cni_user }}"
+        group: "{{ cni_group }}"
+        mode: "0600"
+
+    - name: "CNI Plugins | Cleanup temporary directory"
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/consul-cni
+        - /tmp/{{ _cni_consul_cni_package_name }}
+        - /tmp/{{ _cni_consul_cni_shasum_file_name }}

@@ -1,0 +1,21 @@
+---
+# task/prerequisites file for cni
+- name: "CNI Plugins | Create group {{ cni_group }}"
+  ansible.builtin.group:
+    name: "{{ cni_user }}"
+    state: present
+
+- name: "CNI Plugins | Create user {{ cni_user }}"
+  ansible.builtin.user:
+    name: "{{ cni_user }}"
+    group: "{{ cni_group }}"
+    shell: /bin/false
+    state: present
+
+- name: "CNI Plugins | Create directory {{ cni_plugins_install_path }}"
+  ansible.builtin.file:
+    path: "{{ cni_plugins_install_path }}"
+    state: directory
+    owner: "{{ cni_user }}"
+    group: "{{ cni_group }}"
+    mode: "0755"

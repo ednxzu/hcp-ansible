@@ -1,0 +1,70 @@
+---
+# task/cni_install file for cni
+- name: "CNI Plugins | Get release for cni_plugins:{{ cni_plugins_version }}"
+  vars:
+    _cni_plugins_url_ext: "{% if cni_plugins_version == 'latest'%}releases{% else %}releases/tags{% endif %}"
+  ansible.builtin.uri:
+    url: "{{ cni_github_api }}/{{ cni_github_project }}/{{ _cni_plugins_url_ext }}/{{ cni_plugins_version }}"
+    return_content: true
+  register: _cni_plugins_latest_release
+
+- name: "CNI Plugins | Check if cni plugin is already installed"
+  ansible.builtin.stat:
+    path: "{{ cni_plugins_install_path }}/.version"
+  changed_when: false
+  check_mode: false
+  register: _cni_plugins_is_installed
+
+- name: "CNI Plugins | Check current cni plugin version"
+  ansible.builtin.command: "cat {{ cni_plugins_install_path }}/.version"
+  changed_when: false
+  check_mode: false
+  register: _cni_plugins_old_release
+  when: _cni_plugins_is_installed.stat.exists
+
+- name: "CNI Plugins | Set facts for wanted cni plugins release"
+  ansible.builtin.set_fact:
+    cni_plugins_wanted_version: "{{ _cni_plugins_latest_release.json['tag_name']|regex_replace('v', '') }}"
+  when: _cni_plugins_latest_release.json is defined
+    and (_cni_plugins_latest_release.json | length > 0)
+
+- name: "CNI Plugins | Set facts for current cni plugins release"
+  ansible.builtin.set_fact:
+    cni_plugins_current_version: "{{ _cni_plugins_old_release.stdout | regex_replace('v', '') }}"
+  when: _cni_plugins_old_release.stdout is defined
+    and (_cni_plugins_old_release.stdout | length > 0)
+
+- name: "CNI Plugins | Install cni plugins"
+  when: cni_plugins_current_version is not defined
+    or cni_plugins_wanted_version not in cni_plugins_current_version
+  block:
+    - name: "CNI Plugins | Install cni plugins version:{{ cni_plugins_version }}"
+      ansible.builtin.get_url:
+        url: "{{ cni_github_url }}/{{ cni_github_project }}/releases/download/v{{ cni_plugins_wanted_version }}/cni-plugins-linux-{{ cni_architecture }}-v{{ cni_plugins_wanted_version }}.tgz"
+        dest: "/tmp/cni_plugin.tgz"
+        mode: "0644"
+      register: _cni_plugins_download_archive
+      until: _cni_plugins_download_archive is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+
+    - name: "CNI Plugins | Unpack cni plugins"
+      ansible.builtin.unarchive:
+        src: "/tmp/cni_plugin.tgz"
+        dest: "{{ cni_plugins_install_path }}"
+        owner: "{{ cni_user }}"
+        group: "{{ cni_group }}"
+        mode: "0755"
+        remote_src: true
+
+    - name: "CNI Plugins | Remove temporary archive"
+      ansible.builtin.file:
+        path: "/tmp/cni_plugin.tgz"
+        state: absent
+
+    - name: "CNI Plugins | Update version file"
+      ansible.builtin.copy:
+        content: "{{ cni_plugins_wanted_version }}"
+        dest: "{{ cni_plugins_install_path }}/.version"
+        mode: "0600"
