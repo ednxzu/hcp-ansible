@@ -8,10 +8,6 @@ nomad_data_dir: "/opt/nomad"
 nomad_certs_dir: "{{ nomad_config_dir }}/tls"
 nomad_logs_dir: "/var/log/nomad"
 
-nomad_cni_plugins_install: true
-nomad_cni_plugins_version: latest
-nomad_cni_plugins_install_path: /opt/cni/bin
-
 nomad_extra_files: false
 nomad_extra_files_list: []
 
@@ -91,7 +87,7 @@ nomad_enable_client: false
 nomad_client_configuration:
   enabled: "{{ nomad_enable_client }}"
   state_dir: "{{ nomad_data_dir }}/client"
-  cni_path: "{{ nomad_cni_plugins_install_path }}" # "/opt/cni/bin"
+  cni_path: "/opt/cni/bin"
   bridge_network_name: nomad
   bridge_network_subnet: "172.26.64.0/20"
 

@@ -14,10 +14,6 @@
 - name: "Nomad | Import install.yml"
   ansible.builtin.include_tasks: install.yml
 
-- name: "Nomad | Import cni_install.yml"
-  ansible.builtin.include_tasks: cni_install.yml
-  when: nomad_cni_plugins_install
-
 - name: "Nomad | Import configure.yml"
   ansible.builtin.include_tasks: configure.yml
 

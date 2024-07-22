@@ -1,4 +1,5 @@
 ---
+# task/install file for nomad
 - name: "Nomad | Get latest release of nomad"
   when: nomad_version == 'latest'
   block:
