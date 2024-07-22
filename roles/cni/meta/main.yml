@@ -1,1 +1,28 @@
 ---
+# meta file for cni
+galaxy_info:
+  namespace: "ednz_cloud"
+  role_name: "cni"
+  author: "Bertrand Lanson"
+  description: "Install the default cni plugins and the consul-cni plugin"
+  license: "license (BSD, MIT)"
+  min_ansible_version: "2.10"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+  galaxy_tags:
+    - "ubuntu"
+    - "debian"
+    - "hashicorp"
+    - "cni"
+    - "networking"
+    - "consul"
+
+dependencies: []
