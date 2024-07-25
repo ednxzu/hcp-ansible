@@ -8,8 +8,8 @@
   become: true
   tasks:
     - name: "Import variables"
-      ansible.builtin.import_tasks:
-        file: tasks/load_vars.yml
+      ansible.builtin.import_role:
+        name: ednz_cloud.hashistack.hashistack
       tags:
         - always
 
@@ -21,19 +21,6 @@
         - enable_consul | bool
       ansible.builtin.import_tasks:
         file: tasks/consul/consul_deploy.yml
-
-    # Haproxy nodes deployment
-    - name: "Deploy Proxies"
-      tags:
-        - haproxy
-      when:
-        - enable_haproxy | bool
-      block:
-        - name: "Deploy Haproxy & Keepalived"
-          ansible.builtin.import_tasks:
-            file: tasks/haproxy/haproxy_deploy.yml
-          when:
-            - "'haproxy_servers' in group_names"
 
     # Vault nodes deployment
     - name: "Deploy Vault"
@@ -52,3 +39,17 @@
         - enable_nomad | bool
       ansible.builtin.import_tasks:
         file: tasks/nomad/nomad_deploy.yml
+
+    # - fail:
+    # Haproxy nodes deployment
+    # - name: "Deploy Proxies"
+    #   tags:
+    #     - haproxy
+    #   when:
+    #     - enable_haproxy | bool
+    #   block:
+    #     - name: "Deploy Haproxy & Keepalived"
+    #       ansible.builtin.import_tasks:
+    #         file: tasks/haproxy/haproxy_deploy.yml
+    #       when:
+    #         - "'haproxy_servers' in group_names"

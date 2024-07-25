@@ -7,28 +7,32 @@
   become: true
   tasks:
     - name: "Import variables"
-      ansible.builtin.import_tasks:
-        file: tasks/load_vars.yml
+      ansible.builtin.import_role:
+        name: ednz_cloud.hashistack.hashistack
       tags:
         - always
 
-    - name: "Create temporary cert directory in {{ sub_configuration_directories['certificates'] }}"  # noqa: run-once[task]
+    - name: "Create temporary cert directory in {{ hashistack_sub_configuration_directories['certificates'] }}"  # noqa: run-once[task]
       ansible.builtin.file:
-        path: "{{ sub_configuration_directories['certificates'] }}/external"
+        path: "{{ hashistack_sub_configuration_directories['certificates'] }}/external"
         state: directory
         owner: "{{ lookup('env', 'USER') }}"
         group: "{{ lookup('env', 'USER') }}"
         mode: "0755"
       delegate_to: localhost
       run_once: true
+      tags:
+        - always
 
     - name: "Generate external certificates"  # noqa: run-once[task]
+      tags:
+        - always
       delegate_to: localhost
       run_once: true
       block:
-        - name: "Create temporary cert directory in {{ sub_configuration_directories['certificates'] }}"  # noqa: run-once[task]
+        - name: "Create temporary cert directory in {{ hashistack_sub_configuration_directories['certificates'] }}"  # noqa: run-once[task]
           ansible.builtin.file:
-            path: "{{ sub_configuration_directories['certificates'] }}/external"
+            path: "{{ hashistack_sub_configuration_directories['certificates'] }}/external"
             state: directory
             owner: "{{ lookup('env', 'USER') }}"
             group: "{{ lookup('env', 'USER') }}"
@@ -36,7 +40,7 @@
 
         - name: "Create private keys"
           community.crypto.openssl_privatekey:
-            path: "{{ sub_configuration_directories['certificates'] }}/external/{{ item.fqdn }}.pem.key"
+            path: "{{ hashistack_sub_configuration_directories['certificates'] }}/external/{{ item.fqdn }}.pem.key"
             owner: "{{ lookup('env', 'USER') }}"
             group: "{{ lookup('env', 'USER') }}"
           loop:
@@ -49,7 +53,7 @@
 
         - name: "Create certificate signing request"
           community.crypto.openssl_csr_pipe:
-            privatekey_path: "{{ sub_configuration_directories['certificates'] }}/external/{{ item.fqdn }}.pem.key"
+            privatekey_path: "{{ hashistack_sub_configuration_directories['certificates'] }}/external/{{ item.fqdn }}.pem.key"
             common_name: "{{ item.fqdn }}"
             organization_name: EDNZ Cloud
           register: csr
@@ -63,9 +67,9 @@
 
         - name: "Create self-signed certificate from CSR"
           community.crypto.x509_certificate:
-            path: "{{ sub_configuration_directories['certificates'] }}/external/{{ item.item.fqdn }}.pem"
+            path: "{{ hashistack_sub_configuration_directories['certificates'] }}/external/{{ item.item.fqdn }}.pem"
             csr_content: "{{ item.csr }}"
-            privatekey_path: "{{ sub_configuration_directories['certificates'] }}/external/{{ item.item.fqdn }}.pem.key"
+            privatekey_path: "{{ hashistack_sub_configuration_directories['certificates'] }}/external/{{ item.item.fqdn }}.pem.key"
             provider: selfsigned
             owner: "{{ lookup('env', 'USER') }}"
             group: "{{ lookup('env', 'USER') }}"
@@ -77,15 +81,15 @@
         - internal
       delegate_to: localhost
       vars:
-        hashistack_ca_key_path: "{{ sub_configuration_directories['certificates'] }}/ca/ca.key"
-        hashistack_ca_cert_path: "{{ sub_configuration_directories['certificates'] }}/ca/ca.crt"
+        hashistack_ca_key_path: "{{ hashistack_sub_configuration_directories['certificates'] }}/ca/ca.key"
+        hashistack_ca_cert_path: "{{ hashistack_sub_configuration_directories['certificates'] }}/ca/ca.crt"
       block:
         - name: "Create internal CA"  # noqa: run-once[task]
           run_once: true
           block:
-            - name: "Create temporary cert directory in {{ sub_configuration_directories['certificates'] }}"  # noqa: run-once[task]
+            - name: "Create temporary cert directory in {{ hashistack_sub_configuration_directories['certificates'] }}"  # noqa: run-once[task]
               ansible.builtin.file:
-                path: "{{ sub_configuration_directories['certificates'] }}/ca"
+                path: "{{ hashistack_sub_configuration_directories['certificates'] }}/ca"
                 state: directory
                 owner: "{{ lookup('env', 'USER') }}"
                 group: "{{ lookup('env', 'USER') }}"
@@ -124,12 +128,12 @@
           when:
             - "'vault_servers' in group_names"
           vars:
-            vault_private_key_path: "{{ sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}/key.pem"
-            vault_certificate_path: "{{ sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}/cert.pem"
+            vault_private_key_path: "{{ hashistack_sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}/key.pem"
+            vault_certificate_path: "{{ hashistack_sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}/cert.pem"
           block:
-            - name: "Create temporary cert directory in {{ sub_configuration_directories['certificates'] }}"  # noqa: run-once[task]
+            - name: "Create temporary cert directory in {{ hashistack_sub_configuration_directories['certificates'] }}"  # noqa: run-once[task]
               ansible.builtin.file:
-                path: "{{ sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}"
+                path: "{{ hashistack_sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}"
                 state: directory
                 owner: "{{ lookup('env', 'USER') }}"
                 group: "{{ lookup('env', 'USER') }}"
@@ -200,12 +204,12 @@
           when:
             - "('consul_servers' in group_names) or ('consul_agents' in group_names)"
           vars:
-            consul_private_key_path: "{{ sub_configuration_directories['certificates'] }}/consul/{{ inventory_hostname }}/key.pem"
-            consul_certificate_path: "{{ sub_configuration_directories['certificates'] }}/consul/{{ inventory_hostname }}/cert.pem"
+            consul_private_key_path: "{{ hashistack_sub_configuration_directories['certificates'] }}/consul/{{ inventory_hostname }}/key.pem"
+            consul_certificate_path: "{{ hashistack_sub_configuration_directories['certificates'] }}/consul/{{ inventory_hostname }}/cert.pem"
           block:
-            - name: "Create temporary cert directory in {{ sub_configuration_directories['certificates'] }}"  # noqa: run-once[task]
+            - name: "Create temporary cert directory in {{ hashistack_sub_configuration_directories['certificates'] }}"  # noqa: run-once[task]
               ansible.builtin.file:
-                path: "{{ sub_configuration_directories['certificates'] }}/consul/{{ inventory_hostname }}"
+                path: "{{ hashistack_sub_configuration_directories['certificates'] }}/consul/{{ inventory_hostname }}"
                 state: directory
                 owner: "{{ lookup('env', 'USER') }}"
                 group: "{{ lookup('env', 'USER') }}"
@@ -227,8 +231,8 @@
                       'IP:' + api_interface_address,
                       'IP:127.0.0.1'
                   ] -%}
-                  {%- if hashicorp_consul_configuration.server -%}
-                    {%- set _ = sans_list.append('DNS:server.' ~ hashicorp_consul_configuration.datacenter ~ '.' ~ hashicorp_consul_configuration.domain) -%}
+                  {%- if consul_enable_server -%}
+                    {%- set _ = sans_list.append('DNS:server.' ~ consul_datacenter ~ '.' ~ consul_domain) -%}
                   {%- endif -%}
                   {{ sans_list }}
               community.crypto.openssl_csr_pipe:
@@ -282,12 +286,12 @@
           when:
             - "('nomad_servers' in group_names) or ('nomad_clients' in group_names)"
           vars:
-            nomad_private_key_path: "{{ sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}/key.pem"
-            nomad_certificate_path: "{{ sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}/cert.pem"
+            nomad_private_key_path: "{{ hashistack_sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}/key.pem"
+            nomad_certificate_path: "{{ hashistack_sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}/cert.pem"
           block:
-            - name: "Create temporary cert directory in {{ sub_configuration_directories['certificates'] }}"  # noqa: run-once[task]
+            - name: "Create temporary cert directory in {{ hashistack_sub_configuration_directories['certificates'] }}"  # noqa: run-once[task]
               ansible.builtin.file:
-                path: "{{ sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}"
+                path: "{{ hashistack_sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}"
                 state: directory
                 owner: "{{ lookup('env', 'USER') }}"
                 group: "{{ lookup('env', 'USER') }}"
@@ -308,14 +312,14 @@
                       'IP:' + api_interface_address,
                       'IP:127.0.0.1'
                   ] -%}
-                  {%- if hashicorp_nomad_configuration.server.enabled -%}
-                    {%- set _ = sans_list.append('DNS:server.' ~ hashicorp_nomad_configuration.region ~ '.nomad') -%}
+                  {%- if nomad_enable_server -%}
+                    {%- set _ = sans_list.append('DNS:server.' ~ nomad_region ~ '.nomad') -%}
                     {%- if  (enable_consul | bool) -%}
                       {%- set _ = sans_list.append('DNS:nomad.service.consul') -%}
                     {%- endif -%}
                   {%- endif -%}
-                  {%- if hashicorp_nomad_configuration.client.enabled -%}
-                    {%- set _ = sans_list.append('DNS:client.' ~ hashicorp_nomad_configuration.region ~ '.nomad') -%}
+                  {%- if nomad_enable_client -%}
+                    {%- set _ = sans_list.append('DNS:client.' ~ nomad_region ~ '.nomad') -%}
                   {%- endif -%}
                   {{ sans_list }}
               community.crypto.openssl_csr_pipe:
