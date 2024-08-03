@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  tasks:
+    - name: "Include ednz_cloud.hashistack.hashistack_ca"
+      ansible.builtin.include_role:
+        name: "ednz_cloud.hashistack.hashistack_ca"

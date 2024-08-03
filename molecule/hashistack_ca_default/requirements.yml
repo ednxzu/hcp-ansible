@@ -1,0 +1,4 @@
+---
+# requirements file for molecule
+roles:
+  - name: ednz_cloud.manage_apt_packages
