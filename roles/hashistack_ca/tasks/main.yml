@@ -1,0 +1,23 @@
+---
+# task/main file for hashistack_ca
+- name: "CA | Import generate_root.yml"
+  ansible.builtin.include_tasks: generate/generate_root.yml
+  when: hashistack_ca_generate_root
+
+- name: "CA | Import generate_intermediate.yml"
+  ansible.builtin.include_tasks: generate/generate_intermediate.yml
+  when: hashistack_ca_generate_intermediate
+
+- name: "CA | Import renew_root.yml"
+  ansible.builtin.include_tasks: renew/renew_root.yml
+  when: hashistack_ca_renew_root
+
+- name: "CA | Import renew_intermediate.yml"
+  ansible.builtin.include_tasks: renew/renew_intermediate.yml
+  when: hashistack_ca_renew_intermediate
+
+- name: "CA | Import prepare_ca_to_copy.yml"
+  ansible.builtin.include_tasks: prepare_ca_to_copy.yml
+
+- name: "CA | Import cleanup_backups.yml"
+  ansible.builtin.include_tasks: cleanup_backups.yml

@@ -1,0 +1,22 @@
+---
+# vars file for hashistack_ca
+hashistack_ca_action_list: "{{ hashistack_ca_action.split(',') }}"
+
+# possible actions
+hashistack_ca_generate_root: "{{ 'root_ca' in hashistack_ca_action_list }}"
+hashistack_ca_generate_intermediate: "{{ 'int_ca' in hashistack_ca_action_list }}"
+hashistack_ca_renew_intermediate: "{{ 'renew_int' in hashistack_ca_action_list }}"
+hashistack_ca_renew_root: "{{ 'renew_root' in hashistack_ca_action_list }}"
+
+hashistack_ca_public_dir: "{{ hashistack_ca_directory }}/ca"
+
+hashistack_ca_root_dir: "{{ hashistack_ca_directory }}/root"
+hashistack_ca_root_backup_dir: "{{ hashistack_ca_root_dir }}/backup"
+hashistack_ca_root_key_path: "{{ hashistack_ca_root_dir }}/ca.key"
+hashistack_ca_root_cert_path: "{{ hashistack_ca_root_dir }}/ca.crt"
+
+hashistack_ca_intermediate_dir: "{{ hashistack_ca_directory }}/intermediate"
+hashistack_ca_intermediate_backup_dir: "{{ hashistack_ca_intermediate_dir }}/backup"
+hashistack_ca_intermediate_key_path: "{{ hashistack_ca_intermediate_dir }}/ca.key"
+hashistack_ca_intermediate_csr_path: "{{ hashistack_ca_intermediate_dir }}/ca.csr"
+hashistack_ca_intermediate_cert_path: "{{ hashistack_ca_intermediate_dir }}/ca.crt"

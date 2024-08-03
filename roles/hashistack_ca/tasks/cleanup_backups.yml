@@ -1,0 +1,73 @@
+---
+# tasks/cleanup_backups file for hashistack_ca
+- name: "Cleanup | Check if root CA backup directory exists"
+  ansible.builtin.stat:
+    path: "{{ hashistack_ca_root_backup_dir }}"
+  register: _hashistack_ca_root_backup_dir_stat
+  delegate_to: localhost
+
+- name: "Cleanup | Check if intermediate CA backup directory exists"
+  ansible.builtin.stat:
+    path: "{{ hashistack_ca_intermediate_backup_dir }}"
+  register: _hashistack_ca_intermediate_backup_dir_stat
+  delegate_to: localhost
+
+- name: "Cleanup | Root CA backups"
+  when:
+    - _hashistack_ca_root_backup_dir_stat.stat.exists
+    - _hashistack_ca_root_backup_dir_stat.stat.isdir
+  delegate_to: localhost
+  block:
+    - name: "Root CA | Find root CA backup certificates"
+      ansible.builtin.find:
+        paths: "{{ hashistack_ca_root_backup_dir }}"
+        patterns: "*.crt"
+      register: _root_backup_files
+
+    - name: "Root CA | Check expiration for root CA backup certificates"
+      when: _root_backup_files.matched > 0
+      community.crypto.x509_certificate_info:
+        path: "{{ item.path }}"
+      register: _root_cert_info
+      loop: "{{ _root_backup_files.files }}"
+      loop_control:
+        label: "{{ item.path }}"
+      failed_when: false
+      ignore_errors: true
+
+    - name: "Root CA | Remove expired root CA backup certificates"
+      when: item.item.expired | default(false)
+      ansible.builtin.file:
+        path: "{{ item.item.path }}"
+        state: absent
+      loop: "{{ _root_cert_info.results }}"
+
+- name: "Cleanup | Intermediate CA backups"
+  when:
+    - _hashistack_ca_intermediate_backup_dir_stat.stat.exists
+    - _hashistack_ca_intermediate_backup_dir_stat.stat.isdir
+  delegate_to: localhost
+  block:
+    - name: "Intermediate CA | Find intermediate CA backup certificates"
+      ansible.builtin.find:
+        paths: "{{ hashistack_ca_intermediate_backup_dir }}"
+        patterns: "*.crt"
+      register: _intermediate_backup_files
+
+    - name: "Intermediate CA | Check expiration for intermediate CA backup certificates"
+      when: _intermediate_backup_files.matched > 0
+      community.crypto.x509_certificate_info:
+        path: "{{ item.path }}"
+      register: _intermediate_cert_info
+      loop: "{{ _intermediate_backup_files.files }}"
+      loop_control:
+        label: "{{ item.path }}"
+      failed_when: false
+      ignore_errors: true
+
+    - name: "Intermediate CA | Remove expired intermediate CA backup certificates"
+      when: item.item.expired | default(false)
+      ansible.builtin.file:
+        path: "{{ item.item.path }}"
+        state: absent
+      loop: "{{ _intermediate_cert_info.results }}"

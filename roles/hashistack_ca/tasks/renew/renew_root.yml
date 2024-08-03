@@ -1,0 +1,62 @@
+---
+# tasks/renew/renew_root.yml
+- name: "Root CA | Check if root CA certificate exists"
+  ansible.builtin.stat:
+    path: "{{ hashistack_ca_root_cert_path }}"
+  register: _hashistack_ca_root_cert_stat
+  delegate_to: localhost
+
+- name: "Root CA | Check CA for renewal"
+  when:
+    - _hashistack_ca_root_cert_stat.stat.exists
+    - _hashistack_ca_root_cert_stat.stat.isreg
+  delegate_to: localhost
+  block:
+    - name: "Root CA | Get root CA certificate expiration date"
+      community.crypto.x509_certificate_info:
+        path: "{{ hashistack_ca_root_cert_path }}"
+        valid_at:
+          renew_threshold: "+{{ hashistack_ca_root_renew_threshold }}"
+      register: _hashistack_ca_root_cert_info
+
+    - name: "Root CA | Check if root CA certificate is expiring within the threshold"
+      ansible.builtin.set_fact:
+        _hashistack_ca_is_expiring_soon: "{{ not _hashistack_ca_root_cert_info.valid_at.renew_threshold }}"
+
+    - name: "Root CA | Debug certificate expiration status"
+      ansible.builtin.debug:
+        msg: "Is root CA certificate expiring soon? {{ _hashistack_ca_is_expiring_soon }}"
+
+- name: "Root CA | Renew CA if expiring soon"
+  when:
+    - _hashistack_ca_is_expiring_soon
+  delegate_to: localhost
+  block:
+    - name: "Root CA | Create backup directory for root CA"
+      ansible.builtin.file:
+        path: "{{ hashistack_ca_root_backup_dir }}"
+        state: directory
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "{{ lookup('env', 'USER') }}"
+        mode: "0755"
+
+    - name: "Root CA | Format expiration date for backup"
+      ansible.builtin.set_fact:
+        _hashistack_ca_root_expiration_date: "{{ _hashistack_ca_root_cert_info.not_after[:8] | regex_replace('^([0-9]{4})([0-9]{2})([0-9]{2})$', '\\1_\\2_\\3') }}"
+
+    - name: "Root CA | Rename existing root CA certificate"
+      ansible.builtin.command:
+        cmd: mv {{ hashistack_ca_root_cert_path }} {{ hashistack_ca_root_backup_dir }}/ca_expire_{{ _hashistack_ca_root_expiration_date }}.crt
+      changed_when: false
+
+    - name: "Root CA | Remove existing root CA key"
+      ansible.builtin.file:
+        path: "{{ hashistack_ca_root_key_path }}"
+        state: absent
+      changed_when: false
+
+    - name: "Root CA | Generate new root CA if renaming was successful"
+      ansible.builtin.include_tasks: ../generate/generate_root.yml
+
+    - name: "Root CA | Generate new intermediate CA"
+      ansible.builtin.include_tasks: ../generate/generate_intermediate.yml

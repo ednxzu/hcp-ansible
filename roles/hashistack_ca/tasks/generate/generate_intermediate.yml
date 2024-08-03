@@ -1,0 +1,49 @@
+---
+# task/generate_intermediate for hashistack_ca
+- name: "Intermediate CA | Create temporary cert directory in {{ hashistack_ca_directory }}/intermediate"
+  ansible.builtin.file:
+    path: "{{ hashistack_ca_intermediate_dir }}"
+    state: directory
+    owner: "{{ lookup('env', 'USER') }}"
+    group: "{{ lookup('env', 'USER') }}"
+    mode: "0755"
+  delegate_to: localhost
+
+- name: "Intermediate CA | Generate internal certificates"
+  delegate_to: localhost
+  block:
+    - name: "Intermediate CA | Create intermediate CA private key"
+      community.crypto.openssl_privatekey:
+        path: "{{ hashistack_ca_intermediate_key_path }}"
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "{{ lookup('env', 'USER') }}"
+
+    - name: "Intermediate CA | Create intermediate CA signing request"
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: "{{ hashistack_ca_intermediate_key_path }}"
+        common_name: "{{ omit if hashistack_ca_intermediate_common_name is not defined else hashistack_ca_intermediate_common_name }}"
+        organization_name: "{{ omit if hashistack_ca_intermediate_org_name is not defined else hashistack_ca_intermediate_org_name }}"
+        country_name: "{{ omit if hashistack_ca_intermediate_country is not defined else hashistack_ca_intermediate_country }}"
+        locality_name: "{{ omit if hashistack_ca_intermediate_locality is not defined else hashistack_ca_intermediate_locality }}"
+        state_or_province_name: "{{ omit if hashistack_ca_intermediate_state_or_province_name is not defined else hashistack_ca_intermediate_state_or_province_name }}"
+        email_address: "{{ omit if hashistack_ca_intermediate_email is not defined else hashistack_ca_intermediate_email }}"
+        basic_constraints: "{{ hashistack_ca_intermediate_basic_constraints }}"
+        basic_constraints_critical: true
+        name_constraints_permitted: "{{ hashistack_ca_intermediate_name_constraints_permitted if hashistack_ca_intermediate_name_constraints_permitted | length > 0 else omit }}"
+        name_constraints_critical: "{{ hashistack_ca_intermediate_name_constraints_critical }}"
+        key_usage: "{{ hashistack_ca_intermediate_key_usage }}"
+        key_usage_critical: true
+        use_common_name_for_san: false
+        select_crypto_backend: "{{ 'cryptography' if hashistack_ca_use_cryptography else 'auto' }}"
+      register: _hashistack_intermediate_ca_csr
+
+    - name: "Intermediate CA | Create signed intermediate CA certificate from CSR"
+      community.crypto.x509_certificate:
+        path: "{{ hashistack_ca_intermediate_cert_path }}"
+        csr_content: "{{ _hashistack_intermediate_ca_csr.csr }}"
+        ownca_path: "{{ hashistack_ca_root_cert_path }}"
+        ownca_privatekey_path: "{{ hashistack_ca_root_key_path }}"
+        provider: ownca
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "{{ lookup('env', 'USER') }}"
+        ownca_not_after: "+{{ hashistack_ca_intermediate_valid_for }}"

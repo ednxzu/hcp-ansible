@@ -1,0 +1,35 @@
+---
+# task/prepare_ca_to_copy file for hashistack_ca
+- name: "CA | Check if CA directory exists"
+  ansible.builtin.stat:
+    path: "{{ hashistack_ca_root_dir }}"
+  register: _hashistack_ca_root_dir
+  delegate_to: localhost
+
+- name: "CA | Find custom CA certificates to copy"
+  ansible.builtin.find:
+    paths: "{{ hashistack_ca_root_dir }}"
+    patterns: "*.crt"
+  register: hashistack_ca_root_dir_files
+  delegate_to: localhost
+  when: _hashistack_ca_root_dir.stat.exists and _hashistack_ca_root_dir.stat.isdir
+
+- name: "CA | Ensure public CA directory exists"
+  ansible.builtin.file:
+    path: "{{ hashistack_ca_public_dir }}"
+    state: directory
+    owner: "{{ lookup('env', 'USER') }}"
+    group: "{{ lookup('env', 'USER') }}"
+    mode: 0755
+  delegate_to: localhost
+
+- name: "CA | Copy root CA certificates"
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "{{ hashistack_ca_public_dir }}/{{ item.path | basename }}"
+    owner: "{{ lookup('env', 'USER') }}"
+    group: "{{ lookup('env', 'USER') }}"
+    mode: 0644
+  loop: "{{ hashistack_ca_root_dir_files.files }}"
+  delegate_to: localhost
+  when: not hashistack_ca_root_dir_files.skipped | default(False)

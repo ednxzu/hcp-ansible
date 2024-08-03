@@ -1,0 +1,56 @@
+---
+# task/generate_root for hashistack_ca
+- name: "Root CA | Create temporary cert directory in {{ hashistack_ca_directory }}" # noqa: run-once[task]
+  ansible.builtin.file:
+    path: "{{ hashistack_ca_root_dir }}"
+    state: directory
+    owner: "{{ lookup('env', 'USER') }}"
+    group: "{{ lookup('env', 'USER') }}"
+    mode: "0755"
+  delegate_to: localhost
+
+- name: "Root CA | Generate root Authority"
+  delegate_to: localhost
+  run_once: true
+  block:
+    - name: "Root CA | Create CA private key"
+      community.crypto.openssl_privatekey:
+        path: "{{ hashistack_ca_root_key_path }}"
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "{{ lookup('env', 'USER') }}"
+
+    - name: "Root CA | Create CA signing request"
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: "{{ hashistack_ca_root_key_path }}"
+        common_name: "{{ omit if hashistack_ca_root_common_name is not defined else hashistack_ca_root_common_name }}"
+        organization_name: "{{ omit if hashistack_ca_root_org_name is not defined else hashistack_ca_root_org_name }}"
+        country_name: "{{ omit if hashistack_ca_root_country is not defined else hashistack_ca_root_country }}"
+        locality_name: "{{ omit if hashistack_ca_root_locality is not defined else hashistack_ca_root_locality }}"
+        state_or_province_name: "{{ omit if hashistack_ca_root_state is not defined else hashistack_ca_root_state }}"
+        email_address: "{{ omit if hashistack_ca_root_email is not defined else hashistack_ca_root_email }}"
+        basic_constraints: "{{ hashistack_ca_root_basic_constraints }}"
+        basic_constraints_critical: true
+        key_usage: "{{ hashistack_ca_root_key_usage }}"
+        key_usage_critical: true
+        use_common_name_for_san: false
+        select_crypto_backend: "{{ 'cryptography' if hashistack_ca_use_cryptography else 'auto' }}"
+      register: _hashistack_root_ca_csr
+
+    - name: "Root CA | Create self-signed CA certificate from CSR"
+      community.crypto.x509_certificate:
+        path: "{{ hashistack_ca_root_cert_path }}"
+        csr_content: "{{ _hashistack_root_ca_csr.csr }}"
+        privatekey_path: "{{ hashistack_ca_root_key_path }}"
+        provider: selfsigned
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "{{ lookup('env', 'USER') }}"
+
+    - name: "Root CA | Create self-signed CA certificate from CSR"
+      community.crypto.x509_certificate:
+        path: "{{ hashistack_ca_root_cert_path }}"
+        csr_content: "{{ _hashistack_root_ca_csr.csr }}"
+        privatekey_path: "{{ hashistack_ca_root_key_path }}"
+        selfsigned_not_after: "+{{ hashistack_ca_root_valid_for }}"
+        provider: selfsigned
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "{{ lookup('env', 'USER') }}"

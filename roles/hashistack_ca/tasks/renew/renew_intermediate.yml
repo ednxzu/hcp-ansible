@@ -1,0 +1,71 @@
+---
+# tasks/renew/renew_intermediate.yml file for hashistack_ca
+- name: "Intermediate CA | Check if intermediate CA certificate exists"
+  ansible.builtin.stat:
+    path: "{{ hashistack_ca_intermediate_cert_path }}"
+  register: _hashistack_ca_intermediate_cert_stat
+  delegate_to: localhost
+
+- name: "Intermediate CA | Check if root CA certificate exists"
+  ansible.builtin.stat:
+    path: "{{ hashistack_ca_root_cert_path }}"
+  register: _hashistack_ca_root_cert_stat
+  delegate_to: localhost
+
+- name: "Intermediate CA | Check CA for renewal"
+  when:
+    - _hashistack_ca_intermediate_cert_stat.stat.exists
+    - _hashistack_ca_intermediate_cert_stat.stat.isreg
+    - _hashistack_ca_root_cert_stat.stat.exists
+    - _hashistack_ca_root_cert_stat.stat.isreg
+  delegate_to: localhost
+  block:
+    - name: "Intermediate CA | Get intermediate CA certificate expiration date"
+      community.crypto.x509_certificate_info:
+        path: "{{ hashistack_ca_intermediate_cert_path }}"
+        valid_at:
+          renew_threshold: "+{{ hashistack_ca_intermediate_renew_threshold }}"
+      register: _hashistack_ca_intermediate_cert_info
+
+    - name: "Root CA | Get root CA certificate info"
+      community.crypto.x509_certificate_info:
+        path: "{{ hashistack_ca_root_cert_path }}"
+      register: _hashistack_ca_root_cert_info
+
+    - name: "Intermediate CA | Check if intermediate CA certificate is expiring within the threshold"
+      ansible.builtin.set_fact:
+        _hashistack_ca_is_expiring_soon: "{{ not _hashistack_ca_intermediate_cert_info.valid_at.renew_threshold }}"
+
+    - name: "Intermediate CA | Check if root CA has been renewed"
+      ansible.builtin.set_fact:
+        _hashistack_ca_root_renewed: "{{ _hashistack_ca_root_cert_info.not_before > _hashistack_ca_intermediate_cert_info.not_before }}"
+
+- name: "Intermediate CA | Renew CA if expiring soon or root CA has been renewed"
+  when:
+    - _hashistack_ca_is_expiring_soon or _hashistack_ca_root_renewed
+  delegate_to: localhost
+  block:
+    - name: "Intermediate CA | Create backup directory for intermediate CA"
+      ansible.builtin.file:
+        path: "{{ hashistack_ca_intermediate_backup_dir }}"
+        state: directory
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "{{ lookup('env', 'USER') }}"
+        mode: "0755"
+
+    - name: "Intermediate CA | Format expiration date for backup"
+      ansible.builtin.set_fact:
+        _hashistack_ca_intermediate_expiration_date: "{{ _hashistack_ca_intermediate_cert_info.not_after[:8] | regex_replace('^([0-9]{4})([0-9]{2})([0-9]{2})$', '\\1_\\2_\\3') }}"
+
+    - name: "Intermediate CA | Backup existing intermediate CA certificate"
+      ansible.builtin.command:
+        cmd: mv {{ hashistack_ca_intermediate_cert_path }} {{ hashistack_ca_intermediate_backup_dir }}/intermediate_ca_expire_{{ _hashistack_ca_intermediate_expiration_date }}.crt
+      changed_when: false
+
+    - name: "Intermediate CA | Backup existing intermediate CA key"
+      ansible.builtin.command:
+        cmd: mv {{ hashistack_ca_intermediate_key_path }} {{ hashistack_ca_intermediate_backup_dir }}/intermediate_ca_expire_{{ _hashistack_ca_intermediate_expiration_date }}.key
+      changed_when: false
+
+    - name: "Intermediate CA | Generate new intermediate CA if backups were successful"
+      ansible.builtin.include_tasks: ../generate/generate_intermediate.yml
