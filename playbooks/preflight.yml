@@ -7,8 +7,10 @@
   become: true
   tasks:
     - name: "Import variables"
-      ansible.builtin.import_tasks:
-        file: tasks/load_vars.yml
+      ansible.builtin.include_role:
+        name: ednz_cloud.hashistack.hashistack
+      tags:
+        - always
 
     - name: "Checking vault inventory"
       ansible.builtin.assert:
@@ -46,44 +48,44 @@
       when:
         - enable_nomad | bool
 
-    - name: "Checking directory {{ configuration_directory }}"  # noqa: run-once[task]
+    - name: "Checking directory {{ hashistack_configuration_directory }}"  # noqa: run-once[task]
       delegate_to: localhost
       run_once: true
       block:
-        - name: "Stat directory {{ configuration_directory }}"
+        - name: "Stat directory {{ hashistack_configuration_directory }}"
           ansible.builtin.stat:
-            path: "{{ configuration_directory }}"
+            path: "{{ hashistack_configuration_directory }}"
           register: _stat_config_dir
 
         - name: "Stat nomad_servers config directory"
           ansible.builtin.stat:
-            path: "{{ sub_configuration_directories.nomad_servers }}"
+            path: "{{ hashistack_sub_configuration_directories.nomad_servers }}"
           register: _stat_config_dir_nomad_servers
           when:
             - enable_nomad | bool
 
         - name: "Stat consul_servers config directory"
           ansible.builtin.stat:
-            path: "{{ sub_configuration_directories.consul_servers }}"
+            path: "{{ hashistack_sub_configuration_directories.consul_servers }}"
           register: _stat_config_dir_consul_servers
           when:
             - enable_consul | bool
 
         - name: "Stat vault_servers config directory"
           ansible.builtin.stat:
-            path: "{{ sub_configuration_directories.vault_servers }}"
+            path: "{{ hashistack_sub_configuration_directories.vault_servers }}"
           register: _stat_config_dir_vault_servers
           when:
             - enable_vault | bool
 
-        - name: "Make sure directory exists: {{ configuration_directory }}"
+        - name: "Make sure directory exists: {{ hashistack_configuration_directory }}"
           ansible.builtin.assert:
             that:
               - _stat_config_dir.stat.exists
               - _stat_config_dir.stat.isdir
               - _stat_config_dir.stat.writeable
 
-        - name: "Make sure directory exists: {{ sub_configuration_directories.nomad_servers }}"
+        - name: "Make sure directory exists: {{ hashistack_sub_configuration_directories.nomad_servers }}"
           ansible.builtin.assert:
             that:
               - _stat_config_dir_nomad_servers.stat.exists
@@ -92,7 +94,7 @@
           when:
             - enable_nomad | bool
 
-        - name: "Make sure directory exists: {{ sub_configuration_directories.consul_servers }}"
+        - name: "Make sure directory exists: {{ hashistack_sub_configuration_directories.consul_servers }}"
           ansible.builtin.assert:
             that:
               - _stat_config_dir_consul_servers.stat.exists
@@ -101,7 +103,7 @@
           when:
             - enable_consul | bool
 
-        - name: "Make sure directory exists: {{ sub_configuration_directories.vault_servers }}"
+        - name: "Make sure directory exists: {{ hashistack_sub_configuration_directories.vault_servers }}"
           ansible.builtin.assert:
             that:
               - _stat_config_dir_vault_servers.stat.exists
