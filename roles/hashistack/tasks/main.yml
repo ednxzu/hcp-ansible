@@ -1,5 +1,5 @@
 ---
-# task/main file for hashi_vars
+# task/main file for hashistack
 - name: "Variables | Load global variables"
   ansible.builtin.include_tasks: load_global_vars.yml
   when: not hashistack_only_load_credentials
