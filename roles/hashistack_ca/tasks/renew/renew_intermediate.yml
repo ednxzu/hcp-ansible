@@ -69,3 +69,12 @@
 
     - name: "Intermediate CA | Generate new intermediate CA if backups were successful"
       ansible.builtin.include_tasks: ../generate/generate_intermediate.yml
+
+    - name: "Intermediate CA | Generate new consul leaf certificates"
+      ansible.builtin.include_tasks: ../renew/renew_consul.yml
+
+    - name: "Intermediate CA | Generate new nomad leaf certificates"
+      ansible.builtin.include_tasks: ../renew/renew_nomad.yml
+
+    - name: "Intermediate CA | Generate new vault leaf certificates"
+      ansible.builtin.include_tasks: ../renew/renew_vault.yml

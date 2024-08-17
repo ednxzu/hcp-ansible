@@ -55,4 +55,4 @@
       ansible.builtin.include_tasks: ../generate/generate_root.yml
 
     - name: "Root CA | Generate new intermediate CA"
-      ansible.builtin.include_tasks: ../generate/generate_intermediate.yml
+      ansible.builtin.include_tasks: ../renew/renew_intermediate.yml
