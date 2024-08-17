@@ -1,4 +1,12 @@
 ---
+# Molecule specific variables
+
+hashistack_ca_action: "root_ca,int_ca,leaf_cert,renew_root,"
+hashistack_ca_directory: "{{ hashistack_sub_configuration_directories['certificates'] }}"
+hashistack_ca_directory_owner: "{{ lookup('env', 'USER') }}"
+hashistack_ca_domain: ednz.lab
+hashistack_ca_intermediate_name_constraints_critical: false
+
 ##########################
 # General options ########
 ##########################
@@ -9,7 +17,7 @@
 # enable_nomad: "yes"
 
 # haproxy_version: "2.8"
-# nomad_version: "1.8.1"
+nomad_version: "1.8.2"
 # consul_version: "1.18.1"
 # vault_version: "1.16.2"
 
@@ -264,16 +272,16 @@ vault_enable_tls: true
 ######################
 
 nomad_enable_tls: true
-nomad_tls_configuration:
-  http: true
-  rpc: true
-  ca_file: "/etc/ssl/certs/ca-certificates.crt"
-  cert_file: "{{ nomad_certificates_directory }}/cert.pem"
-  key_file: "{{ nomad_certificates_directory }}/key.pem"
-  verify_server_hostname: true
+# nomad_tls_configuration:
+#   http: true
+#   rpc: true
+#   ca_file: "/etc/ssl/certs/ca-certificates.crt"
+#   cert_file: "{{ nomad_certificates_directory }}/cert.pem"
+#   key_file: "{{ nomad_certificates_directory }}/key.pem"
+#   verify_server_hostname: true
 # nomad_certificates_directory: "{{ hashicorp_nomad_config_dir }}/tls"
 # nomad_certificates_extra_files_dir:
-#   - src: "{{ sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}"
+#   - src: "{{ hashistack_sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}"
 #     dest: "{{ nomad_certificates_directory }}"
 
 #############################

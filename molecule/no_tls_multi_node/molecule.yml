@@ -8,7 +8,7 @@ driver:
   provider:
     name: libvirt
 platforms:
-  - name: proxy01
+  - name: proxy01.ednz.lab
     box: generic/${MOLECULE_TEST_OS}
     cpus: 2
     memory: 2048
@@ -20,8 +20,9 @@ platforms:
     groups:
       - common
       - haproxy_servers
+      - nomad_clients
       - consul_agents
-  - name: proxy02
+  - name: proxy02.ednz.lab
     box: generic/${MOLECULE_TEST_OS}
     cpus: 2
     memory: 2048
@@ -33,8 +34,9 @@ platforms:
     groups:
       - common
       - haproxy_servers
+      - nomad_clients
       - consul_agents
-  - name: hashistack01
+  - name: hashistack01.ednz.lab
     box: generic/${MOLECULE_TEST_OS}
     cpus: 4
     memory: 2048
@@ -48,7 +50,7 @@ platforms:
       - vault_servers
       - consul_servers
       - nomad_servers
-  - name: hashistack02
+  - name: hashistack02.ednz.lab
     box: generic/${MOLECULE_TEST_OS}
     cpus: 4
     memory: 2048
@@ -62,7 +64,7 @@ platforms:
       - vault_servers
       - consul_servers
       - nomad_servers
-  - name: hashistack03
+  - name: hashistack03.ednz.lab
     box: generic/${MOLECULE_TEST_OS}
     cpus: 4
     memory: 2048
@@ -76,7 +78,7 @@ platforms:
       - vault_servers
       - consul_servers
       - nomad_servers
-  - name: hashistack04
+  - name: hashistack04.ednz.lab
     box: generic/${MOLECULE_TEST_OS}
     cpus: 4
     memory: 2048

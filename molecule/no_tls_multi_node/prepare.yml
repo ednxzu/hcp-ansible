@@ -2,9 +2,6 @@
 - name: Include certificate generation playbook
   ansible.builtin.import_playbook: ednz_cloud.hashistack.generate_certs.yml
 
-# - name: Include credentials generation playbook
-#   ansible.builtin.import_playbook: ednz_cloud.hashistack.generate_credentials.yml
-
 - name: Include bootstrap playbook
   ansible.builtin.import_playbook: ednz_cloud.hashistack.bootstrap.yml
 
