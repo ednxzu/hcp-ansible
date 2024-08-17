@@ -1,0 +1,130 @@
+---
+# defaults
+hashistack_ca_directory: "/etc/hashistack/certificates"
+hashistack_ca_use_cryptography: false
+hashistack_ca_action: "noop"
+hashistack_ca_domain: example.com
+hashistack_ca_directory_owner: root
+
+##############################
+# Root Certificate Authority #
+##############################
+hashistack_ca_root_org_name: EDNZ Cloud
+hashistack_ca_root_country: FR
+hashistack_ca_root_locality: Paris
+hashistack_ca_root_common_name: "{{ hashistack_ca_domain }} Root CA"
+hashistack_ca_root_email:
+hashistack_ca_root_key_usage:
+  - keyCertSign
+  - cRLSign
+hashistack_ca_root_key_usage_critical: true
+hashistack_ca_root_basic_constraints:
+  - CA:TRUE
+hashistack_ca_root_basic_constraints_critical: true
+
+# Optional fields
+hashistack_ca_root_state_or_province_name:
+hashistack_ca_root_email_address:
+
+# Validity
+hashistack_ca_root_valid_for: 1825d
+hashistack_ca_root_renew_threshold: 180d
+
+######################################
+# Intermediate Certificate Authority #
+######################################
+hashistack_ca_intermediate_org_name: EDNZ Cloud Intermediate
+hashistack_ca_intermediate_country: FR
+hashistack_ca_intermediate_locality: Paris
+hashistack_ca_intermediate_common_name: "{{ hashistack_ca_domain }} Intermediate CA"
+hashistack_ca_intermediate_email:
+hashistack_ca_intermediate_key_usage:
+  - keyCertSign
+  - cRLSign
+hashistack_ca_intermediate_key_usage_critical: true
+hashistack_ca_intermediate_basic_constraints:
+  - CA:TRUE
+  - pathlen:0
+hashistack_ca_intermediate_basic_constraints_critical: true
+
+# Optional fields
+hashistack_ca_intermediate_state_or_province_name:
+hashistack_ca_intermediate_email_address:
+
+# Validity
+hashistack_ca_intermediate_valid_for: 365d
+hashistack_ca_intermediate_renew_threshold: 90d
+
+# Name Constraints
+hashistack_ca_intermediate_name_constraints_permitted:
+  - "DNS:.{{ hashistack_ca_domain }}"
+  - DNS:.nomad
+  - DNS:.consul
+  - DNS:localhost
+  - IP:192.168.0.0/16
+  - IP:172.16.0.0/16
+  - IP:10.0.0.0/8
+  - IP:127.0.0.0/8
+hashistack_ca_intermediate_name_constraints_critical: "{{ (hashistack_ca_intermediate_name_constraints_permitted is defined and hashistack_ca_intermediate_name_constraints_permitted | length > 0) }}"
+
+#####################
+# Leaf certificates #
+#####################
+
+hashistack_ca_leaf_valid_for: 90d
+hashistack_ca_leaf_renew_threshold: 30d
+
+############################
+# Consul Leaf Certificates #
+############################
+hashistack_ca_consul_org_name: "{{ hashistack_ca_root_org_name }}"
+hashistack_ca_consul_common_name: "{{ inventory_hostname }}"
+hashistack_ca_consul_csr_sans: >-
+  {%- set sans_list = [
+      'DNS:' + inventory_hostname,
+      'DNS:consul.service.consul',
+      'DNS:localhost',
+      'IP:' + api_interface_address,
+      'IP:127.0.0.1'
+  ] -%}
+  {%- if consul_enable_server -%}
+    {%- set _ = sans_list.append('DNS:server.' ~ consul_datacenter ~ '.' ~ consul_domain) -%}
+  {%- endif -%}
+  {{ sans_list }}
+
+###########################
+# Nomad Leaf Certificates #
+###########################
+hashistack_ca_nomad_org_name: "{{ hashistack_ca_root_org_name }}"
+hashistack_ca_nomad_common_name: "{{ inventory_hostname }}"
+hashistack_ca_nomad_csr_sans: >-
+  {%- set sans_list = [
+      'DNS:' + inventory_hostname,
+      'DNS:localhost',
+      'IP:' + api_interface_address,
+      'IP:127.0.0.1'
+  ] -%}
+  {%- if nomad_enable_server -%}
+    {%- set _ = sans_list.append('DNS:server.' ~ nomad_region ~ '.nomad') -%}
+    {%- if  (enable_consul | bool) -%}
+      {%- set _ = sans_list.append('DNS:nomad.service.consul') -%}
+    {%- endif -%}
+  {%- endif -%}
+  {%- if nomad_enable_client -%}
+    {%- set _ = sans_list.append('DNS:client.' ~ nomad_region ~ '.nomad') -%}
+  {%- endif -%}
+  {{ sans_list }}
+
+###########################
+# Vault Leaf Certificates #
+###########################
+hashistack_ca_vault_org_name: "{{ hashistack_ca_root_org_name }}"
+hashistack_ca_vault_common_name: "{{ inventory_hostname }}"
+hashistack_ca_vault_csr_sans:
+  - "DNS:{{ inventory_hostname }}"
+  - "DNS:active.vault.service.consul"
+  - "DNS:standby.vault.service.consul"
+  - "DNS:vault.service.consul"
+  - "DNS:localhost"
+  - "IP:{{ api_interface_address }}"
+  - "IP:127.0.0.1"

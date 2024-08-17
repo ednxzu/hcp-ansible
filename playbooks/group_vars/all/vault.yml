@@ -1,100 +1,121 @@
 ---
-#####################################################
-#                                                   #
-#                Non-Editable                       #
-#                                                   #
-#####################################################
-
 vault_init_server: "{{ (inventory_hostname == groups['vault_servers'][0]) | bool }}"
 
-#########################
-# vault haproxy backend #
-#########################
+#########
+# Vault #
+#########
 
-vault_haproxy_frontend_options:
-  - acl is_vault hdr(host) -i {{ vault_fqdn }}
-  - use_backend vault_external if is_vault
+vault_config_dir: "{{ hashistack_remote_config_dir }}/vault.d"
+vault_data_dir: "/opt/vault"
+vault_certs_dir: "{{ vault_config_dir }}/tls"
+vault_logs_dir: "{{ hashistack_remote_log_dir }}/vault"
 
-vault_haproxy_backends:
-  - name: vault_external
-    options: "{{ vault_external_backend_options + vault_external_backend_servers }}"
+vault_extra_files: true
+# vault_extra_files_list: []
 
-vault_external_backend_options:
-  - description vault external http backend
-  - option forwardfor
-  - option httpchk GET /v1/sys/health?standbyok=true&sealedcode=200&standbycode=200&uninitcode=200
-  - http-check expect status 200
-  - default-server inter 2s fastinter 1s downinter 1s
+vault_env_variables: {}
 
-vault_external_backend_servers: |
-  [
-    {% for host in groups['vault_servers'] %}
-      'server vault-{{ hostvars[host].api_interface_address }} {{ hostvars[host].api_interface_address }}:8200 check {{ 'ssl verify none ' if vault_enable_tls }}inter 5s'{% if not loop.last %},{% endif %}
-    {% endfor %}
-  ]
+#######################
+# extra configuration #
+#######################
+
+# You should prioritize adding configuration
+# to the configuration entries below, this
+# option should be used to add pieces of configuration not
+# available through standard variables.
+
+# vault_extra_configuration: {}
+
+###########
+# general #
+###########
+
+# vault_cluster_name: vault
+# vault_bind_addr: "0.0.0.0"
+# vault_cluster_addr: "{{ api_interface_address }}"
+# vault_enable_ui: true
+# vault_disable_mlock: false
+# vault_disable_cache: false
 
 ######################
-# vault internal tls #
+# seal configuration #
 ######################
 
-vault_certificates_directory: "{{ hashicorp_vault_config_dir }}/tls"
+vault_seal_configuration:
+  key_shares: 3
+  key_threshold: 2
+
+#########################
+# storage configuration #
+#########################
+
+vault_storage_configuration:
+  raft:
+    path: "{{ vault_data_dir }}"
+    node_id: "{{ ansible_hostname }}"
+    retry_join: >-
+      [
+      {% for host in groups['vault_servers'] %}
+        {
+          'leader_api_addr': '{{ "https" if vault_enable_tls else "http"}}://{{ hostvars[host].api_interface_address }}:8200'
+        }{% if not loop.last %},{% endif %}
+      {% endfor %}
+      ]
+
+##########################
+# listener configuration #
+##########################
+
+# vault_enable_tls: false
+vault_listener_configuration:
+  - tcp:
+      address: "{{ vault_cluster_addr }}:8200"
+      tls_disable: true
+
+vault_tls_listener_configuration:
+  - tcp:
+      tls_disable: false
+      tls_cert_file: "{{ vault_certs_dir }}/fullchain.crt"
+      tls_key_file: "{{ vault_certs_dir }}/cert.key"
+      tls_disable_client_certs: true
+
 vault_certificates_extra_files_dir:
-  - src: "{{ sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}"
-    dest: "{{ vault_certificates_directory }}"
+  - src: "{{ hashistack_sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}"
+    dest: "{{ vault_certs_dir }}"
 
-#################
-# vault plugins #
-#################
+vault_extra_listener_configuration: []
 
-vault_plugin_directory: "{{ hashicorp_vault_config_dir }}/plugin"
-vault_plugin_extra_files_dir:
-  - src: "{{ sub_configuration_directories['vault_servers'] }}/plugin"
-    dest: "{{ vault_plugin_directory }}"
+########################
+# service registration #
+########################
 
-##############################
-# vault service registration #
-##############################
+# vault_enable_service_registration: "{{ enable_consul | bool }}"
+vault_service_registration_configuration:
+  consul:
+    address: >-
+      127.0.0.1:{{ hostvars[groups['consul_servers'][0]].consul_api_port[hostvars[groups['consul_servers'][0]].consul_api_scheme] }}
+    scheme: "{{ hostvars[groups['consul_servers'][0]].consul_api_scheme }}"
+    token: "{{ _credentials.consul.tokens.vault.secret_id }}"
 
 vault_service_registration_policy: |
   service "vault" {
     policy = "write"
   }
 
+#########################
+# plugins configuration #
+#########################
+
+# vault_enable_plugins: false
+vault_plugins_directory: "{{ vault_config_dir }}/plugins"
+
 #################
 # vault logging #
 #################
 
+# vault_log_level: info
 vault_enable_log_to_file: "{{ enable_log_to_file | bool }}"
-vault_logging_configuration:
-  log_file: "{{ hashistack_remote_log_dir }}/vault/vault.log"
-  log_level: info
+vault_log_to_file_configuration:
+  log_file: "{{ vault_logs_dir }}/vault.log"
   log_rotate_duration: 24h
   log_rotate_max_files: 30
-
-########################
-# vault role variables #
-########################
-
-hashicorp_vault_start_service: true
-hashicorp_vault_service_name: "vault"
-hashicorp_vault_version: "{{ vault_version }}"
-hashicorp_vault_env_variables: {}
-hashicorp_vault_config_dir: "{{ hashistack_remote_config_dir }}/vault.d"
-hashicorp_vault_data_dir: "{{ hashistack_remote_data_dir }}/vault"
-hashicorp_vault_extra_files: true
-hashicorp_vault_extra_files_list: "{{ ([] +
-  (vault_certificates_extra_files_dir if vault_enable_tls else []) +
-  (vault_plugin_extra_files_dir if vault_enable_plugins else []) +
-  vault_extra_files_list)
-  | unique
-  | sort
-  }}"
-hashicorp_vault_configuration:
-  cluster_name: "{{ vault_cluster_name }}"
-  cluster_addr: "{{ 'https' if vault_enable_tls else 'http'}}://{{ api_interface_address }}:8201"
-  api_addr: "{{ 'https' if vault_enable_tls else 'http'}}://{{ api_interface_address }}:8200"
-  ui: "{{ vault_enable_ui }}"
-  disable_mlock: false
-  disable_cache: false
-  listener: "{{ vault_listener_configuration }}"
-  storage: "{{ vault_storage_configuration }}"

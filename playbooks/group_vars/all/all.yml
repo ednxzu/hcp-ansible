@@ -5,25 +5,19 @@
 
 manage_pip_packages_allow_break_system_packages: "{{ ansible_distribution == 'Debian' and ansible_distribution_version == '12' }}"
 
-configuration_directory: "{{ lookup('env', 'PWD') }}/etc/hashistack"
-sub_configuration_directories:
-  secrets: "{{ configuration_directory }}/secrets"
-  certificates: "{{ configuration_directory }}/certificates"
-  nomad_servers: "{{ configuration_directory }}/nomad_servers"
-  vault_servers: "{{ configuration_directory }}/vault_servers"
-  consul_servers: "{{ configuration_directory }}/consul_servers"
+hashistack_configuration_directory: "{{ lookup('env', 'PWD') }}/etc/hashistack"
+hashistack_sub_configuration_directories:
+  secrets: "{{ hashistack_configuration_directory }}/secrets"
+  certificates: "{{ hashistack_configuration_directory }}/certificates"
+  nomad_servers: "{{ hashistack_configuration_directory }}/nomad_servers"
+  vault_servers: "{{ hashistack_configuration_directory }}/vault_servers"
+  consul_servers: "{{ hashistack_configuration_directory }}/consul_servers"
 
-configuration_global_vars_file: "globals.yml"
-configuration_credentials_vars_file: "credentials.yml"
+hashistack_configuration_global_vars_file: "globals.yml"
+hashistack_configuration_credentials_vars_file: "credentials.yml"
 
 hashistack_remote_config_dir: "/etc/hashistack"
-hashistack_remote_data_dir: "/opt/hashistack"
-hashistack_remote_log_dir: /var/log/hashistack
-
-default_container_extra_volumes:
-  - "/etc/timezone:/etc/timezone"
-  - "/etc/localtime:/etc/localtime"
-  - "/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro"
+hashistack_remote_log_dir: "/var/log/hashistack"
 
 ###################
 # support options #

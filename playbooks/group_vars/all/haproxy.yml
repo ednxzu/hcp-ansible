@@ -10,7 +10,7 @@ deploy_haproxy_version: "{{ haproxy_version }}"
 
 deploy_haproxy_env_variables: {}
 deploy_haproxy_start_service: true
-deploy_haproxy_cert_dir: "{{ sub_configuration_directories['certificates']~'/external' if (enable_tls_external and not external_tls_externally_managed_certs) }}"
+deploy_haproxy_cert_dir: "{{ hashistack_sub_configuration_directories['certificates']~'/external' if (enable_tls_external and not external_tls_externally_managed_certs) }}"
 deploy_haproxy_extra_container_volumes: []
 deploy_haproxy_global:
   - log /dev/log local0
