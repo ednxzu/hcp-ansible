@@ -17,8 +17,6 @@
   ansible.builtin.assert:
     that:
       - _global_config_file.stat.exists
-    fail_msg: >-
-      Main configuration file {{ _global_config_file.stat.path }} was not found, cannot continue without it.
   delegate_to: localhost
 
 - name: "Variables | Load global variables"
