@@ -40,6 +40,13 @@ api_interface: "eth1"
 enable_tls_external: true
 # external_tls_externally_managed_certs: false
 
+########################
+# internal tls options #
+########################
+
+enable_tls_internal: true
+# internal_tls_externally_managed_certs: false
+
 #####################################################
 #                                                   #
 #                Consul                             #
@@ -103,7 +110,7 @@ enable_tls_external: true
 # consul tls configuration #
 ############################
 
-consul_enable_tls: true
+# consul_enable_tls: "{{ enable_tls_internal }}"
 # consul_tls_configuration:
 #   defaults:
 #     ca_file: "/etc/ssl/certs/ca-certificates.crt"
@@ -160,7 +167,7 @@ consul_enable_tls: true
 # vault listener #
 ##################
 
-vault_enable_tls: true
+# vault_enable_tls: "{{ enable_tls_internal }}"
 # vault_tls_verify: false
 # vault_listener_configuration:
 #   tcp:
@@ -271,7 +278,7 @@ vault_enable_tls: true
 # nomad internal tls #
 ######################
 
-nomad_enable_tls: true
+# nomad_enable_tls: "{{ enable_tls_internal }}"
 # nomad_tls_configuration:
 #   http: true
 #   rpc: true

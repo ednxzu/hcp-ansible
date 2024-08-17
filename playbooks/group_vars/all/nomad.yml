@@ -157,9 +157,14 @@ nomad_tls_configuration:
   key_file: "{{ nomad_certs_dir }}/cert.key"
   verify_server_hostname: true
 
-nomad_certificates_extra_files_dir:
-  - src: "{{ hashistack_sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}"
-    dest: "{{ nomad_certs_dir }}"
+nomad_certificates_extra_files_dir: >
+  {{
+    [] if external_tls_externally_managed_certs | bool else
+    [{
+      'src': "{{ hashistack_sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}",
+      'dest': "{{ nomad_certs_dir }}"
+    }]
+  }}
 
 ###########################
 # telemetry configuration #

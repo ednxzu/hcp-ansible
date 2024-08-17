@@ -150,9 +150,14 @@ consul_tls_configuration:
   internal_rpc:
     verify_server_hostname: true
 
-consul_certificates_extra_files_dir:
-  - src: "{{ hashistack_sub_configuration_directories['certificates'] }}/consul/{{ inventory_hostname }}"
-    dest: "{{ consul_certs_dir }}"
+consul_certificates_extra_files_dir: >
+  {{
+    [] if external_tls_externally_managed_certs | bool else
+    [{
+      'src': "{{ hashistack_sub_configuration_directories['certificates'] }}/consul/{{ inventory_hostname }}",
+      'dest': "{{ consul_certs_dir }}"
+    }]
+  }}
 
 ###########################
 # telemetry configuration #

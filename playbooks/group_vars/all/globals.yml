@@ -37,6 +37,13 @@ enable_log_to_file: true
 enable_tls_external: false
 external_tls_externally_managed_certs: false
 
+########################
+# internal tls options #
+########################
+
+enable_tls_internal: false
+internal_tls_externally_managed_certs: false
+
 ##########
 # Consul #
 ##########
@@ -50,7 +57,7 @@ consul_enable_script_checks: false
 consul_extra_files_list: []
 consul_extra_configuration: {}
 
-consul_enable_tls: false
+consul_enable_tls: "{{ enable_tls_internal }}"
 
 consul_log_level: info
 
@@ -68,7 +75,7 @@ vault_disable_cache: false
 vault_extra_files_list: []
 vault_extra_configuration: {}
 
-vault_enable_tls: false
+vault_enable_tls: "{{ enable_tls_internal }}"
 
 vault_enable_service_registration: "{{ enable_consul | bool }}"
 
@@ -98,4 +105,4 @@ nomad_driver_extra_configuration: {}
 
 nomad_log_level: info
 
-nomad_enable_tls: false
+nomad_enable_tls: "{{ enable_tls_internal }}"

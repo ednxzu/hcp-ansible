@@ -79,9 +79,14 @@ vault_tls_listener_configuration:
       tls_key_file: "{{ vault_certs_dir }}/cert.key"
       tls_disable_client_certs: true
 
-vault_certificates_extra_files_dir:
-  - src: "{{ hashistack_sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}"
-    dest: "{{ vault_certs_dir }}"
+vault_certificates_extra_files_dir: >
+  {{
+    [] if external_tls_externally_managed_certs | bool else
+    [{
+      'src': "{{ hashistack_sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}",
+      'dest': "{{ vault_certs_dir }}"
+    }]
+  }}
 
 vault_extra_listener_configuration: []
 
