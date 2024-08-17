@@ -21,3 +21,21 @@
 
 - name: "CA | Import cleanup_backups.yml"
   ansible.builtin.include_tasks: cleanup_backups.yml
+
+- name: "Consul leaf certificates | Import generate/generate_consul.yml"
+  ansible.builtin.include_tasks: generate/generate_consul.yml
+  when:
+    - hashistack_ca_generate_leaf
+    - "('consul_servers' in group_names) or ('consul_agents' in group_names)"
+
+- name: "Nomad leaf certificates | Import generate/generate_nomad.yml"
+  ansible.builtin.include_tasks: generate/generate_nomad.yml
+  when:
+    - hashistack_ca_generate_leaf
+    - "('nomad_servers' in group_names) or ('nomad_clients' in group_names)"
+
+- name: "Vault leaf certificates | Import generate/generate_vault.yml"
+  ansible.builtin.include_tasks: generate/generate_vault.yml
+  when:
+    - hashistack_ca_generate_leaf
+    - "'vault_servers' in group_names"

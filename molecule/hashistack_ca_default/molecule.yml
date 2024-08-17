@@ -6,7 +6,7 @@ dependency:
 driver:
   name: docker
 platforms:
-  - name: instance
+  - name: consul-vault
     image: geerlingguy/docker-${MOLECULE_TEST_OS}-ansible
     command: ""
     volumes:
@@ -14,6 +14,34 @@ platforms:
     cgroupns_mode: host
     privileged: true
     pre_build_image: true
+    groups:
+      - common
+      - consul_servers
+      - vault_servers
+  - name: vault-nomad
+    image: geerlingguy/docker-${MOLECULE_TEST_OS}-ansible
+    command: ""
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup
+    cgroupns_mode: host
+    privileged: true
+    pre_build_image: true
+    groups:
+      - common
+      - nomad_clients
+      - vault_servers
+  - name: nomad-consul
+    image: geerlingguy/docker-${MOLECULE_TEST_OS}-ansible
+    command: ""
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup
+    cgroupns_mode: host
+    privileged: true
+    pre_build_image: true
+    groups:
+      - common
+      - nomad_clients
+      - consul_agents
 provisioner:
   name: ansible
   config_options:

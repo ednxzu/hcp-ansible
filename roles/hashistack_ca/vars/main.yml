@@ -5,8 +5,10 @@ hashistack_ca_action_list: "{{ hashistack_ca_action.split(',') }}"
 # possible actions
 hashistack_ca_generate_root: "{{ 'root_ca' in hashistack_ca_action_list }}"
 hashistack_ca_generate_intermediate: "{{ 'int_ca' in hashistack_ca_action_list }}"
-hashistack_ca_renew_intermediate: "{{ 'renew_int' in hashistack_ca_action_list }}"
+hashistack_ca_generate_leaf: "{{ 'leaf_cert' in hashistack_ca_action_list }}"
 hashistack_ca_renew_root: "{{ 'renew_root' in hashistack_ca_action_list }}"
+hashistack_ca_renew_intermediate: "{{ 'renew_int' in hashistack_ca_action_list }}"
+hashistack_ca_renew_leaf: "{{ 'renew_leaf' in hashistack_ca_action_list }}"
 
 hashistack_ca_public_dir: "{{ hashistack_ca_directory }}/ca"
 
@@ -20,3 +22,18 @@ hashistack_ca_intermediate_backup_dir: "{{ hashistack_ca_intermediate_dir }}/bac
 hashistack_ca_intermediate_key_path: "{{ hashistack_ca_intermediate_dir }}/ca.key"
 hashistack_ca_intermediate_csr_path: "{{ hashistack_ca_intermediate_dir }}/ca.csr"
 hashistack_ca_intermediate_cert_path: "{{ hashistack_ca_intermediate_dir }}/ca.crt"
+
+hashistack_ca_consul_dir: "{{ hashistack_ca_directory }}/consul/{{ inventory_hostname }}"
+hashistack_ca_consul_key_path: "{{ hashistack_ca_consul_dir }}/cert.key"
+hashistack_ca_consul_cert_path: "{{ hashistack_ca_consul_dir }}/cert.crt"
+hashistack_ca_consul_fullchain_path: "{{ hashistack_ca_consul_dir }}/fullchain.crt"
+
+hashistack_ca_nomad_dir: "{{ hashistack_ca_directory }}/nomad/{{ inventory_hostname }}"
+hashistack_ca_nomad_key_path: "{{ hashistack_ca_nomad_dir }}/cert.key"
+hashistack_ca_nomad_cert_path: "{{ hashistack_ca_nomad_dir }}/cert.crt"
+hashistack_ca_nomad_fullchain_path: "{{ hashistack_ca_nomad_dir }}/fullchain.crt"
+
+hashistack_ca_vault_dir: "{{ hashistack_ca_directory }}/vault/{{ inventory_hostname }}"
+hashistack_ca_vault_key_path: "{{ hashistack_ca_vault_dir }}/cert.key"
+hashistack_ca_vault_cert_path: "{{ hashistack_ca_vault_dir }}/cert.crt"
+hashistack_ca_vault_fullchain_path: "{{ hashistack_ca_vault_dir }}/fullchain.crt"

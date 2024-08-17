@@ -18,8 +18,8 @@
   ansible.builtin.file:
     path: "{{ hashistack_ca_public_dir }}"
     state: directory
-    owner: "{{ lookup('env', 'USER') }}"
-    group: "{{ lookup('env', 'USER') }}"
+    owner: "{{ hashistack_ca_directory_owner }}"
+    group: "{{ hashistack_ca_directory_owner }}"
     mode: 0755
   delegate_to: localhost
 
@@ -27,8 +27,8 @@
   ansible.builtin.copy:
     src: "{{ item.path }}"
     dest: "{{ hashistack_ca_public_dir }}/{{ item.path | basename }}"
-    owner: "{{ lookup('env', 'USER') }}"
-    group: "{{ lookup('env', 'USER') }}"
+    owner: "{{ hashistack_ca_directory_owner }}"
+    group: "{{ hashistack_ca_directory_owner }}"
     mode: 0644
   loop: "{{ hashistack_ca_root_dir_files.files }}"
   delegate_to: localhost

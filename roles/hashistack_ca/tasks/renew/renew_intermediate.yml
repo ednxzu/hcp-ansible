@@ -49,8 +49,8 @@
       ansible.builtin.file:
         path: "{{ hashistack_ca_intermediate_backup_dir }}"
         state: directory
-        owner: "{{ lookup('env', 'USER') }}"
-        group: "{{ lookup('env', 'USER') }}"
+        owner: "{{ hashistack_ca_directory_owner }}"
+        group: "{{ hashistack_ca_directory_owner }}"
         mode: "0755"
 
     - name: "Intermediate CA | Format expiration date for backup"

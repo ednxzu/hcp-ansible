@@ -23,10 +23,6 @@
       ansible.builtin.set_fact:
         _hashistack_ca_is_expiring_soon: "{{ not _hashistack_ca_root_cert_info.valid_at.renew_threshold }}"
 
-    - name: "Root CA | Debug certificate expiration status"
-      ansible.builtin.debug:
-        msg: "Is root CA certificate expiring soon? {{ _hashistack_ca_is_expiring_soon }}"
-
 - name: "Root CA | Renew CA if expiring soon"
   when:
     - _hashistack_ca_is_expiring_soon
@@ -36,8 +32,8 @@
       ansible.builtin.file:
         path: "{{ hashistack_ca_root_backup_dir }}"
         state: directory
-        owner: "{{ lookup('env', 'USER') }}"
-        group: "{{ lookup('env', 'USER') }}"
+        owner: "{{ hashistack_ca_directory_owner }}"
+        group: "{{ hashistack_ca_directory_owner }}"
         mode: "0755"
 
     - name: "Root CA | Format expiration date for backup"

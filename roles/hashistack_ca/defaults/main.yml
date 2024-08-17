@@ -4,6 +4,7 @@ hashistack_ca_directory: "/etc/hashistack/certificates"
 hashistack_ca_use_cryptography: false
 hashistack_ca_action: "noop"
 hashistack_ca_domain: example.com
+hashistack_ca_directory_owner: root
 
 ##############################
 # Root Certificate Authority #
@@ -56,12 +57,53 @@ hashistack_ca_intermediate_renew_threshold: 90d
 
 # Name Constraints
 hashistack_ca_intermediate_name_constraints_permitted:
+  - "DNS:.{{ hashistack_ca_domain }}"
   - DNS:.nomad
   - DNS:.consul
-  - DNS:.example.com
   - DNS:localhost
   - IP:192.168.0.0/16
   - IP:172.16.0.0/16
   - IP:10.0.0.0/8
   - IP:127.0.0.0/8
 hashistack_ca_intermediate_name_constraints_critical: "{{ (hashistack_ca_intermediate_name_constraints_permitted is defined and hashistack_ca_intermediate_name_constraints_permitted | length > 0) }}"
+
+#####################
+# Leaf certificates #
+#####################
+
+hashistack_ca_leaf_valid_for: 90d
+hashistack_ca_leaf_renew_threshold: 30d
+
+############################
+# Consul Leaf Certificates #
+############################
+hashistack_ca_consul_org_name: "{{ hashistack_ca_root_org_name }}"
+hashistack_ca_consul_common_name: "{{ inventory_hostname }}"
+hashistack_ca_consul_csr_sans:
+  - "DNS:consul.service.consul"
+  - "DNS:localhost"
+  - "IP:127.0.0.1"
+
+###########################
+# Nomad Leaf Certificates #
+###########################
+hashistack_ca_nomad_org_name: "{{ hashistack_ca_root_org_name }}"
+hashistack_ca_nomad_common_name: "{{ inventory_hostname }}"
+hashistack_ca_nomad_csr_sans:
+  - DNS:server.global.nomad
+  - DNS:client.global.nomad
+  - "DNS:nomad.service.consul"
+  - "DNS:localhost"
+  - "IP:127.0.0.1"
+
+###########################
+# Vault Leaf Certificates #
+###########################
+hashistack_ca_vault_org_name: "{{ hashistack_ca_root_org_name }}"
+hashistack_ca_vault_common_name: "{{ inventory_hostname }}"
+hashistack_ca_vault_csr_sans:
+  - "DNS:vault.service.consul"
+  - "DNS:active.vault.service.consul"
+  - "DNS:standby.vault.service.consul"
+  - "DNS:localhost"
+  - "IP:127.0.0.1"

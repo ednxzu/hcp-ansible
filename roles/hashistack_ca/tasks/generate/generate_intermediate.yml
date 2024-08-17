@@ -4,19 +4,17 @@
   ansible.builtin.file:
     path: "{{ hashistack_ca_intermediate_dir }}"
     state: directory
-    owner: "{{ lookup('env', 'USER') }}"
-    group: "{{ lookup('env', 'USER') }}"
+    owner: "{{ hashistack_ca_directory_owner }}"
+    group: "{{ hashistack_ca_directory_owner }}"
     mode: "0755"
-  delegate_to: localhost
 
 - name: "Intermediate CA | Generate internal certificates"
-  delegate_to: localhost
   block:
     - name: "Intermediate CA | Create intermediate CA private key"
       community.crypto.openssl_privatekey:
         path: "{{ hashistack_ca_intermediate_key_path }}"
-        owner: "{{ lookup('env', 'USER') }}"
-        group: "{{ lookup('env', 'USER') }}"
+        owner: "{{ hashistack_ca_directory_owner }}"
+        group: "{{ hashistack_ca_directory_owner }}"
 
     - name: "Intermediate CA | Create intermediate CA signing request"
       community.crypto.openssl_csr_pipe:
@@ -44,6 +42,6 @@
         ownca_path: "{{ hashistack_ca_root_cert_path }}"
         ownca_privatekey_path: "{{ hashistack_ca_root_key_path }}"
         provider: ownca
-        owner: "{{ lookup('env', 'USER') }}"
-        group: "{{ lookup('env', 'USER') }}"
+        owner: "{{ hashistack_ca_directory_owner }}"
+        group: "{{ hashistack_ca_directory_owner }}"
         ownca_not_after: "+{{ hashistack_ca_intermediate_valid_for }}"

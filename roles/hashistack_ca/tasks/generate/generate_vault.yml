@@ -1,0 +1,73 @@
+---
+# task/generate_vault for hashistack_ca
+- name: "Vault leaf certificates | Create certificate directory in for vault servers"
+  ansible.builtin.file:
+    path: "{{ hashistack_ca_vault_dir }}"
+    state: directory
+    owner: "{{ hashistack_ca_directory_owner }}"
+    group: "{{ hashistack_ca_directory_owner }}"
+    mode: "0755"
+
+- name: "Vault leaf certificates | Create Vault certificates"
+  block:
+    - name: "Vault leaf certificates | Create Vault certificate keys"
+      community.crypto.openssl_privatekey:
+        path: "{{ hashistack_ca_vault_key_path }}"
+        owner: "{{ hashistack_ca_directory_owner }}"
+        group: "{{ hashistack_ca_directory_owner }}"
+
+    - name: "Vault leaf certificates | Create CSRs for Vault servers"
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: "{{ hashistack_ca_vault_key_path }}"
+        common_name: "{{ hashistack_ca_vault_common_name }}"
+        subject_alt_name: "{{ hashistack_ca_vault_csr_sans }}"
+        key_usage_critical: true
+        key_usage:
+          - Digital Signature
+          - Key Encipherment
+          - Key Agreement
+        extended_key_usage:
+          - TLS Web Server Authentication
+          - TLS Web Client Authentication
+        organization_name: "{{ hashistack_ca_vault_org_name }}"
+        use_common_name_for_san: false
+      register: _hashistack_ca_vault_csr
+
+    - name: "Vault leaf certificates | Sign certificates with internal CA"
+      community.crypto.x509_certificate:
+        path: "{{ hashistack_ca_vault_cert_path }}"
+        csr_content: "{{ _hashistack_ca_vault_csr.csr }}"
+        provider: ownca
+        ownca_path: "{{ hashistack_ca_intermediate_cert_path }}"
+        ownca_privatekey_path: "{{ hashistack_ca_intermediate_key_path }}"
+        ownca_not_after: "+{{ hashistack_ca_leaf_valid_for }}"
+        ownca_not_before: "-1d"
+        owner: "{{ hashistack_ca_directory_owner }}"
+        group: "{{ hashistack_ca_directory_owner }}"
+        mode: "0644"
+
+    - name: "Vault leaf certificates | Generate fullchain certificate"
+      block:
+        - name: "Vault leaf certificates | Read content of root ca certificate"
+          ansible.builtin.slurp:
+            src: "{{ hashistack_ca_root_key_path }}"
+          register: _hashistack_ca_root_crt
+
+        - name: "Vault leaf certificates | Read content of intermediate ca certificate"
+          ansible.builtin.slurp:
+            src: "{{ hashistack_ca_intermediate_cert_path }}"
+          register: _hashistack_ca_intermediate_crt
+
+        - name: "Vault leaf certificates | Read content of leaf certificate"
+          ansible.builtin.slurp:
+            src: "{{ hashistack_ca_vault_cert_path }}"
+          register: _hashistack_ca_vault_crt
+
+        - name: "Vault leaf certificates | Concatenate certificates"
+          ansible.builtin.copy:
+            content: |
+              {{ _hashistack_ca_vault_crt['content'] | b64decode }}{{ _hashistack_ca_intermediate_crt['content'] | b64decode }}{{ _hashistack_ca_root_crt['content'] | b64decode }}
+            dest: "{{ hashistack_ca_vault_fullchain_path }}"
+            owner: "{{ hashistack_ca_directory_owner }}"
+            group: "{{ hashistack_ca_directory_owner }}"
+            mode: "0644"

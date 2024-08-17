@@ -4,20 +4,18 @@
   ansible.builtin.file:
     path: "{{ hashistack_ca_root_dir }}"
     state: directory
-    owner: "{{ lookup('env', 'USER') }}"
-    group: "{{ lookup('env', 'USER') }}"
+    owner: "{{ hashistack_ca_directory_owner }}"
+    group: "{{ hashistack_ca_directory_owner }}"
     mode: "0755"
-  delegate_to: localhost
 
 - name: "Root CA | Generate root Authority"
-  delegate_to: localhost
   run_once: true
   block:
     - name: "Root CA | Create CA private key"
       community.crypto.openssl_privatekey:
         path: "{{ hashistack_ca_root_key_path }}"
-        owner: "{{ lookup('env', 'USER') }}"
-        group: "{{ lookup('env', 'USER') }}"
+        owner: "{{ hashistack_ca_directory_owner }}"
+        group: "{{ hashistack_ca_directory_owner }}"
 
     - name: "Root CA | Create CA signing request"
       community.crypto.openssl_csr_pipe:
@@ -42,8 +40,8 @@
         csr_content: "{{ _hashistack_root_ca_csr.csr }}"
         privatekey_path: "{{ hashistack_ca_root_key_path }}"
         provider: selfsigned
-        owner: "{{ lookup('env', 'USER') }}"
-        group: "{{ lookup('env', 'USER') }}"
+        owner: "{{ hashistack_ca_directory_owner }}"
+        group: "{{ hashistack_ca_directory_owner }}"
 
     - name: "Root CA | Create self-signed CA certificate from CSR"
       community.crypto.x509_certificate:
@@ -52,5 +50,5 @@
         privatekey_path: "{{ hashistack_ca_root_key_path }}"
         selfsigned_not_after: "+{{ hashistack_ca_root_valid_for }}"
         provider: selfsigned
-        owner: "{{ lookup('env', 'USER') }}"
-        group: "{{ lookup('env', 'USER') }}"
+        owner: "{{ hashistack_ca_directory_owner }}"
+        group: "{{ hashistack_ca_directory_owner }}"
