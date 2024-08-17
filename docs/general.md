@@ -6,7 +6,7 @@
 
 Hashistack Ansible uses a configuration directory to store all the configuration files and other artifacts.
 
-This directory is defined with the variable `configuration_directory`. By default, it will look at `{{ lookup('env', 'PWD') }}/etc/hashistack`, which equals `$(pwd)/etc/hashistack`.
+This directory is defined with the variable `hashistack_configuration_directory`. By default, it will look at `{{ lookup('env', 'PWD') }}/etc/hashistack`, which equals `$(pwd)/etc/hashistack`.
 
 Under this directory, you are expected to place the `globals.yml` file, with your configuration.
 
@@ -18,9 +18,9 @@ Additionally, subdirectories can be used to tailor the configuration further.
 
 Each group within the `inventory` will look at a directory named after itself:
 
-- nomad_servers group will look for `{{ configuration_directory }}/nomad_servers`
-- vault_servers group will look for `{{ configuration_directory }}/vault_servers`
-- consul_servers group will look for `{{ configuration_directory }}/consul_servers`
+- nomad_servers group will look for `{{ hashistack_configuration_directory }}/nomad_servers`
+- vault_servers group will look for `{{ hashistack_configuration_directory }}/vault_servers`
+- consul_servers group will look for `{{ hashistack_configuration_directory }}/consul_servers`
 
 Within each of these directories, you can place an additional `globals.yml file`, that will superseed the file at the root of the configuration directory.
 

@@ -112,6 +112,16 @@ This will install roles that are not packaged with the collection, but are still
 
 You should now have some roles inside `./roles/`.
 
+9. Copy `inventory` file and `globals.yml `file locally
+
+```bash
+cp collections/ansible_collections/ednz_cloud/hashistack/playbooks/inventory/multinode.ini inventory/
+```
+
+```bash
+cp collections/ansible_collections/ednz_cloud/hashistack/playbooks/group_vars/all/globals.yml etc/hashistack/globals.yml
+```
+
 ## Generate Credentials
 
 Before deploying your infrastructure with Hashistack-Ansible, you need to generate credentials that will be used to bootstrap the various clusters.
