@@ -4,3 +4,4 @@ version_provider = "scm"
 version_files = ["galaxy.yml:^version"]
 update_changelog_on_bump = true
 major_version_zero = true
+tag_format = "v$version"
