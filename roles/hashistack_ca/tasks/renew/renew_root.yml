@@ -1,5 +1,5 @@
 ---
-# tasks/renew/renew_root.yml
+# tasks/renew/renew_root file for hashistack_ca
 - name: "Root CA | Check if root CA certificate exists"
   ansible.builtin.stat:
     path: "{{ hashistack_ca_root_cert_path }}"

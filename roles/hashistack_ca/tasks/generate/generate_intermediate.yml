@@ -1,5 +1,5 @@
 ---
-# task/generate_intermediate for hashistack_ca
+# task/generate_intermediate file for hashistack_ca
 - name: "Intermediate CA | Create temporary cert directory in {{ hashistack_ca_directory }}/intermediate"
   ansible.builtin.file:
     path: "{{ hashistack_ca_intermediate_dir }}"

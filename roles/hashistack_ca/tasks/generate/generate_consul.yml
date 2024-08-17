@@ -1,5 +1,5 @@
 ---
-# task/generate_consul for hashistack_ca
+# task/generate_consul file for hashistack_ca
 - name: "Consul leaf certificates | Create certificate directory in for consul servers"
   ansible.builtin.file:
     path: "{{ hashistack_ca_consul_dir }}"

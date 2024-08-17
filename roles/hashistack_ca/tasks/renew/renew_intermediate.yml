@@ -1,5 +1,5 @@
 ---
-# tasks/renew/renew_intermediate.yml file for hashistack_ca
+# tasks/renew/renew_intermediate file for hashistack_ca
 - name: "Intermediate CA | Check if intermediate CA certificate exists"
   ansible.builtin.stat:
     path: "{{ hashistack_ca_intermediate_cert_path }}"

@@ -39,3 +39,9 @@
   when:
     - hashistack_ca_generate_leaf
     - "'vault_servers' in group_names"
+
+- name: "Consul leaf certificates | Import renew_consul.yml"
+  ansible.builtin.include_tasks: renew/renew_consul.yml
+  when:
+    - hashistack_ca_renew_leaf
+    - "('consul_servers' in group_names) or ('consul_agents' in group_names)"

@@ -1,5 +1,5 @@
 ---
-# task/generate_root for hashistack_ca
+# task/generate_root file for hashistack_ca
 - name: "Root CA | Create temporary cert directory in {{ hashistack_ca_directory }}" # noqa: run-once[task]
   ansible.builtin.file:
     path: "{{ hashistack_ca_root_dir }}"

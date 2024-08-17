@@ -1,0 +1,55 @@
+---
+# tasks/renew/renew_vault file for hashistack_ca
+- name: "Vault leaf certificates | Check if certificate exists"
+  ansible.builtin.stat:
+    path: "{{ hashistack_ca_vault_cert_path }}"
+  register: _hashistack_ca_vault_cert_stat
+
+- name: "Vault leaf certificates | Check if intermediate CA certificate exists"
+  ansible.builtin.stat:
+    path: "{{ hashistack_ca_intermediate_cert_path }}"
+  register: _hashistack_ca_intermediate_cert_stat
+
+- name: "Vault leaf certificates | Check certificate for renewal"
+  when:
+    - _hashistack_ca_vault_cert_stat.stat.exists
+    - _hashistack_ca_vault_cert_stat.stat.isreg
+    - _hashistack_ca_intermediate_cert_stat.stat.exists
+    - _hashistack_ca_intermediate_cert_stat.stat.isreg
+  block:
+    - name: "Vault leaf certificates | Get certificate expiration date"
+      community.crypto.x509_certificate_info:
+        path: "{{ hashistack_ca_vault_cert_path }}"
+        valid_at:
+          renew_threshold: "+{{ hashistack_ca_leaf_renew_threshold }}"
+      register: _hashistack_ca_vault_cert_info
+
+    - name: "Intermediate CA | Get intermediate CA certificate info"
+      community.crypto.x509_certificate_info:
+        path: "{{ hashistack_ca_intermediate_cert_path }}"
+      register: _hashistack_ca_intermediate_cert_info
+
+    - name: "Vault leaf certificates | Check if certificate is expiring within the threshold"
+      ansible.builtin.set_fact:
+        _hashistack_cert_is_expiring_soon: "{{ not _hashistack_ca_vault_cert_info.valid_at.renew_threshold }}"
+
+    - name: "Vault leaf certificates | Check if intermediate CA has been renewed"
+      ansible.builtin.set_fact:
+        _hashistack_ca_intermediate_renewed: "{{ _hashistack_ca_intermediate_cert_info.not_before > _hashistack_ca_vault_cert_info.not_before }}"
+
+- name: "Vault leaf certificates | Renew certificate if expiring soon or intermediate CA has been renewed"
+  when:
+    - _hashistack_cert_is_expiring_soon or _hashistack_ca_intermediate_renewed
+  block:
+    - name: "Vault leaf certificates | Remove old certificate before renewal"
+      ansible.builtin.file:
+        path: "{{ hashistack_ca_vault_cert_path }}"
+        state: absent
+
+    - name: "Vault leaf certificates | Remove old certificate key before renewal"
+      ansible.builtin.file:
+        path: "{{ hashistack_ca_vault_key_path }}"
+        state: absent
+
+    - name: "Vault leaf certificates | Generate new vault leaf certificate"
+      ansible.builtin.include_tasks: ../generate/generate_vault.yml

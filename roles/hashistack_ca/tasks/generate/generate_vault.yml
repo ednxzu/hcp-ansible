@@ -1,5 +1,5 @@
 ---
-# task/generate_vault for hashistack_ca
+# task/generate_vault file for hashistack_ca
 - name: "Vault leaf certificates | Create certificate directory in for vault servers"
   ansible.builtin.file:
     path: "{{ hashistack_ca_vault_dir }}"

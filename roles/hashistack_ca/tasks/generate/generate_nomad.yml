@@ -1,5 +1,5 @@
 ---
-# task/generate_nomad for hashistack_ca
+# task/generate_nomad file for hashistack_ca
 - name: "Nomad leaf certificates | Create certificate directory in for nomad servers"
   ansible.builtin.file:
     path: "{{ hashistack_ca_nomad_dir }}"
@@ -42,6 +42,9 @@
         ownca_privatekey_path: "{{ hashistack_ca_intermediate_key_path }}"
         ownca_not_after: "+{{ hashistack_ca_leaf_valid_for }}"
         ownca_not_before: "-1d"
+        owner: "{{ hashistack_ca_directory_owner }}"
+        group: "{{ hashistack_ca_directory_owner }}"
+        mode: "0644"
 
     - name: "Nomad leaf certificates | Generate fullchain certificate"
       block:
