@@ -8,7 +8,7 @@
   become: true
   tasks:
     - name: "Import variables"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: ednz_cloud.hashistack.hashistack
       tags:
         - always
@@ -19,7 +19,7 @@
         - consul
       when:
         - enable_consul | bool
-      ansible.builtin.import_tasks:
+      ansible.builtin.include_tasks:
         file: tasks/consul/consul_deploy.yml
 
     # Vault nodes deployment
@@ -28,7 +28,7 @@
         - vault
       when:
         - enable_vault | bool
-      ansible.builtin.import_tasks:
+      ansible.builtin.include_tasks:
         file: tasks/vault/vault_deploy.yml
 
     # Nomad nodes deployment
@@ -37,7 +37,7 @@
         - nomad
       when:
         - enable_nomad | bool
-      ansible.builtin.import_tasks:
+      ansible.builtin.include_tasks:
         file: tasks/nomad/nomad_deploy.yml
 
     # - fail:

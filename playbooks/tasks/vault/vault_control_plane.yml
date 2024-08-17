@@ -1,7 +1,7 @@
 ---
 - name: "Vault control plane"
   block:
-    - name: "Create consul token for service registration"
+    - name: "Vault | Create consul token for service registration"
       when:
         - vault_init_server
         - enable_consul
@@ -11,7 +11,7 @@
         _consul_vault_sr_port: "{{ hostvars[groups['consul_servers'][0]].consul_api_port[hostvars[groups['consul_servers'][0]].consul_api_scheme] }}"
         _consul_vault_sr_scheme: "{{ hostvars[groups['consul_servers'][0]].consul_api_scheme }}"
       block:
-        - name: "Create consul vault policy"
+        - name: "Vault | Create consul vault policy"
           community.general.consul_policy:
             token: "{{ _credentials.consul.root_token.secret_id }}"
             host: "{{ _consul_vault_sr_host }}"
@@ -23,7 +23,7 @@
             rules: "{{ vault_service_registration_policy }}"
           register: _consul_vault_policy
 
-        - name: "Create consul vault token" # noqa: no-handler
+        - name: "Vault | Create consul vault token" # noqa: no-handler
           community.general.consul_token:
             token: "{{ _credentials.consul.root_token.secret_id }}"
             host: "{{ _consul_vault_sr_host }}"
@@ -37,14 +37,19 @@
             state: present
           when: _consul_vault_policy.changed
 
-    - name: "Include ednz_cloud.hashicorp_consul"
-      ansible.builtin.include_role:
-        name: ednz_cloud.hashicorp_vault
+    - name: "Vault | Stat vault secret file"
+      ansible.builtin.stat:
+        path: "{{ hashistack_sub_configuration_directories.secrets }}/vault.yml"
+      register: _vault_needs_early_unseal
 
-    - name: "Initialize vault cluster" # noqa: run-once[task]
+    - name: "Include ednz_cloud.hashistack.vault"
+      ansible.builtin.include_role:
+        name: ednz_cloud.hashistack.vault
+
+    - name: "Vault | Initialize vault cluster" # noqa: run-once[task]
       ednz_cloud.hashistack.vault_init:
-        api_url: "{{ hashicorp_vault_configuration['api_addr'] }}"
-        tls_verify: "{{ vault_tls_verify }}"
+        api_url: "{{ vault_configuration['api_addr'] }}"
+        tls_verify: false
         key_shares: "{{ vault_seal_configuration['key_shares'] }}"
         key_threshold: "{{ vault_seal_configuration['key_threshold'] }}"
       retries: 5
@@ -53,10 +58,10 @@
       until: not _vault_init_secret.failed
       when: vault_init_server
 
-    - name: "Write vault configuration to file" # noqa: run-once[task] no-handler
+    - name: "Vault | Write vault configuration to file" # noqa: run-once[task] no-handler
       ansible.builtin.copy:
         content: "{{ _vault_init_secret.state | to_nice_yaml(indent=2) }}"
-        dest: "{{ sub_configuration_directories.secrets }}/vault.yml"
+        dest: "{{ hashistack_sub_configuration_directories.secrets }}/vault.yml"
         owner: "{{ lookup('env', 'USER') }}"
         group: "{{ lookup('env', 'USER') }}"
         mode: "0644"
@@ -66,23 +71,25 @@
       delegate_to: localhost
 
     - name: "Load vault cluster variables necessary for unseal operation"
-      ansible.builtin.import_tasks:
-        file: ../misc/load_credentials_vars.yml
+      ansible.builtin.import_role:
+        name: ednz_cloud.hashistack.hashistack
+      vars:
+        hashistack_only_load_credentials: true
 
-    - name: "Unseal the bootstrap node" # noqa: run-once[task] no-handler
+    - name: "Vault | Unseal the bootstrap node" # noqa: run-once[task] no-handler
       ednz_cloud.hashistack.vault_unseal:
-        api_url: "{{ hashicorp_vault_configuration['api_addr'] }}"
-        tls_verify: "{{ vault_tls_verify }}"
+        api_url: "{{ vault_configuration['api_addr'] }}"
+        tls_verify: false
         key_shares: "{{ _credentials.vault['keys'] }}"
       when:
         - vault_init_server
         - _vault_init_secret.changed
       register: _vault_unseal_secret
 
-    - name: "Unseal all vault nodes"
+    - name: "Vault | Unseal all vault nodes"
       ednz_cloud.hashistack.vault_unseal:
-        api_url: "{{ hashicorp_vault_configuration['api_addr'] }}"
-        tls_verify: "{{ vault_tls_verify }}"
+        api_url: "{{ vault_configuration['api_addr'] }}"
+        tls_verify: false
         key_shares: "{{ _credentials.vault['keys'] }}"
       retries: 5
       delay: 5

@@ -1,7 +1,7 @@
 ---
 - name: "Nomad control plane"
   block:
-    - name: "Create consul tokens for service registration"
+    - name: "Nomad | Create consul tokens for service registration"
       when:
         - nomad_init_server
         - enable_consul
@@ -11,9 +11,9 @@
         _consul_port: "{{ hostvars[groups['consul_servers'][0]].consul_api_port[hostvars[groups['consul_servers'][0]].consul_api_scheme] }}"
         _consul_scheme: "{{ hostvars[groups['consul_servers'][0]].consul_api_scheme }}"
       block:
-        - name: "Create server credentials"
+        - name: "Nomad | Create server credentials"
           block:
-            - name: "Create consul server policy"
+            - name: "Nomad | Create consul server policy"
               community.general.consul_policy:
                 token: "{{ _credentials.consul.root_token.secret_id }}"
                 host: "{{ _consul_host }}"
@@ -25,7 +25,7 @@
                 rules: "{{ nomad_consul_integration_server_policy }}"
               register: _consul_nomad_server_policy
 
-            - name: "Create consul server token" # noqa: no-handler
+            - name: "Nomad | Create consul server token" # noqa: no-handler
               community.general.consul_token:
                 token: "{{ _credentials.consul.root_token.secret_id }}"
                 host: "{{ _consul_host }}"
@@ -39,9 +39,9 @@
                 state: present
               when: _consul_nomad_server_policy.changed
 
-        - name: "Create client credentials"
+        - name: "Nomad | Create client credentials"
           block:
-            - name: "Create consul client policy"
+            - name: "Nomad | Create consul client policy"
               community.general.consul_policy:
                 token: "{{ _credentials.consul.root_token.secret_id }}"
                 host: "{{ _consul_host }}"
@@ -53,7 +53,7 @@
                 rules: "{{ nomad_consul_integration_client_policy }}"
               register: _consul_nomad_client_policy
 
-            - name: "Create consul client token" # noqa: no-handler
+            - name: "Nomad | Create consul client token" # noqa: no-handler
               community.general.consul_token:
                 token: "{{ _credentials.consul.root_token.secret_id }}"
                 host: "{{ _consul_host }}"
@@ -67,11 +67,16 @@
                 state: present
               when: _consul_nomad_client_policy.changed
 
-    - name: "Include ednz_cloud.hashicorp_nomad"
+    - name: "Include ednz_cloud.hashistack.cni"
       ansible.builtin.include_role:
-        name: ednz_cloud.hashicorp_nomad
+        name: ednz_cloud.hashistack.cni
+      when: nomad_enable_client
 
-    - name: "Initialize nomad cluster" # noqa: run-once[task]
+    - name: "Include ednz_cloud.hashistack.nomad"
+      ansible.builtin.include_role:
+        name: ednz_cloud.hashistack.nomad
+
+    - name: "Nomad | Initialize nomad cluster" # noqa: run-once[task]
       ednz_cloud.hashistack.nomad_acl_bootstrap:
         bootstrap_secret: "{{ _credentials.nomad.root_token.secret_id }}"
         api_url: "{{ nomad_api_addr }}"
@@ -79,4 +84,4 @@
       register: _nomad_init_secret
       when:
         - nomad_init_server
-        - hashicorp_nomad_configuration.acl.enabled
+        - nomad_configuration.acl.enabled

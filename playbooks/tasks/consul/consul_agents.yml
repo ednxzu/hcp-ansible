@@ -3,4 +3,4 @@
   block:
     - name: "Deploy Consul Agents"
       ansible.builtin.include_role:
-        name: ednz_cloud.hashicorp_consul
+        name: ednz_cloud.hashistack.consul

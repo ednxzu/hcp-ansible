@@ -5,7 +5,7 @@
       ansible.builtin.import_tasks:
         file: nomad_control_plane.yml
       when:
-        - "'nomad_servers' in group_names"
+        - nomad_enable_server
       tags:
         - nomad_servers
 
@@ -13,7 +13,7 @@
       ansible.builtin.import_tasks:
         file: nomad_clients.yml
       when:
-        - "'nomad_clients' in group_names"
-        - "'nomad_servers' not in group_names"
+        - nomad_enable_client
+        - not nomad_enable_server
       tags:
         - nomad_clients
