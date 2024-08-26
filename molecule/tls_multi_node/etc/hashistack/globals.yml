@@ -1,6 +1,12 @@
 ---
 # Molecule specific variables
 
+hashistack_ca_action: "root_ca,int_ca,leaf_cert,renew_root"
+hashistack_ca_directory: "{{ hashistack_sub_configuration_directories['certificates'] }}"
+hashistack_ca_directory_owner: "{{ lookup('env', 'USER') }}"
+hashistack_ca_domain: ednz.lab
+hashistack_ca_intermediate_name_constraints_critical: false
+
 ##########################
 # General options ########
 ##########################
@@ -11,9 +17,9 @@
 # enable_nomad: "yes"
 
 # haproxy_version: "2.8"
-nomad_version: "1.8.2"
+nomad_version: "1.8.3"
 # consul_version: "1.18.1"
-# vault_version: "1.16.2"
+vault_version: "1.17.2"
 
 # consul_fqdn: consul.ednz.lab
 # vault_fqdn: vault.ednz.lab
@@ -31,14 +37,14 @@ api_interface: "eth1"
 # external tls options #
 ########################
 
-# enable_tls_external: false
+enable_tls_external: true
 # external_tls_externally_managed_certs: false
 
 ########################
 # internal tls options #
 ########################
 
-# enable_tls_internal: false
+enable_tls_internal: true
 # internal_tls_externally_managed_certs: false
 
 #####################################################

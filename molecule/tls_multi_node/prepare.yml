@@ -1,0 +1,9 @@
+---
+- name: Include certificate generation playbook
+  ansible.builtin.import_playbook: ednz_cloud.hashistack.generate_certs.yml
+
+- name: Include bootstrap playbook
+  ansible.builtin.import_playbook: ednz_cloud.hashistack.bootstrap.yml
+
+- name: Include preflight playbook
+  ansible.builtin.import_playbook: ednz_cloud.hashistack.preflight.yml
