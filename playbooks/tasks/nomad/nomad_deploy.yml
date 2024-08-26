@@ -7,7 +7,6 @@
       when:
         - nomad_enable_server
       tags:
-        - nomad
         - nomad_servers
 
     - name: "Deploy Nomad Clients"
@@ -17,5 +16,4 @@
         - nomad_enable_client
         - not nomad_enable_server
       tags:
-        - nomad
         - nomad_clients
