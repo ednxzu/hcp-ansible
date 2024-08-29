@@ -1,3 +1,9 @@
+## v0.6.1 (2024-08-29)
+
+### Fix
+
+- do not package actions and assets into build
+
 ## v0.6.0 (2024-08-29)
 
 ### Feat
