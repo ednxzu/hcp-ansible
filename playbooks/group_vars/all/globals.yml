@@ -3,7 +3,6 @@
 # General options #
 ###################
 
-enable_ingress: "yes"
 enable_vault: "yes"
 enable_consul: "yes"
 enable_nomad: "yes"
@@ -15,11 +14,6 @@ vault_version: "1.16.2"
 consul_fqdn: consul.ednz.lab
 vault_fqdn: vault.ednz.lab
 nomad_fqdn: nomad.ednz.lab
-
-# hashistack_external_vip_interface: "eth0"
-# hashistack_external_vip_addr: "192.168.121.100"
-# hashistack_internal_vip_interface: "{{ hashistack_external_vip_interface }}"
-# hashistack_internal_vip_addr: "{{ hashistack_external_vip_addr }}"
 
 api_interface: "eth0"
 api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"

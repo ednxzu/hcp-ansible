@@ -1,16 +1,4 @@
 ---
-nomad_init_server: "{{ (inventory_hostname == groups['nomad_servers'][0]) | bool }}"
-
-####################
-# nomad api config #
-####################
-
-nomad_api_addr: "{{ nomad_api_scheme }}://{{ api_interface_address }}:{{ nomad_api_port[nomad_api_scheme] }}"
-nomad_api_scheme: "{{ 'https' if nomad_enable_tls else 'http' }}"
-nomad_api_port:
-  http: "{{ nomad_address_configuration.ports.http }}"
-  https: "{{ nomad_address_configuration.ports.http }}"
-
 #########
 # Nomad #
 #########
@@ -101,7 +89,7 @@ nomad_client_configuration:
   bridge_network_subnet: "172.26.64.0/20"
   node_pool: >-
     {{
-      'ingress' if 'haproxy_servers' in group_names else
+      'ingress' if 'nomad_ingress' in group_names else
       'controller' if 'nomad_servers' in group_names else
       omit
     }}

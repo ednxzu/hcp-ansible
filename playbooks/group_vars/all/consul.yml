@@ -1,19 +1,4 @@
 ---
-consul_init_server: "{{ (inventory_hostname == groups['consul_servers'][0]) | bool }}"
-
-#####################
-# consul api config #
-#####################
-
-consul_api_addr: "{{ consul_api_scheme }}://{{ api_interface_address }}:{{ consul_api_port[consul_api_scheme] }}"
-consul_api_scheme: "{{ 'https' if consul_enable_tls else 'http' }}"
-consul_api_port:
-  http: 8500
-  https: 8501
-consul_grpc_port:
-  http: 8502
-  https: 8503
-
 ##########
 # Consul #
 ##########

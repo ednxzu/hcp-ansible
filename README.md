@@ -29,15 +29,13 @@ Perform control plane upgrades with rolling updates, ensuring that your services
 
 ## 🛠️ How to Get Started
 
-1. Install the Collection:
+1. Head to the [Quick-Start Guide](https://git.ednz.fr/ansible-collections/hashistack/wiki/02-quick-start)
 
-    ```shell
-    ansible-galaxy collection install ednz_cloud.hashistack:==<version>
-    ```
+    This should give you a good idea of how the collection works, and what it can do.
 
-2. Head to the [Quick-Start Guide](https://git.ednz.fr/ansible-collections/hashistack/wiki/quick_start)
+2. From there, you can follow the rest of the [Documentation](https://git.ednz.fr/ansible-collections/hashistack/wiki/01-introduction)
 
-    You'll get
+    This will allow you to customize your deployment to your exact needs !
 
 ## 🧑‍💻 Contributions & Feedback
 
