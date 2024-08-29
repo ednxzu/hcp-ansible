@@ -1,3 +1,17 @@
+## v0.6.0 (2024-08-29)
+
+### Feat
+
+- redirect to wiki and add assets
+- rename playbooks for certificates and credentials
+- initial cool readme
+- add some templating for nomad haproxy job
+- new tls_multi_node test for molecule with some adjustment to tags
+
+### Fix
+
+- remove duplicate tags for nomad tasks
+
 ## v0.5.0 (2024-08-17)
 
 ### Feat
