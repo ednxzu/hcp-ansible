@@ -57,60 +57,12 @@
             path: "{{ hashistack_configuration_directory }}"
           register: _stat_config_dir
 
-        - name: "Stat nomad_servers config directory"
-          ansible.builtin.stat:
-            path: "{{ hashistack_sub_configuration_directories.nomad_servers }}"
-          register: _stat_config_dir_nomad_servers
-          when:
-            - enable_nomad | bool
-
-        - name: "Stat consul_servers config directory"
-          ansible.builtin.stat:
-            path: "{{ hashistack_sub_configuration_directories.consul_servers }}"
-          register: _stat_config_dir_consul_servers
-          when:
-            - enable_consul | bool
-
-        - name: "Stat vault_servers config directory"
-          ansible.builtin.stat:
-            path: "{{ hashistack_sub_configuration_directories.vault_servers }}"
-          register: _stat_config_dir_vault_servers
-          when:
-            - enable_vault | bool
-
         - name: "Make sure directory exists: {{ hashistack_configuration_directory }}"
           ansible.builtin.assert:
             that:
               - _stat_config_dir.stat.exists
               - _stat_config_dir.stat.isdir
               - _stat_config_dir.stat.writeable
-
-        - name: "Make sure directory exists: {{ hashistack_sub_configuration_directories.nomad_servers }}"
-          ansible.builtin.assert:
-            that:
-              - _stat_config_dir_nomad_servers.stat.exists
-              - _stat_config_dir_nomad_servers.stat.isdir
-              - _stat_config_dir_nomad_servers.stat.writeable
-          when:
-            - enable_nomad | bool
-
-        - name: "Make sure directory exists: {{ hashistack_sub_configuration_directories.consul_servers }}"
-          ansible.builtin.assert:
-            that:
-              - _stat_config_dir_consul_servers.stat.exists
-              - _stat_config_dir_consul_servers.stat.isdir
-              - _stat_config_dir_consul_servers.stat.writeable
-          when:
-            - enable_consul | bool
-
-        - name: "Make sure directory exists: {{ hashistack_sub_configuration_directories.vault_servers }}"
-          ansible.builtin.assert:
-            that:
-              - _stat_config_dir_vault_servers.stat.exists
-              - _stat_config_dir_vault_servers.stat.isdir
-              - _stat_config_dir_vault_servers.stat.writeable
-          when:
-            - enable_vault | bool
 
     - name: "Checking host OS distribution"
       # TODO: This needs to work with debian and ubuntu, major version works for debian but not ubuntu, simple version works the other way around...

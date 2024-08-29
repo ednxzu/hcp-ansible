@@ -1,0 +1,31 @@
+# {{ ansible_managed }}
+global
+{% for option in hashistack_ingress_haproxy_global %}
+  {{ option }}
+{% endfor %}
+
+defaults
+{% for option in hashistack_ingress_haproxy_defaults %}
+  {{ option }}
+{% endfor %}
+
+{% for frontend in hashistack_ingress_haproxy_frontends + hashistack_ingress_mandatory_frontends %}
+frontend {{ frontend.name }}
+{% for option in frontend.options %}
+  {{ option }}
+{% endfor %}
+{% endfor %}
+
+{% for backend in hashistack_ingress_haproxy_backends %}
+backend {{ backend.name }}
+{% for option in backend.options%}
+  {{ option }}
+{% endfor %}
+{% endfor %}
+
+{% for listen in hashistack_ingress_haproxy_listen %}
+listen {{ listen.name }}
+{% for option in listen.options %}
+  {{ option }}
+{% endfor %}
+{% endfor %}

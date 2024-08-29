@@ -42,7 +42,7 @@
 - do not use run_once instructions as it is wildly unreliable
 - typo in credentials template preventing from generating the initial credential file
 
-## 0.4.0 (2024-07-10)
+## v0.4.0 (2024-07-10)
 
 ### Feat
 
@@ -57,14 +57,14 @@
 
 - implement longer wait to stabilize consul cluster before bootstrapping to avoid timeout errors
 
-## 0.3.0 (2024-05-13)
+## v0.3.0 (2024-05-13)
 
 ### Feat
 
 - **generate_credentials**: generate new accesor ids and vault token credentials
 - **vault**: enable consul service registration automatically if consul is also enabled
 
-## 0.2.0 (2024-05-05)
+## v0.2.0 (2024-05-05)
 
 ### Feat
 
@@ -75,7 +75,7 @@
 - **globals**: restore default globals.yml file, move changes to test directory
 - **vault/consul**: ensure idempotence of extra_volumes list to avoid restarting on each run due to slightly different service files
 
-## 0.1.0 (2024-05-03)
+## v0.1.0 (2024-05-03)
 
 ### Feat
 

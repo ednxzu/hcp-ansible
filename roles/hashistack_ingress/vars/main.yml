@@ -1,0 +1,28 @@
+---
+# vars file for hashistack_ingress
+hashistack_ingress_keepalived_image: ednxzu/keepalived
+hashistack_ingress_haproxy_image: haproxytech/haproxy-debian
+
+hashistack_ingress_keepalived_init_state: BACKUP
+
+hashistack_ingress_template_haproxy_cfg: "{{ lookup('ansible.builtin.template', 'haproxy.cfg.j2') }}"
+hashistack_ingress_template_keepalived_conf: "{{ lookup('ansible.builtin.template', 'keepalived.conf.j2') }}"
+hashistack_ingress_template_chk_haproxy_sh: "{{ lookup('ansible.builtin.template', 'chk_haproxy.sh.j2') }}"
+
+hashistack_ingress_mandatory_frontends:
+  - name: monitoring
+    options:
+      - bind :9000
+      - mode http
+      - option httpchk
+      - "{{'stats enable' if hashistack_ingress_enable_admin_interface else omit }}"
+      - "{{'stats uri /stats' if hashistack_ingress_enable_admin_interface else omit }}"
+      - "{{'stats refresh 30s' if hashistack_ingress_enable_admin_interface else omit }}"
+      - "{{'stats show-desc' if hashistack_ingress_enable_admin_interface else omit }}"
+      - "{{'stats show-legends' if hashistack_ingress_enable_admin_interface else omit }}"
+      - "{{'stats auth admin:'~hashistack_ingress_admin_interface_password if hashistack_ingress_enable_admin_interface else omit }}"
+      - http-check send meth GET uri /health ver HTTP/1.1 hdr Host localhost
+      - http-check expect status 200
+      - acl health_check_ok nbsrv() ge 1
+      - monitor-uri /health
+      - "{{'http-request use-service prometheus-exporter if { path /metrics }' if hashistack_ingress_enable_prometheus_metrics else omit }}"

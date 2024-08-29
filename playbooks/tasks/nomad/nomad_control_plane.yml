@@ -67,14 +67,28 @@
                 state: present
               when: _consul_nomad_client_policy.changed
 
-    - name: "Include ednz_cloud.hashistack.cni"
+    - name: "Nomad | Include ednz_cloud.hashistack.cni"
       ansible.builtin.include_role:
         name: ednz_cloud.hashistack.cni
       when: nomad_enable_client
 
-    - name: "Include ednz_cloud.hashistack.nomad"
+    - name: "Nomad | Include ednz_cloud.hashistack.nomad"
       ansible.builtin.include_role:
         name: ednz_cloud.hashistack.nomad
+
+    - name: "Nomad | Wait for nomad cluster to initialize"
+      ansible.builtin.uri:
+        url: "{{ nomad_api_addr }}/v1/status/leader"
+        return_content: true
+        validate_certs: false
+        status_code:
+          - 200
+      until: nomad_api_response.status == 200
+      retries: 24
+      delay: 5
+      register: nomad_api_response
+      when:
+        - nomad_init_server
 
     - name: "Nomad | Initialize nomad cluster" # noqa: run-once[task]
       ednz_cloud.hashistack.nomad_acl_bootstrap:

@@ -10,6 +10,9 @@
     - name: "Import variables"
       ansible.builtin.include_role:
         name: ednz_cloud.hashistack.hashistack
+        apply:
+          tags:
+            - always
       tags:
         - always
 
@@ -17,39 +20,39 @@
     - name: "Deploy Consul"
       tags:
         - consul
+        - consul_servers
+        - consul_agents
       when:
         - enable_consul | bool
       ansible.builtin.include_tasks:
         file: tasks/consul/consul_deploy.yml
+        apply:
+          tags:
+            - consul
 
     # Vault nodes deployment
     - name: "Deploy Vault"
       tags:
         - vault
+        - vault_servers
       when:
         - enable_vault | bool
       ansible.builtin.include_tasks:
         file: tasks/vault/vault_deploy.yml
+        apply:
+          tags:
+            - vault
 
     # Nomad nodes deployment
     - name: "Deploy Nomad"
       tags:
         - nomad
+        - nomad_servers
+        - nomad_clients
       when:
         - enable_nomad | bool
       ansible.builtin.include_tasks:
         file: tasks/nomad/nomad_deploy.yml
-
-    # - fail:
-    # Haproxy nodes deployment
-    # - name: "Deploy Proxies"
-    #   tags:
-    #     - haproxy
-    #   when:
-    #     - enable_haproxy | bool
-    #   block:
-    #     - name: "Deploy Haproxy & Keepalived"
-    #       ansible.builtin.import_tasks:
-    #         file: tasks/haproxy/haproxy_deploy.yml
-    #       when:
-    #         - "'haproxy_servers' in group_names"
+        apply:
+          tags:
+            - nomad

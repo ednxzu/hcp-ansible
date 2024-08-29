@@ -42,3 +42,36 @@ consul_required_ports: [8300, 8301, 8302, 8500, 8501, 8502, 8503, 8600]
 nomad_required_ports: [4646, 4647, 4648]
 
 target: all, !deployment
+
+#############################################################
+# consul -- DO NOT TWEAK UNLESS YOU KNOW WHAT YOU ARE DOING #
+#############################################################
+
+consul_init_server: "{{ (inventory_hostname == groups['consul_servers'][0]) | bool }}"
+
+consul_api_addr: "{{ consul_api_scheme }}://{{ api_interface_address }}:{{ consul_api_port[consul_api_scheme] }}"
+consul_api_scheme: "{{ 'https' if consul_enable_tls else 'http' }}"
+consul_api_port:
+  http: 8500
+  https: 8501
+consul_grpc_port:
+  http: 8502
+  https: 8503
+
+############################################################
+# nomad -- DO NOT TWEAK UNLESS YOU KNOW WHAT YOU ARE DOING #
+############################################################
+
+nomad_init_server: "{{ (inventory_hostname == groups['nomad_servers'][0]) | bool }}"
+
+nomad_api_addr: "{{ nomad_api_scheme }}://{{ api_interface_address }}:{{ nomad_api_port[nomad_api_scheme] }}"
+nomad_api_scheme: "{{ 'https' if nomad_enable_tls else 'http' }}"
+nomad_api_port:
+  http: "{{ nomad_address_configuration.ports.http }}"
+  https: "{{ nomad_address_configuration.ports.http }}"
+
+############################################################
+# vault -- DO NOT TWEAK UNLESS YOU KNOW WHAT YOU ARE DOING #
+############################################################
+
+vault_init_server: "{{ (inventory_hostname == groups['vault_servers'][0]) | bool }}"

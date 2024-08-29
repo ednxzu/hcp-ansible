@@ -1,0 +1,45 @@
+---
+# defaults file for hashistack_ingress
+hashistack_ingress_nomad_api_addr: "http://127.0.0.1:4646"
+hashistack_ingress_nomad_api_token:
+
+hashistack_ingress_job_name: HashistackHAProxyIngress
+hashistack_ingress_datacenters: []
+hashistack_ingress_namespace: default
+hashistack_ingress_replicas: 1
+hashistack_ingress_enable_consul_service: true
+
+hashistack_ingress_virtual_ip_keepalived_version: latest
+hashistack_ingress_virtual_ip_addr: "192.168.1.1"
+hashistack_ingress_virtual_ip_interface: eth0
+hashistack_ingress_virtual_ip_vrrp_interface: "{{ hashistack_ingress_virtual_ip_interface }}"
+hashistack_ingress_virtual_ip_vrrp_router_id: 50
+hashistack_ingress_virtual_ip_vrrp_priority: 100
+hashistack_ingress_virtual_ip_vrrp_advertise_interval: 1
+hashistack_ingress_virtual_ip_vrrp_password: password
+
+hashistack_ingress_enable_http: true
+hashistack_ingress_enable_https: false
+hashistack_ingress_enable_prometheus_metrics: false
+hashistack_ingress_enable_admin_interface: false
+hashistack_ingress_admin_interface_password: password
+
+hashistack_ingress_virtual_ip_haproxy_version: latest
+hashistack_ingress_haproxy_global:
+  - log /dev/log local0
+  - log /dev/log local1 notice
+  - stats socket {{ deploy_haproxy_socket }} level admin
+  - chroot {{ deploy_haproxy_chroot }}
+  - daemon
+  - description hashistack haproxy
+hashistack_ingress_haproxy_defaults:
+  - log global
+  - mode http
+  - option httplog
+  - option dontlognull
+  - timeout connect 5000
+  - timeout client  5000
+  - timeout server  5000
+hashistack_ingress_haproxy_frontends: []
+hashistack_ingress_haproxy_backends: []
+hashistack_ingress_haproxy_listen: []
