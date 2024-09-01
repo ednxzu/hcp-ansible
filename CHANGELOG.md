@@ -1,3 +1,9 @@
+## v0.6.2 (2024-09-01)
+
+### Fix
+
+- allow break system package for pip install on ubuntu 24+, and do not try to install python-consul on bootstrap
+
 ## v0.6.1 (2024-08-29)
 
 ### Fix
