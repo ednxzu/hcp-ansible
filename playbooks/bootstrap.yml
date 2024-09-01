@@ -25,17 +25,6 @@
             state: present
       when: "'vault_servers' in group_names"
 
-    - name: "Install python-consul library with pip"
-      ansible.builtin.include_role:
-        name: ednz_cloud.manage_pip_packages
-      vars:
-        manage_pip_packages_install_prereqs: true
-        manage_pip_packages_list:
-          - name: python-consul
-            version_constraint: latest
-            state: present
-      when: "'haproxy_servers' in group_names"
-
     - name: "Ensure /etc/localtime exists"
       ansible.builtin.file:
         src: /etc/timezone

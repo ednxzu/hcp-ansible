@@ -3,7 +3,11 @@
 # helper options #
 ##################
 
-manage_pip_packages_allow_break_system_packages: "{{ ansible_distribution == 'Debian' and ansible_distribution_version == '12' }}"
+manage_pip_packages_allow_break_system_packages: >-
+  {{
+    (ansible_distribution == 'Debian' and (ansible_distribution_version|int) >= 12)
+    or (ansible_distribution == 'Ubuntu' and (ansible_distribution_major_version|int) >= 24)
+  }}
 
 hashistack_configuration_directory: "{{ lookup('env', 'PWD') }}/etc/hashistack"
 hashistack_sub_configuration_directories:
@@ -34,6 +38,7 @@ hashistack_supported_distribution_versions:
   ubuntu:
     - "20.04"
     - "22.04"
+    - "24.04"
 
 preflight_enable_host_ntp_checks: true
 haproxy_required_ports: [80, 443]
