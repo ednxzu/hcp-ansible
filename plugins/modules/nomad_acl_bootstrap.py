@@ -60,15 +60,15 @@ state:
     type: dict
     returned: always
     sample:
-      - AccessorID: "b780e702-98ce-521f-2e5f-c6b87de05b24",
-      - SecretID: "3f4a0fcd-7c42-773c-25db-2d31ba0c05fe",
-      - Name: "Bootstrap Token",
-      - Type: "management",
-      - Policies: null,
-      - Global: true,
-      - CreateTime: "2017-08-23T22:47:14.695408057Z",
-      - CreateIndex: 7,
-      - ModifyIndex: 7
+        - AccessorID: "b780e702-98ce-521f-2e5f-c6b87de05b24",
+        - SecretID: "3f4a0fcd-7c42-773c-25db-2d31ba0c05fe",
+        - Name: "Bootstrap Token",
+        - Type: "management",
+        - Policies: null,
+        - Global: true,
+        - CreateTime: "2017-08-23T22:47:14.695408057Z",
+        - CreateIndex: 7,
+        - ModifyIndex: 7
 """
 
 from ansible.module_utils.basic import AnsibleModule

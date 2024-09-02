@@ -11,11 +11,13 @@ module: ednz_cloud.hashistack.vault_init
 
 short_description: Manages the initialization of HashiCorp Vault.
 
+version_added: "0.1.0"
+
 description:
     - This module initializes HashiCorp Vault, ensuring that it is securely set up for use.
 
 requirements:
-  - C(hvac) (L(Python library,https://hvac.readthedocs.io/en/stable/overview.html))
+    - C(hvac) (L(Python library,https://hvac.readthedocs.io/en/stable/overview.html))
 
 options:
     api_url:
