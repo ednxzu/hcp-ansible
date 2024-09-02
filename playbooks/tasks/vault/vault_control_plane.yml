@@ -45,6 +45,11 @@
     - name: "Include ednz_cloud.hashistack.vault"
       ansible.builtin.include_role:
         name: ednz_cloud.hashistack.vault
+      vars:
+        vault_enable_auto_unseal: true
+        vault_unseal_url: "{{ vault_configuration['api_addr'] }}"
+        vault_unseal_tls_verify: false
+        vault_unseal_keys: "{{ _credentials.vault['keys'] | default([]) }}"
 
     - name: "Vault | Initialize vault cluster" # noqa: run-once[task]
       ednz_cloud.hashistack.vault_init:

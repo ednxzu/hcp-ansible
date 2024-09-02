@@ -11,11 +11,11 @@ module: ednz_cloud.hashistack.consul_acl_bootstrap
 
 short_description: Bootstraps ACL for a Consul cluster.
 
-version_added: "1.0.0"
+version_added: "0.1.0"
 
 description:
     - This module bootstraps ACL (Access Control List) for a Consul cluster. It performs the ACL bootstrap operation,
-      creating the initial tokens needed for secure communication within the cluster.
+        creating the initial tokens needed for secure communication within the cluster.
 
 options:
     api_addr:
@@ -40,10 +40,10 @@ author:
 EXAMPLES = r"""
 # Example: Bootstrap ACL for a Consul cluster
 - name: Bootstrap ACL for Consul cluster
-  ednz_cloud.hashistack.consul_acl_bootstrap:
-    api_addr: 127.0.0.1
-    scheme: http
-    port: 8500
+    ednz_cloud.hashistack.consul_acl_bootstrap:
+        api_addr: 127.0.0.1
+        scheme: http
+        port: 8500
 """
 
 RETURN = r"""

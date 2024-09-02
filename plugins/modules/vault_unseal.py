@@ -7,66 +7,70 @@ __metaclass__ = type
 
 DOCUMENTATION = r"""
 ---
-module: my_test
+module: ednz_cloud.hashistack.vault_unseal
 
-short_description: This is my test module
+short_description: Unseals a Vault cluster.
 
-# If this is part of a collection, you need to use semantic versioning,
-# i.e. the version is of the form "2.5.0" and not "2.4".
-version_added: "1.0.0"
+version_added: "0.1.0"
 
-description: This is my longer description explaining my test module.
+description:
+    - This module unseals a Vault cluster by submitting the necessary unseal keys. It checks whether the Vault is sealed and performs the unseal operation if needed. The response will reflect the state after the last unseal key is submitted.
+
+requirements:
+- C(hvac) (L(Python library,https://hvac.readthedocs.io/en/stable/overview.html))
 
 options:
-    name:
-        description: This is the message to send to the test module.
+    api_url:
+        description: The URL of the Vault API.
         required: true
         type: str
-    new:
-        description:
-            - Control to demo if the result of this module is changed or not.
-            - Parameter description can be a list as well.
+    tls_verify:
+        description: Whether to verify TLS certificates.
         required: false
         type: bool
-# Specify this value according to your collection
-# in format of namespace.collection.doc_fragment_name
-# extends_documentation_fragment:
-#     - my_namespace.my_collection.my_doc_fragment_name
+        default: true
+    key_shares:
+        description: List of unseal keys required to unseal the Vault.
+        required: false
+        type: list
+        default: []
 
 author:
-    - Your Name (@yourGitHubHandle)
+    - Bertrand Lanson (@ednz_cloud)
 """
 
 EXAMPLES = r"""
-# Pass in a message
-- name: Test with a message
-  my_namespace.my_collection.my_test:
-    name: hello world
+# Example: Unseal a Vault cluster
+- name: Unseal Vault cluster
+  ednz_cloud.hashistack.vault_unseal:
+    api_url: "https://127.0.0.1:8200"
+    tls_verify: true
+    key_shares:
+        - "key1"
+        - "key2"
+        - "key3"
 
-# pass in a message and have changed true
-- name: Test with a message and changed output
-  my_namespace.my_collection.my_test:
-    name: hello world
-    new: true
-
-# fail the module
-- name: Test failure of the module
-  my_namespace.my_collection.my_test:
-    name: fail me
+# Example: Unseal Vault cluster with no TLS verification
+- name: Unseal Vault cluster without TLS verification
+  ednz_cloud.hashistack.vault_unseal:
+    api_url: "https://127.0.0.1:8200"
+    tls_verify: false
+    key_shares:
+        - "key1"
+        - "key2"
 """
 
 RETURN = r"""
-# These are examples of possible return values, and in general should use other names for return values.
-original_message:
-    description: The original name param that was passed in.
-    type: str
+state:
+    description: Information about the state of the Vault unseal operation.
+    type: dict
     returned: always
-    sample: 'hello world'
-message:
-    description: The output message that the test module generates.
-    type: str
-    returned: always
-    sample: 'goodbye'
+    sample:
+        sealed: true,
+        t: 3,
+        n: 5,
+        progress: 2,
+        version: "0.6.2"
 """
 from ansible.module_utils.basic import AnsibleModule
 import traceback
