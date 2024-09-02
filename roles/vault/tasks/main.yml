@@ -36,8 +36,10 @@
   when: _vault_service_need_reload
 
 - name: "Vault | Start service: {{ vault_service_name }}"
-  ansible.builtin.service:
-    name: "{{ vault_service_name }}"
-    state: restarted
-  throttle: 1
-  when: _vault_service_need_restart
+  ansible.builtin.include_tasks: rolling_restart.yml
+  when:
+    - _vault_service_need_restart
+    - "hostvars[host_item].inventory_hostname == inventory_hostname"
+  with_items: "{{ ansible_play_batch }}"
+  loop_control:
+    loop_var: host_item

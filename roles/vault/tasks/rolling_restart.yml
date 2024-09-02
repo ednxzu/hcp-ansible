@@ -1,0 +1,14 @@
+---
+- name: "Vault | Start service: {{ vault_service_name }}"
+  ansible.builtin.service:
+    name: "{{ vault_service_name }}"
+    state: restarted
+
+- name: "Vault | Unseal node"
+  ednz_cloud.hashistack.vault_unseal:
+    api_url: "{{ vault_unseal_url }}"
+    tls_verify: "{{ vault_unseal_tls_verify }}"
+    key_shares: "{{ vault_unseal_keys }}"
+  when:
+    - vault_enable_auto_unseal
+    - vault_unseal_keys|length > 0

@@ -42,6 +42,15 @@ vault_storage_configuration:
   file:
     path: "{{ vault_data_dir }}"
 
+#############################
+# auto-unseal configuration #
+#############################
+
+vault_enable_auto_unseal: false
+vault_unseal_url: "https://127.0.0.1:8200"
+vault_unseal_tls_verify: true
+vault_unseal_keys: []
+
 ##########################
 # listener configuration #
 ##########################
