@@ -1,3 +1,9 @@
+## v0.7.0 (2024-09-02)
+
+### Feat
+
+- **vault**: enable rolling restart with no full seal
+
 ## v0.6.2 (2024-09-01)
 
 ### Fix

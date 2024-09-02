@@ -1,7 +1,7 @@
 ---
 namespace: ednz_cloud
 name: hashistack
-version: 0.6.2
+version: 0.7.0
 readme: README.md
 authors:
   - Bertrand Lanson <bertrand.lanson@protonmail.com>
