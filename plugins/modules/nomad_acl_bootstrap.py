@@ -11,6 +11,8 @@ module: ednz_cloud.hashistack.nomad_acl_bootstrap
 
 short_description: Manages the ACL bootstrap of HashiCorp Nomad.
 
+version_added: "0.1.0"
+
 description:
     - This module bootstraps HashiCorp Nomad ACL, ensuring that it is securely set up for use.
 
