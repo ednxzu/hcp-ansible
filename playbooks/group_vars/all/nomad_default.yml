@@ -1,0 +1,347 @@
+---
+#########
+# Nomad #
+#########
+
+hashistack_default_nomad_config_dir: "{{ hashistack_remote_config_dir }}/nomad.d"
+nomad_config_dir: "{{ hashistack_nomad_config_dir | default(hashistack_default_nomad_config_dir) }}"
+
+hashistack_default_nomad_data_dir: "/opt/nomad"
+nomad_data_dir: "{{ hashistack_nomad_data_dir | default(hashistack_default_nomad_data_dir) }}"
+
+hashistack_default_nomad_certs_dir: "{{ nomad_config_dir }}/tls"
+nomad_certs_dir: "{{ hashistack_nomad_certs_dir | default(hashistack_default_nomad_certs_dir) }}"
+
+hashistack_default_nomad_logs_dir: "{{ hashistack_remote_log_dir }}/nomad"
+nomad_logs_dir: "{{ hashistack_nomad_logs_dir | default(hashistack_default_nomad_logs_dir) }}"
+
+nomad_extra_files: true
+
+hashistack_default_nomad_extra_files_list: []
+nomad_extra_files_list: "{{ hashistack_nomad_extra_files_list | default(hashistack_default_nomad_extra_files_list) }}"
+
+hashistack_default_nomad_env_variables: {}
+nomad_env_variables: "{{ hashistack_nomad_env_variables | default(hashistack_default_nomad_env_variables) }}"
+
+#######################
+# extra configuration #
+#######################
+
+# You should prioritize adding configuration
+# to the configuration entries below, this
+# option should be used to add pieces of configuration not
+# available through standard variables.
+
+hashistack_default_nomad_extra_configuration: {}
+nomad_extra_configuration: >-
+  {{
+    hashistack_default_nomad_extra_configuration |
+    combine((hashistack_nomad_extra_configuration | default({})), recursive=true)
+  }}
+
+###########
+# general #
+###########
+
+hashistack_default_nomad_region: global
+nomad_region: "{{ hashistack_nomad_region | default(hashistack_default_nomad_region) }}"
+
+hashistack_default_nomad_datacenter: dc1
+nomad_datacenter: "{{ hashistack_nomad_datacenter | default(hashistack_default_nomad_datacenter) }}"
+
+#########################
+# address configuration #
+#########################
+
+hashistack_default_nomad_bind_addr: "0.0.0.0"
+nomad_bind_addr: "{{ hashistack_nomad_bind_addr | default(hashistack_default_nomad_bind_addr) }}"
+
+hashistack_default_nomad_advertise_addr: "{{ api_interface_address }}"
+nomad_advertise_addr: "{{ hashistack_nomad_advertise_addr | default(hashistack_default_nomad_advertise_addr) }}"
+
+hashistack_default_nomad_address_configuration:
+  bind_addr: "{{ nomad_bind_addr }}"
+  addresses:
+    http: "{{ nomad_advertise_addr }}"
+    rpc: "{{ nomad_advertise_addr }}"
+    serf: "{{ nomad_advertise_addr }}"
+  advertise:
+    http: "{{ nomad_advertise_addr }}"
+    rpc: "{{ nomad_advertise_addr }}"
+    serf: "{{ nomad_advertise_addr }}"
+  ports:
+    http: 4646
+    rpc: 4647
+    serf: 4648
+nomad_address_configuration: >-
+  {{
+    hashistack_default_nomad_address_configuration |
+    combine((hashistack_nomad_address_configuration | default({})), recursive=true)
+  }}
+
+###########################
+# autopilot configuration #
+###########################
+
+hashistack_default_nomad_autopilot_configuration: {}
+nomad_autopilot_configuration: "{{ hashistack_nomad_autopilot_configuration | default(hashistack_default_nomad_autopilot_configuration) }}"
+
+#######################
+# leave configuration #
+#######################
+
+hashistack_default_nomad_leave_on_interrupt: false
+nomad_leave_on_interrupt: "{{ hashistack_nomad_leave_on_interrupt | default(hashistack_default_nomad_leave_on_interrupt) }}"
+
+hashistack_default_nomad_leave_on_terminate: false
+nomad_leave_on_terminate: "{{ hashistack_nomad_leave_on_terminate | default(hashistack_default_nomad_leave_on_terminate) }}"
+
+########################
+# server configuration #
+########################
+
+nomad_enable_server: "{{ ('nomad_servers' in group_names) | bool }}"
+nomad_server_bootstrap_expect: "{{ (groups['nomad_servers'] | length) }}"
+nomad_server_configuration:
+  enabled: "{{ nomad_enable_server }}"
+  data_dir: "{{ nomad_data_dir }}/server"
+  encrypt: "{{ _credentials.nomad.gossip_encryption_key }}"
+
+##############################
+# client configuration #
+##############################
+
+nomad_enable_client: "{{ ('nomad_clients' in group_names) | bool }}"
+nomad_client_configuration:
+  enabled: "{{ nomad_enable_client }}"
+  state_dir: "{{ nomad_data_dir }}/client"
+  cni_path: "{{ cni_plugins_install_path | default('/opt/cni/bin') }}"
+  bridge_network_name: nomad
+  bridge_network_subnet: "172.26.64.0/20"
+  node_pool: >-
+    {{
+      'ingress' if 'nomad_ingress' in group_names else
+      'controller' if 'nomad_servers' in group_names else
+      omit
+    }}
+
+####################
+# ui configuration #
+####################
+
+hashistack_default_nomad_ui_configuration:
+  enabled: "{{ nomad_enable_server }}"
+nomad_ui_configuration: >-
+  {{
+    hashistack_default_nomad_ui_configuration |
+    combine((hashistack_nomad_ui_configuration | default({})), recursive=true)
+  }}
+
+#########################
+# drivers configuration #
+#########################
+
+hashistack_default_nomad_driver_enable_docker: true
+nomad_driver_enable_docker: "{{ hashistack_nomad_driver_enable_docker | default(hashistack_default_nomad_driver_enable_docker) }}"
+
+hashistack_default_nomad_driver_enable_podman: false
+nomad_driver_enable_podman: "{{ hashistack_nomad_driver_enable_podman | default(hashistack_default_nomad_driver_enable_podman) }}"
+
+hashistack_default_nomad_driver_enable_raw_exec: false
+nomad_driver_enable_raw_exec: "{{ hashistack_nomad_driver_enable_raw_exec | default(hashistack_default_nomad_driver_enable_raw_exec) }}"
+
+hashistack_default_nomad_driver_enable_java: false
+nomad_driver_enable_java: "{{ hashistack_nomad_driver_enable_java | default(hashistack_default_nomad_driver_enable_java) }}"
+
+hashistack_default_nomad_driver_enable_qemu: false
+nomad_driver_enable_qemu: "{{ hashistack_nomad_driver_enable_qemu | default(hashistack_default_nomad_driver_enable_qemu) }}"
+
+hashistack_default_nomad_driver_configuration:
+  raw_exec:
+    enabled: "{{ nomad_driver_enable_raw_exec }}"
+nomad_driver_configuration: >-
+  {{
+    hashistack_default_nomad_driver_configuration |
+    combine((hashistack_nomad_driver_configuration | default({})), recursive=true)
+  }}
+
+nomad_driver_extra_configuration: {}
+
+###########
+# logging #
+###########
+
+hashistack_default_nomad_log_level: info
+nomad_log_level: "{{ hashistack_nomad_log_level | default(hashistack_default_nomad_log_level) }}"
+
+hashistack_default_nomad_enable_log_to_file: "{{ enable_log_to_file | bool }}"
+nomad_enable_log_to_file: "{{ hashistack_nomad_enable_log_to_file | default(hashistack_default_nomad_enable_log_to_file) }}"
+
+hashistack_default_nomad_log_to_file_configuration:
+  log_file: "{{ nomad_logs_dir }}/nomad.log"
+  log_rotate_duration: 24h
+  log_rotate_max_files: 30
+nomad_log_to_file_configuration: >-
+  {{
+    hashistack_default_nomad_log_to_file_configuration |
+    combine((hashistack_nomad_log_to_file_configuration | default({})), recursive=true)
+  }}
+
+#####################
+# ACL configuration #
+#####################
+
+hashistack_default_nomad_acl_configuration:
+  enabled: true
+  token_ttl: 30s
+  policy_ttl: 60s
+  role_ttl: 60s
+nomad_acl_configuration: >-
+  {{
+    hashistack_default_nomad_acl_configuration |
+    combine((hashistack_nomad_acl_configuration | default({})), recursive=true)
+  }}
+
+################
+# internal tls #
+################
+
+hashistack_default_nomad_enable_tls: false
+nomad_enable_tls: "{{ hashistack_nomad_enable_tls | default(hashistack_default_nomad_enable_tls) }}"
+
+hashistack_default_nomad_tls_configuration:
+  http: true
+  rpc: true
+  ca_file: "/etc/ssl/certs/ca-certificates.crt"
+  cert_file: "{{ nomad_certs_dir }}/fullchain.crt"
+  key_file: "{{ nomad_certs_dir }}/cert.key"
+  verify_server_hostname: true
+nomad_tls_configuration: >-
+  {{
+    hashistack_default_nomad_tls_configuration |
+    combine((hashistack_nomad_tls_configuration | default({})), recursive=true)
+  }}
+
+nomad_certificates_extra_files_dir: >
+  {{
+    [] if internal_tls_externally_managed_certs | bool else
+    [{
+      'src': "{{ hashistack_sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}",
+      'dest': "{{ nomad_certs_dir }}"
+    }]
+  }}
+
+###########################
+# telemetry configuration #
+###########################
+
+hashistack_default_nomad_telemetry_configuration:
+  collection_interval: 10s
+  disable_hostname: false
+  use_node_name: false
+  publish_allocation_metrics: false
+  publish_node_metrics: false
+  prefix_filter: []
+  disable_dispatched_job_summary_metrics: false
+  prometheus_metrics: false
+nomad_telemetry_configuration: >-
+  {{
+    hashistack_default_nomad_telemetry_configuration |
+    combine((hashistack_nomad_telemetry_configuration | default({})), recursive=true)
+  }}
+
+######################
+# consul integration #
+######################
+
+hashistack_default_nomad_enable_consul_integration: "{{ enable_consul | bool }}"
+nomad_enable_consul_integration: "{{ hashistack_nomad_enable_consul_integration | default(hashistack_default_nomad_enable_consul_integration) }}"
+
+hashistack_default_nomad_consul_integration_configuration:
+  address: >-
+    127.0.0.1:{{ consul_api_port[consul_api_scheme] }}
+  auto_advertise: true
+  ssl: "{{ consul_enable_tls | bool }}"
+  token: >-
+    {{
+      _credentials.consul.tokens.nomad.server.secret_id if nomad_enable_server else
+      _credentials.consul.tokens.nomad.client.secret_id
+    }}
+  tags: []
+nomad_consul_integration_configuration: >-
+  {{
+    hashistack_default_nomad_consul_integration_configuration |
+    combine((hashistack_nomad_consul_integration_configuration | default({})), recursive=true)
+  }}
+
+hashistack_default_nomad_consul_integration_tls_configuration:
+  ca_file: "/etc/ssl/certs/ca-certificates.crt"
+nomad_consul_integration_tls_configuration: >-
+  {{
+    hashistack_default_nomad_consul_integration_tls_configuration |
+    combine((hashistack_nomad_consul_integration_tls_configuration | default({})), recursive=true)
+  }}
+
+hashistack_default_nomad_consul_integration_server_configuration:
+  server_auto_join: true
+nomad_consul_integration_server_configuration: >-
+  {{
+    hashistack_default_nomad_consul_integration_server_configuration |
+    combine((hashistack_nomad_consul_integration_server_configuration | default({})), recursive=true)
+  }}
+
+hashistack_default_nomad_consul_integration_client_configuration:
+  client_auto_join: true
+  grpc_address: >-
+    127.0.0.1:{{ consul_grpc_port[consul_api_scheme] }}
+nomad_consul_integration_client_configuration: >-
+  {{
+    hashistack_default_nomad_consul_integration_client_configuration |
+    combine((hashistack_nomad_consul_integration_client_configuration | default({})), recursive=true)
+  }}
+
+hashistack_default_nomad_consul_integration_client_tls_configuration:
+  grpc_ca_file: "/etc/ssl/certs/ca-certificates.crt"
+nomad_consul_integration_client_tls_configuration: >-
+  {{
+    hashistack_default_nomad_consul_integration_client_tls_configuration |
+    combine((hashistack_nomad_consul_integration_client_tls_configuration | default({})), recursive=true)
+  }}
+
+nomad_consul_integration_server_policy: |
+  agent_prefix "" {
+    policy = "read"
+  }
+  node_prefix "" {
+    policy = "read"
+  }
+  service_prefix "" {
+    policy = "write"
+  }
+  acl  = "write"
+  mesh = "write"
+
+nomad_consul_integration_client_policy: |
+  agent_prefix "" {
+    policy = "read"
+  }
+  node_prefix "" {
+    policy = "read"
+  }
+  service_prefix "" {
+    policy = "write"
+  }
+
+############################
+# nomad vault integration #
+############################
+
+hashistack_default_nomad_enable_vault_integration: false
+nomad_enable_vault_integration: "{{ hashistack_nomad_enable_vault_integration | default(hashistack_default_nomad_enable_vault_integration) }}"
+
+hashistack_default_nomad_vault_integration_configuration: {}
+nomad_vault_integration_configuration: >-
+  {{
+    hashistack_default_nomad_vault_integration_configuration |
+    combine((hashistack_nomad_vault_integration_configuration | default({})), recursive=true)
+  }}
