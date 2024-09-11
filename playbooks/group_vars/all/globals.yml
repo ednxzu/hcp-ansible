@@ -54,49 +54,48 @@ consul_extra_configuration: {}
 consul_enable_tls: "{{ enable_tls_internal }}"
 
 consul_log_level: info
-
 #########
 # Vault #
 #########
 
-vault_cluster_name: vault
-vault_bind_addr: "0.0.0.0"
-vault_cluster_addr: "{{ api_interface_address }}"
-vault_enable_ui: true
-vault_disable_mlock: false
-vault_disable_cache: false
+# hashistack_vault_cluster_name: vault
+# hashistack_vault_bind_addr: "0.0.0.0"
+# hashistack_vault_cluster_addr: "{{ api_interface_address }}"
+# hashistack_vault_enable_ui: true
+# hashistack_vault_disable_mlock: false
+# hashistack_vault_disable_cache: false
 
-vault_extra_files_list: []
-vault_extra_configuration: {}
+# hashistack_vault_extra_files_list: []
+# hashistack_vault_extra_configuration: {}
 
-vault_enable_tls: "{{ enable_tls_internal }}"
+# hashistack_vault_enable_tls: "{{ enable_tls_internal }}"
 
-vault_enable_service_registration: "{{ enable_consul | bool }}"
+# hashistack_vault_enable_service_registration: "{{ enable_consul | bool }}"
 
-vault_enable_plugins: false
+# hashistack_vault_enable_plugins: false
 
-vault_log_level: info
+# hashistack_vault_log_level: info
 
 #########
 # Nomad #
 #########
 
-nomad_region: global
-nomad_datacenter: dc1
+# hashistack_nomad_region: global
+# hashistack_nomad_datacenter: dc1
 
-nomad_extra_files_list: []
-nomad_extra_configuration: {}
+# hashistack_nomad_extra_files_list: []
+# hashistack_nomad_extra_configuration: {}
 
-nomad_autopilot_configuration: {}
+# hashistack_nomad_autopilot_configuration: {}
 
-nomad_driver_enable_docker: true
-nomad_driver_enable_podman: false
-nomad_driver_enable_raw_exec: false
-nomad_driver_enable_java: false
-nomad_driver_enable_qemu: false
+# hashistack_nomad_driver_enable_docker: true
+# hashistack_nomad_driver_enable_podman: false
+# hashistack_nomad_driver_enable_raw_exec: false
+# hashistack_nomad_driver_enable_java: false
+# hashistack_nomad_driver_enable_qemu: false
 
-nomad_driver_extra_configuration: {}
+# hashistack_nomad_driver_configuration: {}
 
-nomad_log_level: info
+# hashistack_nomad_log_level: info
 
-nomad_enable_tls: "{{ enable_tls_internal }}"
+# hashistack_nomad_enable_tls: "{{ enable_tls_internal }}"
