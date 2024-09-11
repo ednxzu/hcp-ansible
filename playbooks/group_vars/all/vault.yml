@@ -3,15 +3,12 @@
 # Vault #
 #########
 
-vault_config_dir: "{{ hashistack_remote_config_dir }}/vault.d"
-vault_data_dir: "/opt/vault"
-vault_certs_dir: "{{ vault_config_dir }}/tls"
-vault_logs_dir: "{{ hashistack_remote_log_dir }}/vault"
-
-vault_extra_files: true
-# vault_extra_files_list: []
-
-vault_env_variables: {}
+# hashistack_vault_config_dir:
+# hashistack_vault_data_dir:
+# hashistack_vault_certs_dir:
+# hashistack_vault_logs_dir:
+# hashistack_vault_extra_files_list:
+# hashistack_vault_env_variables:
 
 #######################
 # extra configuration #
@@ -22,103 +19,57 @@ vault_env_variables: {}
 # option should be used to add pieces of configuration not
 # available through standard variables.
 
-# vault_extra_configuration: {}
+# hashistack_vault_extra_configuration:
 
 ###########
 # general #
 ###########
 
-# vault_cluster_name: vault
-# vault_bind_addr: "0.0.0.0"
-# vault_cluster_addr: "{{ api_interface_address }}"
-# vault_enable_ui: true
-# vault_disable_mlock: false
-# vault_disable_cache: false
+# hashistack_vault_cluster_name:
+# hashistack_vault_bind_addr:
+# hashistack_vault_cluster_addr:
+# hashistack_vault_enable_ui:
+# hashistack_vault_disable_mlock:
+# hashistack_vault_disable_cache:
 
 ######################
 # seal configuration #
 ######################
 
-vault_seal_configuration:
-  key_shares: 3
-  key_threshold: 2
+# hashistack_vault_seal_configuration:
 
 #########################
 # storage configuration #
 #########################
 
-vault_storage_configuration:
-  raft:
-    path: "{{ vault_data_dir }}"
-    node_id: "{{ ansible_hostname }}"
-    retry_join: >-
-      [
-      {% for host in groups['vault_servers'] %}
-        {
-          'leader_api_addr': '{{ "https" if vault_enable_tls else "http"}}://{{ hostvars[host].api_interface_address }}:8200'
-        }{% if not loop.last %},{% endif %}
-      {% endfor %}
-      ]
+# hashistack_vault_storage_configuration:
 
 ##########################
 # listener configuration #
 ##########################
 
-# vault_enable_tls: false
-vault_listener_configuration:
-  - tcp:
-      address: "{{ vault_cluster_addr }}:8200"
-      tls_disable: true
-
-vault_tls_listener_configuration:
-  - tcp:
-      tls_disable: false
-      tls_cert_file: "{{ vault_certs_dir }}/fullchain.crt"
-      tls_key_file: "{{ vault_certs_dir }}/cert.key"
-      tls_disable_client_certs: true
-
-vault_certificates_extra_files_dir: >
-  {{
-    [] if external_tls_externally_managed_certs | bool else
-    [{
-      'src': "{{ hashistack_sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}",
-      'dest': "{{ vault_certs_dir }}"
-    }]
-  }}
-
-vault_extra_listener_configuration: []
+# hashistack_vault_enable_tls:
+# hashistack_vault_listener_configuration:
+# hashistack_vault_tls_listener_configuration:
 
 ########################
 # service registration #
 ########################
 
-# vault_enable_service_registration: "{{ enable_consul | bool }}"
-vault_service_registration_configuration:
-  consul:
-    address: >-
-      127.0.0.1:{{ hostvars[groups['consul_servers'][0]].consul_api_port[hostvars[groups['consul_servers'][0]].consul_api_scheme] }}
-    scheme: "{{ hostvars[groups['consul_servers'][0]].consul_api_scheme }}"
-    token: "{{ _credentials.consul.tokens.vault.secret_id }}"
-
-vault_service_registration_policy: |
-  service "vault" {
-    policy = "write"
-  }
+# hashistack_vault_enable_service_registration:
+# hashistack_vault_service_registration_configuration:
 
 #########################
 # plugins configuration #
 #########################
 
-# vault_enable_plugins: false
-vault_plugins_directory: "{{ vault_config_dir }}/plugins"
+# hashistack_vault_enable_plugins:
+# hashistack_vault_plugins_directory:
 
 #################
 # vault logging #
 #################
 
-# vault_log_level: info
-vault_enable_log_to_file: "{{ enable_log_to_file | bool }}"
-vault_log_to_file_configuration:
-  log_file: "{{ vault_logs_dir }}/vault.log"
-  log_rotate_duration: 24h
-  log_rotate_max_files: 30
+# hashistack_vault_log_level:
+# hashistack_vault_enable_log_to_file:
+# hashistack_vault_log_to_file_configuration:
