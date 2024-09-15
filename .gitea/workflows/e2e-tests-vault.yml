@@ -13,8 +13,13 @@ on:
 
 jobs:
   end_to_end_vault:
+    strategy:
+      matrix:
+        test_os: ["vault_default", "vault_with_raft_enabled"]
+        scenario:
+          ["debian11", "debian12", "ubuntu2004", "ubuntu2204", "ubuntu2404"]
     uses: ./.gitea/workflows/e2e-tests.yml
     with:
       role: vault
-      scenarios: "['vault_default', 'vault_with_raft_enabled']"
-      test_os: "['debian11', 'debian12', 'ubuntu2004', 'ubuntu2204', 'ubuntu2404']"
+      scenario: ${{ matrix.scenario}}
+      test_os: ${{ matrix.test_os }}
