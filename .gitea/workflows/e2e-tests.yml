@@ -16,6 +16,11 @@ on:
         required: true
         type: string
         description: "On which OS to run the tests"
+    secrets:
+      VAULT_APPROLE_ID:
+        required: true
+      VAULT_APPROLE_SECRET_ID:
+        required: true
 
 jobs:
   retrieve-credentials:

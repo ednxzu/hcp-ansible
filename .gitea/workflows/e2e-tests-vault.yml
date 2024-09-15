@@ -23,3 +23,6 @@ jobs:
       role: vault
       scenario: ${{ matrix.scenario}}
       test_os: ${{ matrix.test_os }}
+    secrets:
+      VAULT_APPROLE_ID: ${{ secrets.VAULT_APPROLE_ID }}
+      VAULT_APPROLE_SECRET_ID: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
