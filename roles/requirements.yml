@@ -13,21 +13,3 @@ roles:
   - name: ednz_cloud.install_docker
     src: https://github.com/ednz-cloud/install_docker.git
     version: main
-  - name: ednz_cloud.docker_systemd_service
-    src: https://github.com/ednz-cloud/docker_systemd_service.git
-    version: main
-  - name: ednz_cloud.deploy_haproxy
-    src: https://github.com/ednz-cloud/deploy_haproxy.git
-    version: main
-  - name: ednz_cloud.deploy_keepalived
-    src: https://github.com/ednz-cloud/deploy_keepalived.git
-    version: main
-  - name: ednz_cloud.hashicorp_nomad
-    src: https://github.com/ednz-cloud/hashicorp_nomad.git
-    version: v0.4.1
-  - name: ednz_cloud.hashicorp_consul
-    src: https://github.com/ednz-cloud/hashicorp_consul.git
-    version: v0.2.1
-  - name: ednz_cloud.hashicorp_vault
-    src: https://github.com/ednz-cloud/hashicorp_vault.git
-    version: v0.2.1
