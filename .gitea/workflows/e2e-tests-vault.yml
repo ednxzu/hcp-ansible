@@ -32,6 +32,7 @@ jobs:
             kv/data/applications/gitea/users/actions token_write | GITEA_ACTIONS_TOKEN ;
 
   end_to_end_vault:
+    needs: retrieve-credentials
     strategy:
       matrix:
         test_os: ["vault_default", "vault_with_raft_enabled"]
