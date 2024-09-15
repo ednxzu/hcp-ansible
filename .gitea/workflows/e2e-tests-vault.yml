@@ -35,9 +35,9 @@ jobs:
     needs: retrieve-credentials
     strategy:
       matrix:
-        test_os: ["vault_default", "vault_with_raft_enabled"]
-        scenario:
+        test_os:
           ["debian11", "debian12", "ubuntu2004", "ubuntu2204", "ubuntu2404"]
+        scenario: ["vault_default", "vault_with_raft_enabled"]
     uses: ./.gitea/workflows/e2e-tests.yml
     with:
       role: vault
