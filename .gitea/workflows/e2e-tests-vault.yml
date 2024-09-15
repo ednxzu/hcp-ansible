@@ -41,7 +41,7 @@ jobs:
     uses: ./.gitea/workflows/e2e-tests.yml
     with:
       role: vault
-      scenario: ${{ matrix.scenario}}
+      scenario: ${{ matrix.scenario }}
       test_os: ${{ matrix.test_os }}
     secrets:
       GITEA_ACTIONS_USERNAME: ${{ needs.retrieve-credentials.outputs.registry-username }}
