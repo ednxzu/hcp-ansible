@@ -3,18 +3,14 @@
 # Consul #
 ##########
 
-consul_config_dir: "{{ hashistack_remote_config_dir }}/consul.d"
-consul_data_dir: "/opt/consul"
-consul_certs_dir: "{{ consul_config_dir }}/tls"
-consul_logs_dir: "{{ hashistack_remote_log_dir }}/consul"
-
-consul_envoy_install: false
-consul_envoy_version: latest
-
-consul_extra_files: true
-# consul_extra_files_list: []
-
-consul_env_variables: {}
+# hashistack_consul_config_dir:
+# hashistack_consul_data_dir:
+# hashistack_consul_certs_dir:
+# hashistack_consul_logs_dir:
+# hashistack_consul_envoy_install:
+# hashistack_consul_envoy_version:
+# hashistack_consul_extra_files_list:
+# hashistack_consul_env_variables:
 
 #######################
 # extra configuration #
@@ -25,140 +21,89 @@ consul_env_variables: {}
 # option should be used to add pieces of configuration not
 # available through standard variables.
 
-# consul_extra_configuration: {}
+# hashistack_consul_extra_configuration:
 
 ###########
 # general #
 ###########
 
-# consul_domain: consul
-# consul_datacenter: dc1
-# consul_primary_datacenter: "{{ consul_datacenter }}"
-# consul_gossip_encryption_key: "{{ _credentials.consul.gossip_encryption_key }}"
-# consul_enable_script_checks: false
+# hashistack_consul_domain:
+# hashistack_consul_datacenter:
+# hashistack_consul_primary_datacenter:
+# hashistack_consul_gossip_encryption_key:
+# hashistack_consul_enable_script_checks:
 
 #######################
 # leave configuration #
 #######################
 
-consul_leave_on_terminate: true
-consul_rejoin_after_leave: true
+# hashistack_consul_leave_on_terminate:
+# hashistack_consul_rejoin_after_leave:
 
 ######################
 # join configuration #
 ######################
 
-consul_join_configuration:
-  retry_join: |
-    {{
-      groups['consul_servers'] |
-      map('extract', hostvars, ['consul_address_configuration', 'bind_addr']) |
-      list |
-      to_json |
-      from_json
-    }}
-  retry_interval: 30s
-  retry_max: 0
+# hashistack_consul_join_configuration:
 
 ########################
 # server configuration #
 ########################
 
-consul_enable_server: "{{ 'consul_servers' in group_names }}"
-consul_bootstrap_expect: "{{ (groups['consul_servers'] | length) }}"
+# hashistack_consul_enable_server:
+# hashistack_consul_bootstrap_expect:
 
 ####################
 # ui configuration #
 ####################
 
-consul_ui_configuration:
-  enabled: "{{ consul_enable_server }}"
+# hashistack_consul_ui_configuration:
 
 #########################
 # address configuration #
 #########################
 
-consul_bind_addr: "0.0.0.0"
-consul_advertise_addr: "{{ api_interface_address }}"
-consul_address_configuration:
-  client_addr: "{{ consul_bind_addr }}"
-  bind_addr: "{{ consul_advertise_addr }}"
-  advertise_addr: "{{ consul_advertise_addr }}"
+# hashistack_consul_bind_addr:
+# hashistack_consul_advertise_addr:
+# hashistack_consul_address_configuration:
 
 #####################
 # ACL configuration #
 #####################
 
-consul_acl_configuration:
-  enabled: true
-  default_policy: "deny"
-  enable_token_persistence: true
-  tokens:
-    agent: "{{ _credentials.consul.tokens.agent.secret_id }}"
-
-consul_default_agent_policy: |
-  node_prefix "" {
-    policy = "write"
-  }
-  service_prefix "" {
-    policy = "read"
-  }
+# hashistack_consul_acl_configuration:
 
 ##############################
 # service mesh configuration #
 ##############################
 
-consul_mesh_configuration:
-  enabled: true
+# hashistack_consul_mesh_configuration:
 
 #####################
 # DNS configuration #
 #####################
 
-consul_dns_configuration:
-  allow_stale: true
-  enable_truncate: true
-  only_passing: true
+# hashistack_consul_dns_configuration:
 
 ################
 # internal tls #
 ################
 
-# consul_enable_tls: false
-consul_tls_configuration:
-  defaults:
-    ca_file: "/etc/ssl/certs/ca-certificates.crt"
-    cert_file: "{{ consul_certs_dir }}/fullchain.crt"
-    key_file: "{{ consul_certs_dir }}/cert.key"
-    verify_incoming: false
-    verify_outgoing: true
-  internal_rpc:
-    verify_server_hostname: true
-
-consul_certificates_extra_files_dir: >
-  {{
-    [] if external_tls_externally_managed_certs | bool else
-    [{
-      'src': "{{ hashistack_sub_configuration_directories['certificates'] }}/consul/{{ inventory_hostname }}",
-      'dest': "{{ consul_certs_dir }}"
-    }]
-  }}
+# hashistack_consul_enable_tls:
+# hashistack_consul_tls_configuration:
 
 ###########################
 # telemetry configuration #
 ###########################
 
-consul_enable_prometheus_metrics: false
-consul_prometheus_retention_time: 60s
-consul_telemetry_configuration: {}
+# hashistack_consul_enable_prometheus_metrics:
+# hashistack_consul_prometheus_retention_time:
+# hashistack_consul_telemetry_configuration:
 
 ###########
 # logging #
 ###########
 
-# consul_log_level: info
-consul_enable_log_to_file: "{{ enable_log_to_file | bool }}"
-consul_log_to_file_configuration:
-  log_file: "{{ consul_logs_dir }}/consul.log"
-  log_rotate_duration: 24h
-  log_rotate_max_files: 30
+# hashistack_consul_log_level:
+# hashistack_consul_enable_log_to_file:
+# hashistack_consul_log_to_file_configuration:

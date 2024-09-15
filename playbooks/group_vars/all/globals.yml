@@ -11,10 +11,6 @@ nomad_version: "1.8.1"
 consul_version: "1.18.1"
 vault_version: "1.16.2"
 
-consul_fqdn: consul.ednz.lab
-vault_fqdn: vault.ednz.lab
-nomad_fqdn: nomad.ednz.lab
-
 api_interface: "eth0"
 api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
 
@@ -25,35 +21,28 @@ api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
 enable_log_to_file: true
 
 ########################
-# external tls options #
-########################
-
-enable_tls_external: false
-external_tls_externally_managed_certs: false
-
-########################
 # internal tls options #
 ########################
 
 enable_tls_internal: false
 internal_tls_externally_managed_certs: false
-
 ##########
 # Consul #
 ##########
 
-consul_domain: consul
-consul_datacenter: dc1
-consul_primary_datacenter: "{{ consul_datacenter }}"
-consul_gossip_encryption_key: "{{ _credentials.consul.gossip_encryption_key }}"
-consul_enable_script_checks: false
+# hashistack_consul_domain: consul
+# hashistack_consul_datacenter: dc1
+# hashistack_consul_primary_datacenter: "{{ consul_datacenter }}"
+# hashistack_consul_gossip_encryption_key: "{{ _credentials.consul.gossip_encryption_key }}"
+# hashistack_consul_enable_script_checks: false
 
-consul_extra_files_list: []
-consul_extra_configuration: {}
+# hashistack_consul_extra_files_list: []
+# hashistack_consul_extra_configuration: {}
 
-consul_enable_tls: "{{ enable_tls_internal }}"
+# hashistack_consul_enable_tls: "{{ enable_tls_internal }}"
 
-consul_log_level: info
+# hashistack_consul_log_level: info
+
 #########
 # Vault #
 #########
