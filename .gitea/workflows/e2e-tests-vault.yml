@@ -12,6 +12,25 @@ on:
     #   - roles/vault/**
 
 jobs:
+  retrieve-credentials:
+    name: Retrieve Credentials
+    runs-on: ubuntu-latest
+    outputs:
+      registry-username: ${{ steps.import-secrets.outputs.GITEA_ACTIONS_USERNAME }}
+      registry-token: ${{ steps.import-secrets.outputs.GITEA_ACTIONS_TOKEN }}
+    steps:
+      - name: Get secrets from vault
+        id: import-secrets
+        uses: hashicorp/vault-action@v3
+        with:
+          url: "https://vault.ednz.fr"
+          method: approle
+          roleId: ${{ secrets.VAULT_APPROLE_ID }}
+          secretId: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+          secrets: |
+            kv/data/applications/gitea/users/actions username | GITEA_ACTIONS_USERNAME ;
+            kv/data/applications/gitea/users/actions token_write | GITEA_ACTIONS_TOKEN ;
+
   end_to_end_vault:
     strategy:
       matrix:
@@ -24,5 +43,5 @@ jobs:
       scenario: ${{ matrix.scenario}}
       test_os: ${{ matrix.test_os }}
     secrets:
-      VAULT_APPROLE_ID: ${{ secrets.VAULT_APPROLE_ID }}
-      VAULT_APPROLE_SECRET_ID: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+      GITEA_ACTIONS_USERNAME: ${{ needs.retrieve-credentials.outputs.registry-username }}
+      GITEA_ACTIONS_TOKEN: ${{ needs.retrieve-credentials.outputs.registry-token }}

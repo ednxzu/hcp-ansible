@@ -17,39 +17,20 @@ on:
         type: string
         description: "On which OS to run the tests"
     secrets:
-      VAULT_APPROLE_ID:
+      GITEA_ACTIONS_USERNAME:
         required: true
-      VAULT_APPROLE_SECRET_ID:
+      GITEA_ACTIONS_TOKEN:
         required: true
 
 jobs:
-  retrieve-credentials:
-    name: Retrieve Credentials
-    runs-on: ubuntu-latest
-    outputs:
-      registry-username: ${{ steps.import-secrets.outputs.GITEA_ACTIONS_USERNAME }}
-      registry-token: ${{ steps.import-secrets.outputs.GITEA_ACTIONS_TOKEN }}
-    steps:
-      - name: Get secrets from vault
-        id: import-secrets
-        uses: hashicorp/vault-action@v3
-        with:
-          url: "https://vault.ednz.fr"
-          method: approle
-          roleId: ${{ secrets.VAULT_APPROLE_ID }}
-          secretId: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
-          secrets: |
-            kv/data/applications/gitea/users/actions username | GITEA_ACTIONS_USERNAME ;
-            kv/data/applications/gitea/users/actions token_write | GITEA_ACTIONS_TOKEN ;
-
   molecule-test:
     name: Molecule tests
     runs-on: ubuntu-latest
     container:
       image: git.ednz.fr/container-factory/ansible-runner:act-latest
       credentials:
-        username: ${{needs.retrieve-credentials.outputs.registry-username}}
-        password: ${{needs.retrieve-credentials.outputs.registry-token}}
+        username: ${{ secrets.GITEA_ACTIONS_USERNAME }}
+        password: ${{ secrets.GITEA_ACTIONS_TOKEN }}
     env:
       ANSIBLE_HOST_KEY_CHECKING: "false"
       ANSIBLE_FORCE_COLOR: "true"
