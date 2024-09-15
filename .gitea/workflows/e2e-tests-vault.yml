@@ -1,0 +1,20 @@
+---
+name: test
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+    branches:
+      - main
+    # paths:
+    #   - roles/vault/**
+
+jobs:
+  end_to_end_vault:
+    uses: ./.github/workflows/e2e-tests.yml
+    with:
+      role: vault
+      scenarios: "['vault_default', 'vault_with_raft_enabled']"
+      test_os: "['debian11', 'debian12', 'ubuntu2004', 'ubuntu2204', 'ubuntu2404']"

@@ -1,0 +1,65 @@
+---
+name: End-to-end tests
+
+on:
+  workflow_call:
+    inputs:
+      role:
+        required: true
+        type: string
+        description: "Which role should be tested"
+      scenarios:
+        required: true
+        type: string
+        description: "Which scenarios should be run (stringified list)"
+      test_os:
+        required: true
+        type: string
+        description: "On which OS to run the tests (stringified list)"
+
+jobs:
+  retrieve-credentials:
+    name: Retrieve Credentials
+    runs-on: ubuntu-latest
+    outputs:
+      registry-username: ${{ steps.import-secrets.outputs.GITEA_ACTIONS_USERNAME }}
+      registry-token: ${{ steps.import-secrets.outputs.GITEA_ACTIONS_TOKEN }}
+    steps:
+      - name: Get secrets from vault
+        id: import-secrets
+        uses: hashicorp/vault-action@v3
+        with:
+          url: "https://vault.ednz.fr"
+          method: approle
+          roleId: ${{ secrets.VAULT_APPROLE_ID }}
+          secretId: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+          secrets: |
+            kv/data/applications/gitea/users/actions username | GITEA_ACTIONS_USERNAME ;
+            kv/data/applications/gitea/users/actions token_write | GITEA_ACTIONS_TOKEN ;
+
+  molecule-test:
+    name: Molecule tests
+    runs-on: ubuntu-latest
+    container:
+      image: git.ednz.fr/container-factory/ansible-runner:act-latest
+      credentials:
+        username: ${{needs.retrieve-credentials.outputs.registry-username}}
+        password: ${{needs.retrieve-credentials.outputs.registry-token}}
+    strategy:
+      matrix:
+        test_os: ${{ fromJSON(inputs.test_os) }}
+        scenario: ${{ fromJSON(inputs.scenarios) }}
+    env:
+      ANSIBLE_HOST_KEY_CHECKING: "false"
+      ANSIBLE_FORCE_COLOR: "true"
+      ANSIBLE_PYTHON_INTERPRETER: /usr/bin/python3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: "Molecule test"
+        run: molecule test -s ${{ matrix.scenario }}
+        shell: bash
+        working-directory: ${{ gitea.workspace }}/roles/${{ inputs.role }}
+        env:
+          MOLECULE_TEST_OS: ${{ matrix.test_os }}
