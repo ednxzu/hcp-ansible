@@ -114,7 +114,7 @@ vault_tls_listener_configuration: "{{ hashistack_vault_tls_listener_configuratio
 
 vault_certificates_extra_files_dir: >
   {{
-    [] if external_tls_externally_managed_certs | bool else
+    [] if internal_tls_externally_managed_certs | bool else
     [{
       'src': "{{ hashistack_sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}",
       'dest': "{{ vault_certs_dir }}"

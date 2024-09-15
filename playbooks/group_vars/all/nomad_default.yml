@@ -206,7 +206,7 @@ nomad_acl_configuration: >-
 # internal tls #
 ################
 
-hashistack_default_nomad_enable_tls: false
+hashistack_default_nomad_enable_tls: "{{ enable_tls_internal }}"
 nomad_enable_tls: "{{ hashistack_nomad_enable_tls | default(hashistack_default_nomad_enable_tls) }}"
 
 hashistack_default_nomad_tls_configuration:
