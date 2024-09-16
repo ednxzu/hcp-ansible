@@ -95,7 +95,7 @@ vault_storage_configuration: "{{ hashistack_vault_storage_configuration | defaul
 # listener configuration #
 ##########################
 
-hashistack_default_vault_enable_tls: false
+hashistack_default_vault_enable_tls: "{{ enable_tls_internal }}"
 vault_enable_tls: "{{ hashistack_vault_enable_tls | default(hashistack_default_vault_enable_tls) }}"
 
 hashistack_default_vault_listener_configuration:
