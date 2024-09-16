@@ -1,3 +1,9 @@
+## v0.8.1 (2024-09-16)
+
+### Fix
+
+- set default vault_enable_tls variable to follow global internal tls value
+
 ## v0.8.0 (2024-09-16)
 
 ### Feat
