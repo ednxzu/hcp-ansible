@@ -1,3 +1,14 @@
+## v0.8.0 (2024-09-16)
+
+### Feat
+
+- add default variables files for nomad and vault
+- add override options for all consul variables
+- use override variables in globals.yml
+- add ovveride options for vault variables
+- add ovveride options for nomad variables
+- add version documentation to nomad_acl_bootstrap module
+
 ## v0.7.0 (2024-09-02)
 
 ### Feat
