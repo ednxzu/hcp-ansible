@@ -172,26 +172,6 @@
 
     - name: "Verify required ports"
       block:
-        - name: "Checking if haproxy ports are available"
-          when: inventory_hostname in groups['haproxy_servers']
-          block:
-            - name: "Checking if haproxy ports are available"
-              ansible.builtin.wait_for:
-                host: "{{ inventory_hostname }}"
-                port: "{{ item }}"
-                state: "stopped"
-                timeout: 5
-              loop: "{{ haproxy_required_ports }}"
-              ignore_errors: true
-              register: haproxy_port_results
-
-            - name: "Assert that haproxy ports are not currently in use"
-              ansible.builtin.assert:
-                that:
-                  - item.failed == false
-              with_items: "{{ haproxy_port_results.results }}"
-              when: haproxy_port_results.results | length > 0
-
         - name: "Checking if vault ports are available"
           when: inventory_hostname in groups['vault_servers']
           block:

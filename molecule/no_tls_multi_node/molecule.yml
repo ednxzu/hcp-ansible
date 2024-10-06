@@ -19,7 +19,6 @@ platforms:
         type: static
     groups:
       - common
-      - haproxy_servers
       - nomad_clients
       - consul_agents
   - name: proxy02.ednz.lab
@@ -33,7 +32,6 @@ platforms:
         type: static
     groups:
       - common
-      - haproxy_servers
       - nomad_clients
       - consul_agents
   - name: hashistack01.ednz.lab
