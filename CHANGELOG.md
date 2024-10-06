@@ -1,3 +1,9 @@
+## v0.8.2 (2024-10-06)
+
+### Fix
+
+- remove mentions of haproxy_servers, as the feature is deprecated
+
 ## v0.8.1 (2024-09-16)
 
 ### Fix
