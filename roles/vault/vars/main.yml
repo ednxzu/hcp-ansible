@@ -1,5 +1,5 @@
 ---
-# vars file for hashicorp_vault
+# vars file for vault
 vault_user: "vault"
 vault_group: "vault"
 vault_binary_path: /usr/local/bin/vault

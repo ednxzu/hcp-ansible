@@ -1,5 +1,5 @@
 ---
-# task/prerequisites file for hashicorp_vault
+# task/prerequisites file for vault
 - name: "Vault | Create group {{ vault_group }}"
   ansible.builtin.group:
     name: "{{ vault_group }}"

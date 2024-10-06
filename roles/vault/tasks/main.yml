@@ -1,5 +1,5 @@
 ---
-# task/main file for hashicorp_vault
+# task/main file for vault
 - name: "Vault | Set reload-check & restart-check variable"
   ansible.builtin.set_fact:
     _vault_service_need_reload: false

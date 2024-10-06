@@ -1,5 +1,5 @@
 ---
-# task/configure file for hashicorp_vault
+# task/configure file for vault
 - name: "Vault | Create vault.env"
   ansible.builtin.template:
     src: vault.env.j2

@@ -1,4 +1,5 @@
 ---
+# task/rolling_restart file for vault
 - name: "Vault | Start service: {{ vault_service_name }}"
   ansible.builtin.service:
     name: "{{ vault_service_name }}"

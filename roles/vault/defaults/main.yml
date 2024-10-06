@@ -1,5 +1,5 @@
 ---
-# defaults file for hashicorp_vault
+# defaults file for vault
 vault_version: latest
 vault_start_service: true
 vault_config_dir: "/etc/vault.d"

@@ -1,5 +1,5 @@
 ---
-# task/install file for hashicorp_vault
+# task/install file for vault
 - name: "Vault | Get latest release of vault"
   when: vault_version == 'latest'
   block:

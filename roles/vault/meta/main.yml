@@ -1,5 +1,5 @@
 ---
-# meta file for hashicorp_vault
+# meta file for vault
 galaxy_info:
   namespace: "ednz_cloud"
   role_name: "hashicorp_vault"

@@ -1,5 +1,5 @@
 ---
-# task/merge_variables file for hashicorp_vault
+# task/merge_variables file for vault
 - name: "Vault | Merge listener configuration"
   block:
     - name: "Vault | Merge tls listener configuration"
