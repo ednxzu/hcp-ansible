@@ -31,7 +31,7 @@ jobs:
             kv/data/applications/gitea/users/actions username | GITEA_ACTIONS_USERNAME ;
             kv/data/applications/gitea/users/actions token_write | GITEA_ACTIONS_TOKEN ;
 
-  end_to_end_vault:
+  end_to_end_nomad:
     needs: retrieve-credentials
     strategy:
       matrix:
