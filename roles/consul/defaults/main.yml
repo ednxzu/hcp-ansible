@@ -1,5 +1,5 @@
 ---
-# defaults file for hashicorp_consul
+# defaults file for consul
 
 consul_version: "latest"
 consul_start_service: true

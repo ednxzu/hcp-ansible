@@ -1,5 +1,5 @@
 ---
-# task/configure file for hashicorp_consul
+# task/configure file for consul
 - name: "Consul | Create consul.env"
   ansible.builtin.template:
     src: consul.env.j2

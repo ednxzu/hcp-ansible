@@ -1,5 +1,5 @@
 ---
-# task/install file for hashicorp_consul
+# task/install file for consul
 - name: "Consul | Get latest release of consul"
   when: consul_version == 'latest'
   block:

@@ -1,5 +1,5 @@
 ---
-# vars file for hashicorp_consul
+# vars file for consul
 consul_user: consul
 consul_group: consul
 consul_binary_path: /usr/local/bin/consul

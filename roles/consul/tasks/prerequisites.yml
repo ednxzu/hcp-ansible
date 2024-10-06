@@ -1,5 +1,5 @@
 ---
-# task/prerequisites file for hashicorp_consul
+# task/prerequisites file for consul
 - name: "Consul | Create group {{ consul_group }}"
   ansible.builtin.group:
     name: "{{ consul_group }}"

@@ -1,5 +1,5 @@
 ---
-# task/merge_variables file for hashicorp_consul
+# task/merge_variables file for consul
 - name: "Consul | Merge stringified configuration"
   vars:
     _config_to_merge: "{{ consul_configuration_string }}"

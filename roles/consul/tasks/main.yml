@@ -1,5 +1,5 @@
 ---
-# task/main file for hashicorp_consul
+# task/main file for consul
 - name: "Consul | Set reload-check & restart-check variable"
   ansible.builtin.set_fact:
     _consul_service_need_reload: false

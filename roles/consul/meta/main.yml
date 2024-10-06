@@ -1,8 +1,8 @@
 ---
-# meta file for hashicorp_consul
+# meta file for consul
 galaxy_info:
   namespace: "ednz_cloud"
-  role_name: "hashicorp_consul"
+  role_name: "consul"
   author: "Bertrand Lanson"
   description: "Install and configure hashicorp consul for debian-based distros."
   license: "license (BSD, MIT)"

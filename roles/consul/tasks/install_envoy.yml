@@ -1,5 +1,5 @@
 ---
-# task/install_envoy file for hashicorp_consul
+# task/install_envoy file for consul
 - name: "Consul | Get release for envoy:{{ consul_envoy_version }}"
   vars:
     _envoy_url_ext: "{% if consul_envoy_version == 'latest'%}releases{% else %}releases/tags{% endif %}"
