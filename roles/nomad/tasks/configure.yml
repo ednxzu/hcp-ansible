@@ -1,5 +1,5 @@
 ---
-# task/configure file for hashicorp_nomad
+# task/configure file for nomad
 - name: "Nomad | Create nomad.env"
   ansible.builtin.template:
     src: nomad.env.j2

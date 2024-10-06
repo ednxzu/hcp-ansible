@@ -1,5 +1,5 @@
 ---
-# meta file for hashicorp_nomad
+# meta file for nomad
 galaxy_info:
   namespace: "ednz_cloud"
   role_name: "hashicorp_nomad"

@@ -1,5 +1,5 @@
 ---
-# task/prerequisites file for hashicorp_nomad
+# task/prerequisites file for nomad
 - name: "Nomad | Create group {{ nomad_group }}"
   ansible.builtin.group:
     name: "{{ nomad_user }}"

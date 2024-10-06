@@ -1,5 +1,5 @@
 ---
-# task/merge_variables file for hashicorp_nomad
+# task/merge_variables file for nomad
 - name: "Nomad | Merge stringified configuration"
   vars:
     _config_to_merge: "{{ nomad_configuration_string }}"

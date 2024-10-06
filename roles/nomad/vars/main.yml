@@ -1,5 +1,5 @@
 ---
-# vars file for hashicorp_nomad
+# vars file for nomad
 nomad_user: nomad
 nomad_group: nomad
 nomad_binary_path: /usr/local/bin/nomad
