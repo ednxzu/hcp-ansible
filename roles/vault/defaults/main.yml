@@ -93,9 +93,9 @@ vault_service_registration_configuration:
 vault_enable_plugins: false
 vault_plugins_directory: "{{ vault_config_dir }}/plugins"
 
-#################
-# vault logging #
-#################
+###########
+# logging #
+###########
 
 vault_log_level: info
 vault_enable_log_to_file: false

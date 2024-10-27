@@ -1,221 +1,415 @@
-<!-- DOCSIBLE START -->
+**Nomad**
+=========
 
-# 📃 Role overview
+This role configures [HashiCorp nomad](https://www.hashicorp.com/products/nomad) on **Debian-based** distributions.
 
-## nomad
+**Requirements**
+------------
 
+This role requires that the `unzip` package is installed on the target host.
 
+**Role Variables**
+--------------
 
-Description: Install and configure hashicorp nomad for debian-based distros.
+### Service Configuration
 
+```yaml
+nomad_version: latest
+```
+Specifies the version of Nomad to install. Default is `latest`, which installs the latest stable version. It is recommended to pin the nomad version to install, as setting latest will cause the role to query the github API, andyou might run into rate limiting issues. A pinned version should look like `X.Y.Z`, in accordance with the nomad's [release repository](https://releases.hashicorp.com/nomad/) (just strip out the leading `nomad_`)
 
-| Field                | Value           |
-|--------------------- |-----------------|
-| Readme update        | 26/08/2024 |
+```yaml
+nomad_start_service: true
+```
+Indicates whether the Nomad service should start after installation. Defaults to `true`.
 
+```yaml
+nomad_config_dir: "/etc/nomad.d"
+```
+Path to the directory where Nomad's configuration files are stored.
 
+```yaml
+nomad_data_dir: "/opt/nomad"
+```
+Specifies the directory where Nomad will store its data.
 
+```yaml
+nomad_certs_dir: "{{ nomad_config_dir }}/tls"
+```
+Path to the directory where Nomad's TLS certificates should be stored when using internal TLS.
 
+```yaml
+nomad_logs_dir: "/var/log/nomad"
+```
+Directory path where Nomad's log files will be stored if logging to file is enabled.
 
+```yaml
+nomad_extra_files: false
+```
+If `true`, allows additional files to be copied over to the target host by the role.
 
-### Defaults
+```yaml
+nomad_extra_files_list: []
+```
+A list of additional files to manage with the role if `nomad_extra_files` is set to `true`. This is a list of objects like:
 
-**These are static variables with lower priority**
+```yaml
+- src: /path/on/deploy/machine
+  dest: /path/to/copy/over
+```
 
-#### File: defaults/main.yml
+Sources can be any type of file, directory or jinja2 templates. Destination should match the type of the source. Jinja2 templates inside of a directory that would be copied over are also templated, and their `.j2` extensions will be stripped out.
 
-| Var          | Type         | Value       |Required    | Title       |
-|--------------|--------------|-------------|-------------|-------------|
-| [nomad_version](defaults/main.yml#L4)   | str   | `latest`  |  n/a  |  n/a |
-| [nomad_start_service](defaults/main.yml#L5)   | bool   | `True`  |  n/a  |  n/a |
-| [nomad_config_dir](defaults/main.yml#L6)   | str   | `/etc/nomad.d`  |  n/a  |  n/a |
-| [nomad_data_dir](defaults/main.yml#L7)   | str   | `/opt/nomad`  |  n/a  |  n/a |
-| [nomad_certs_dir](defaults/main.yml#L8)   | str   | `{{ nomad_config_dir }}/tls`  |  n/a  |  n/a |
-| [nomad_logs_dir](defaults/main.yml#L9)   | str   | `/var/log/nomad`  |  n/a  |  n/a |
-| [nomad_extra_files](defaults/main.yml#L11)   | bool   | `False`  |  n/a  |  n/a |
-| [nomad_extra_files_list](defaults/main.yml#L12)   | list   | `[]`  |  n/a  |  n/a |
-| [nomad_env_variables](defaults/main.yml#L14)   | dict   | `{}`  |  n/a  |  n/a |
-| [nomad_extra_configuration](defaults/main.yml#L25)   | dict   | `{}`  |  n/a  |  n/a |
-| [nomad_region](defaults/main.yml#L31)   | str   | `global`  |  n/a  |  n/a |
-| [nomad_datacenter](defaults/main.yml#L32)   | str   | `dc1`  |  n/a  |  n/a |
-| [nomad_bind_addr](defaults/main.yml#L38)   | str   | `0.0.0.0`  |  n/a  |  n/a |
-| [nomad_advertise_addr](defaults/main.yml#L39)   | str   | `{{ ansible_default_ipv4.address }}`  |  n/a  |  n/a |
-| [nomad_address_configuration](defaults/main.yml#L40)   | dict   | `{'bind_addr': '{{ nomad_bind_addr }}', 'addresses': {'http': '{{ nomad_advertise_addr }}', 'rpc': '{{ nomad_advertise_addr }}', 'serf': '{{ nomad_advertise_addr }}'}, 'advertise': {'http': '{{ nomad_advertise_addr }}', 'rpc': '{{ nomad_advertise_addr }}', 'serf': '{{ nomad_advertise_addr }}'}, 'ports': {'http': 4646, 'rpc': 4647, 'serf': 4648}}`  |  n/a  |  n/a |
-| [nomad_autopilot_configuration](defaults/main.yml#L59)   | dict   | `{}`  |  n/a  |  n/a |
-| [nomad_leave_on_interrupt](defaults/main.yml#L65)   | bool   | `False`  |  n/a  |  n/a |
-| [nomad_leave_on_terminate](defaults/main.yml#L66)   | bool   | `False`  |  n/a  |  n/a |
-| [nomad_enable_server](defaults/main.yml#L72)   | bool   | `True`  |  n/a  |  n/a |
-| [nomad_server_bootstrap_expect](defaults/main.yml#L73)   | int   | `1`  |  n/a  |  n/a |
-| [nomad_server_configuration](defaults/main.yml#L74)   | dict   | `{'enabled': '{{ nomad_enable_server }}', 'data_dir': '{{ nomad_data_dir }}/server', 'encrypt': "{{ 'mysupersecretgossipencryptionkey'\|b64encode }}", 'server_join': {'retry_join': ['{{ ansible_default_ipv4.address }}']}}`  |  n/a  |  n/a |
-| [nomad_enable_client](defaults/main.yml#L86)   | bool   | `False`  |  n/a  |  n/a |
-| [nomad_client_configuration](defaults/main.yml#L87)   | dict   | `{'enabled': '{{ nomad_enable_client }}', 'state_dir': '{{ nomad_data_dir }}/client', 'cni_path': '/opt/cni/bin', 'bridge_network_name': 'nomad', 'bridge_network_subnet': '172.26.64.0/20'}`  |  n/a  |  n/a |
-| [nomad_ui_configuration](defaults/main.yml#L98)   | dict   | `{'enabled': '{{ nomad_enable_server }}'}`  |  n/a  |  n/a |
-| [nomad_driver_enable_docker](defaults/main.yml#L105)   | bool   | `True`  |  n/a  |  n/a |
-| [nomad_driver_enable_podman](defaults/main.yml#L106)   | bool   | `False`  |  n/a  |  n/a |
-| [nomad_driver_enable_raw_exec](defaults/main.yml#L107)   | bool   | `False`  |  n/a  |  n/a |
-| [nomad_driver_enable_java](defaults/main.yml#L108)   | bool   | `False`  |  n/a  |  n/a |
-| [nomad_driver_enable_qemu](defaults/main.yml#L109)   | bool   | `False`  |  n/a  |  n/a |
-| [nomad_driver_configuration](defaults/main.yml#L111)   | dict   | `{'raw_exec': {'enabled': False}}`  |  n/a  |  n/a |
-| [nomad_driver_extra_configuration](defaults/main.yml#L115)   | dict   | `{}`  |  n/a  |  n/a |
-| [nomad_log_level](defaults/main.yml#L121)   | str   | `info`  |  n/a  |  n/a |
-| [nomad_enable_log_to_file](defaults/main.yml#L122)   | bool   | `False`  |  n/a  |  n/a |
-| [nomad_log_to_file_configuration](defaults/main.yml#L123)   | dict   | `{'log_file': '{{ nomad_logs_dir }}/nomad.log', 'log_rotate_duration': '24h', 'log_rotate_max_files': 30}`  |  n/a  |  n/a |
-| [nomad_acl_configuration](defaults/main.yml#L132)   | dict   | `{'enabled': False, 'token_ttl': '30s', 'policy_ttl': '60s', 'role_ttl': '60s'}`  |  n/a  |  n/a |
-| [nomad_enable_tls](defaults/main.yml#L142)   | bool   | `False`  |  n/a  |  n/a |
-| [nomad_tls_configuration](defaults/main.yml#L143)   | dict   | `{'http': True, 'rpc': True, 'ca_file': '/etc/ssl/certs/ca-certificates.crt', 'cert_file': '{{ nomad_certs_dir }}/cert.pem', 'key_file': '{{ nomad_certs_dir }}/key.pem', 'verify_server_hostname': True}`  |  n/a  |  n/a |
-| [nomad_certificates_extra_files_dir](defaults/main.yml#L151)   | list   | `[]`  |  n/a  |  n/a |
-| [nomad_telemetry_configuration](defaults/main.yml#L160)   | dict   | `{'collection_interval': '10s', 'disable_hostname': False, 'use_node_name': False, 'publish_allocation_metrics': False, 'publish_node_metrics': False, 'prefix_filter': [], 'disable_dispatched_job_summary_metrics': False, 'prometheus_metrics': False}`  |  n/a  |  n/a |
-| [nomad_enable_consul_integration](defaults/main.yml#L174)   | bool   | `False`  |  n/a  |  n/a |
-| [nomad_consul_integration_configuration](defaults/main.yml#L175)   | dict   | `{'address': '127.0.0.1:8500', 'auto_advertise': True, 'ssl': False, 'token': '', 'tags': []}`  |  n/a  |  n/a |
-| [nomad_consul_integration_tls_configuration](defaults/main.yml#L182)   | dict   | `{'ca_file': '/etc/ssl/certs/ca-certificates.crt'}`  |  n/a  |  n/a |
-| [nomad_consul_integration_server_configuration](defaults/main.yml#L185)   | dict   | `{'server_auto_join': True}`  |  n/a  |  n/a |
-| [nomad_consul_integration_client_configuration](defaults/main.yml#L188)   | dict   | `{'client_auto_join': True, 'grpc_address': '127.0.0.1:8502'}`  |  n/a  |  n/a |
-| [nomad_consul_integration_client_tls_configuration](defaults/main.yml#L192)   | dict   | `{'grpc_ca_file': '/etc/ssl/certs/ca-certificates.crt'}`  |  n/a  |  n/a |
-| [nomad_enable_vault_integration](defaults/main.yml#L199)   | bool   | `False`  |  n/a  |  n/a |
-| [nomad_vault_integration_configuration](defaults/main.yml#L200)   | dict   | `{}`  |  n/a  |  n/a |
+Example:
 
+```yaml
+nomad_extra_files_list:
+  - src: /local/path/to/tls/files
+    dest: "{{ nomad_certs_dir }}"
+  - src: /another/single/file.j2
+    dest: /var/lib/file
+```
 
-### Vars
+```yaml
+nomad_env_variables: {}
+```
+Environment variables to be set for the Nomad service, defined as key-value pairs.
 
-**These are variables with higher priority**
-#### File: vars/main.yml
+### Extra Configuration
 
-| Var          | Type         | Value       |Required    | Title       |
-|--------------|--------------|-------------|-------------|-------------|
-| [nomad_user](vars/main.yml#L3)    | str   | `nomad`  | n/a | n/a |
-| [nomad_group](vars/main.yml#L4)    | str   | `nomad`  | n/a | n/a |
-| [nomad_binary_path](vars/main.yml#L5)    | str   | `/usr/local/bin/nomad`  | n/a | n/a |
-| [nomad_deb_architecture_map](vars/main.yml#L6)    | dict   | `{'x86_64': 'amd64', 'aarch64': 'arm64', 'armv7l': 'arm', 'armv6l': 'arm'}`  | n/a | n/a |
-| [nomad_architecture](vars/main.yml#L11)    | str   | `{{ nomad_deb_architecture_map[ansible_architecture] \| default(ansible_architecture) }}`  | n/a | n/a |
-| [nomad_service_name](vars/main.yml#L12)    | str   | `nomad`  | n/a | n/a |
-| [nomad_github_api](vars/main.yml#L13)    | str   | `https://api.github.com/repos`  | n/a | n/a |
-| [nomad_github_project](vars/main.yml#L14)    | str   | `hashicorp/nomad`  | n/a | n/a |
-| [nomad_github_url](vars/main.yml#L15)    | str   | `https://github.com`  | n/a | n/a |
-| [nomad_repository_url](vars/main.yml#L16)    | str   | `https://releases.hashicorp.com/nomad`  | n/a | n/a |
-| [nomad_configuration](vars/main.yml#L18)    | dict   | `{'datacenter': '{{ nomad_datacenter }}', 'region': '{{ nomad_region }}', 'data_dir': '{{ nomad_data_dir }}', 'leave_on_interrupt': '{{ nomad_leave_on_interrupt }}', 'leave_on_terminate': '{{ nomad_leave_on_terminate }}', 'acl': '{{ nomad_acl_configuration }}', 'server': '{{ nomad_server_configuration }}', 'client': '{{ nomad_client_configuration }}', 'ui': '{{ nomad_ui_configuration }}', 'log_level': '{{ nomad_log_level }}'}`  | n/a | n/a |
-| [nomad_configuration_string](vars/main.yml#L30)    | str   | `<multiline value>`  | n/a | n/a |
+```yaml
+nomad_extra_configuration: {}
+```
+Dictionary for any additional Nomad configuration options not covered by other variables. This should be used only for options not provided by existing variables.
 
+### General Configuration
 
-### Tasks
+```yaml
+nomad_region: global
+```
+Sets the region of the Nomad cluster. This value is used to define the cluster's region and should match the desired regional configuration.
 
+```yaml
+nomad_datacenter: dc1
+```
+Defines the datacenter name for the Nomad agent. This is used for grouping nodes and services within a specific datacenter.
 
-#### File: tasks/recursive_copy_extra_dirs.yml
+### Address Configuration
 
-| Name | Module | Has Conditions |
-| ---- | ------ | --------- |
-| Nomad \| Ensure destination directory exists | ansible.builtin.file | False |
-| Nomad \| Create extra directory sources | ansible.builtin.file | True |
-| Nomad \| Template extra directory sources | ansible.builtin.template | True |
+```yaml
+nomad_bind_addr: "0.0.0.0"
+```
+Specifies the address that Nomad will bind to for incoming connections. The default value `0.0.0.0` allows Nomad to listen on all available interfaces.
 
-#### File: tasks/merge_variables.yml
+```yaml
+nomad_advertise_addr: "{{ ansible_default_ipv4.address }}"
+```
+Sets the address that Nomad will advertise to other nodes in the cluster. It typically uses the default IPv4 address of the host.
 
-| Name | Module | Has Conditions |
-| ---- | ------ | --------- |
-| Nomad \| Merge stringified configuration | vars | False |
-| Nomad \| Merge addresses configuration | vars | False |
-| Nomad \| Merge consul integration configuration | block | True |
-| Nomad \| Merge consul tls configuration | block | True |
-| Nomad \| Merge consul default client configuration | vars | False |
-| Nomad \| Merge consul configuration for nomad servers | block | True |
-| Nomad \| Merge consul default server configuration | vars | False |
-| Nomad \| Merge consul configuration for nomad clients | block | True |
-| Nomad \| Merge consul default client configuration | vars | False |
-| Nomad \| Merge consul tls client configuration | vars | True |
-| Nomad \| Merge consul block into main configuration | vars | False |
-| Nomad \| Merge TLS configuration | block | True |
-| Nomad \| Merge TLS configuration | vars | False |
-| Nomad \| Add certificates directory to extra_files_dir | ansible.builtin.set_fact | False |
-| Nomad \| Merge plugin configuration | vars | True |
-| Nomad \| Merge extra configuration settings | vars | False |
-| Nomad \| Merge log to file configuration | vars | True |
-| Nomad \| Merge telemetry configuration | vars | False |
+```yaml
+nomad_address_configuration:
+  bind_addr: "{{ nomad_bind_addr }}"
+  addresses:
+    http: "{{ nomad_advertise_addr }}"
+    rpc: "{{ nomad_advertise_addr }}"
+    serf: "{{ nomad_advertise_addr }}"
+  advertise:
+    http: "{{ nomad_advertise_addr }}"
+    rpc: "{{ nomad_advertise_addr }}"
+    serf: "{{ nomad_advertise_addr }}"
+  ports:
+    http: 4646
+    rpc: 4647
+    serf: 4648
+```
+Defines the address configuration for the Nomad agent. This block matches the structure specified in the [Nomad documentation](https://developer.hashicorp.com/nomad/docs/configuration#advertise), including:
 
-#### File: tasks/main.yml
+- **bind_addr**: The address on which Nomad will listen for incoming connections.
+- **addresses**: Specifies the addresses used for different communication channels (`http`, `rpc`, and `serf`).
+- **advertise**: Lists the addresses that Nomad will advertise to other nodes for the respective channels (`http`, `rpc`, and `serf`).
+- **ports**: Defines the ports for the various services, with `http`, `rpc`, and `serf` ports specified.
 
-| Name | Module | Has Conditions |
-| ---- | ------ | --------- |
-| Nomad \| Set reload-check & restart-check variable | ansible.builtin.set_fact | False |
-| Nomad \| Import merge_variables.yml | ansible.builtin.include_tasks | False |
-| Nomad \| Import prerequisites.yml | ansible.builtin.include_tasks | False |
-| Nomad \| Import install.yml | ansible.builtin.include_tasks | False |
-| Nomad \| Import configure.yml | ansible.builtin.include_tasks | False |
-| Nomad \| Populate service facts | ansible.builtin.service_facts | False |
-| Nomad \| Set restart-check variable | ansible.builtin.set_fact | True |
-| Nomad \| Enable service: {{ nomad_service_name }} | ansible.builtin.service | False |
-| Nomad \| Reload systemd daemon | ansible.builtin.systemd | True |
-| Nomad \| Start service: {{ nomad_service_name }} | ansible.builtin.service | True |
+### Autopilot Configuration
 
-#### File: tasks/install.yml
+```yaml
+nomad_autopilot_configuration: {}
+```
+This variable defines the Autopilot configuration for the Nomad agent. It should match the structure of the Autopilot stanza as described in the [Nomad documentation](https://developer.hashicorp.com/nomad/docs/configuration/autopilot). The Autopilot configuration allows you to enable and configure features like automatic leader elections and health checks for the Nomad cluster.
 
-| Name | Module | Has Conditions |
-| ---- | ------ | --------- |
-| Nomad \| Get latest release of nomad | block | True |
-| Nomad \| Get latest nomad release from github api | ansible.builtin.uri | False |
-| Nomad \| Set wanted nomad version to latest tag | ansible.builtin.set_fact | False |
-| Nomad \| Set wanted nomad version to {{ nomad_version }} | ansible.builtin.set_fact | True |
-| Nomad \| Get current nomad version | block | False |
-| Nomad \| Stat nomad version file | ansible.builtin.stat | False |
-| Nomad \| Get current nomad version | ansible.builtin.slurp | True |
-| Nomad \| Download and install nomad binary | block | True |
-| Nomad \| Set nomad package name to download | ansible.builtin.set_fact | False |
-| Nomad \| Download checksum file for nomad archive | ansible.builtin.get_url | False |
-| Nomad \| Extract correct checksum from checksum file | ansible.builtin.command | False |
-| Nomad \| Parse the expected checksum | ansible.builtin.set_fact | False |
-| Nomad \| Download nomad binary archive | ansible.builtin.get_url | False |
-| Nomad \| Create temporary directory for archive decompression | ansible.builtin.file | False |
-| Nomad \| Unpack nomad archive | ansible.builtin.unarchive | False |
-| Nomad \| Copy nomad binary to {{ nomad_binary_path }} | ansible.builtin.copy | False |
-| Nomad \| Update nomad version file | ansible.builtin.copy | False |
-| Nomad \| Set restart-check variable | ansible.builtin.set_fact | False |
-| Nomad \| Cleanup temporary directory | ansible.builtin.file | False |
-| Nomad \| Copy systemd service file for nomad | ansible.builtin.template | False |
-| Nomad \| Set reload-check & restart-check variable | ansible.builtin.set_fact | True |
+Example configuration:
 
-#### File: tasks/prerequisites.yml
+```yaml
+nomad_autopilot_configuration:
+  cleanup_dead_servers: true
+  last_contact_threshold: "200ms"
+  max_trailing_logs: 250
+  server_stabilization_time: "10s"
+```
 
-| Name | Module | Has Conditions |
-| ---- | ------ | --------- |
-| Nomad \| Create group {{ nomad_group }} | ansible.builtin.group | False |
-| Nomad \| Create user {{ nomad_user }} | ansible.builtin.user | False |
-| Nomad \| Create directory {{ nomad_config_dir }} | ansible.builtin.file | False |
-| Nomad \| Create directory {{ nomad_data_dir }} | ansible.builtin.file | False |
-| Nomad \| Create directory {{ nomad_certs_dir }} | ansible.builtin.file | False |
-| Nomad \| Create directory {{ nomad_logs_dir }} | ansible.builtin.file | True |
+### Leave Configuration
 
-#### File: tasks/configure.yml
+```yaml
+nomad_leave_on_interrupt: false
+```
+Determines whether the Nomad agent should gracefully leave the cluster when it receives an interrupt signal (e.g., SIGINT). Defaults to `false`, meaning the agent will not leave the cluster on interrupt.
 
-| Name | Module | Has Conditions |
-| ---- | ------ | --------- |
-| Nomad \| Create nomad.env | ansible.builtin.template | False |
-| Nomad \| Copy nomad.json template | ansible.builtin.template | False |
-| Nomad \| Set restart-check variable | ansible.builtin.set_fact | True |
-| Nomad \| Copy extra configuration files | block | True |
-| Nomad \| Get extra file types | ansible.builtin.stat | False |
-| Nomad \| Set list for file sources | vars | True |
-| Nomad \| Set list for directory sources | vars | True |
-| Nomad \| Template extra file sources | ansible.builtin.template | True |
-| Nomad \| Template extra directory sources | ansible.builtin.include_tasks | True |
+```yaml
+nomad_leave_on_terminate: false
+```
+Specifies whether the Nomad agent should leave the cluster when it is terminated (e.g., SIGTERM). Defaults to `false`, indicating the agent will not leave the cluster upon termination.
 
+### Server Configuration
 
+```yaml
+nomad_enable_server: true
+```
+Indicates whether the Nomad agent should operate as a server. Defaults to `true`, enabling the server stanza.
 
+```yaml
+nomad_server_bootstrap_expect: 1
+```
+Specifies the number of servers that should join the cluster before bootstrapping. This value is set outside the server configuration block due to Jinja2's inability to convert strings to integers during dict merging.
 
+```yaml
+nomad_server_configuration:
+  enabled: "{{ nomad_enable_server }}"
+  data_dir: "{{ nomad_data_dir }}/server"
+  encrypt: "{{ 'mysupersecretgossipencryptionkey' | b64encode }}"
+  server_join:
+    retry_join:
+      - "{{ ansible_default_ipv4.address }}"
+```
+Defines the server configuration stanza. Includes:
+- `enabled`: References the `nomad_enable_server` variable to enable or disable the server.
+- `data_dir`: Path to the directory where server data will be stored.
+- `encrypt`: Base64-encoded key for gossip encryption.
+- `server_join.retry_join`: A list of addresses to which the server will attempt to join the cluster.
 
+Refer to the Nomad documentation for more details on the server configuration [here](https://developer.hashicorp.com/nomad/docs/configuration/server).
 
+### Client Configuration
 
-## Author Information
-Bertrand Lanson
+```yaml
+nomad_enable_client: false
+```
+Indicates whether the Nomad agent should operate as a client. Defaults to `false`, disabling the client stanza.
 
-#### License
+```yaml
+nomad_client_configuration:
+  enabled: "{{ nomad_enable_client }}"
+  state_dir: "{{ nomad_data_dir }}/client"
+  cni_path: "/opt/cni/bin"
+  bridge_network_name: nomad
+  bridge_network_subnet: "172.26.64.0/20"
+```
+Defines the client configuration stanza. Includes:
+- `enabled`: References the `nomad_enable_client` variable to enable or disable the client.
+- `state_dir`: Path to the directory where client state data will be stored.
+- `cni_path`: Specifies the path to the Container Network Interface (CNI) binaries.
+- `bridge_network_name`: The name of the bridge network used by the client.
+- `bridge_network_subnet`: The subnet for the bridge network.
 
-license (BSD, MIT)
+Refer to the Nomad documentation for more details on the client configuration [here](https://developer.hashicorp.com/nomad/docs/configuration/client).
 
-#### Minimum Ansible Version
+### UI Configuration
 
-2.10
+```yaml
+nomad_ui_configuration:
+  enabled: "{{ nomad_enable_server }}"
+```
+Configures the Nomad UI. By default, the `enabled` field determines whether the UI is active and is set based on the `nomad_enable_server` variable, meaning the UI will only be enabled if the Nomad server is enabled.
 
-#### Platforms
+### Drivers Configuration
 
-- **Ubuntu**: ['focal', 'jammy', 'noble']
-- **Debian**: ['bullseye', 'bookworm']
+```yaml
+nomad_driver_enable_docker: true
+```
+Indicates whether the Docker driver should be enabled. Currently, this setting is not functional but is included for future development.
 
-<!-- DOCSIBLE END -->
+```yaml
+nomad_driver_enable_podman: false
+```
+Indicates whether the Podman driver should be enabled. Currently, this setting is not functional.
+
+```yaml
+nomad_driver_enable_raw_exec: false
+```
+Indicates whether the Raw Exec driver should be enabled. Currently, this setting is not functional.
+
+```yaml
+nomad_driver_enable_java: false
+```
+Indicates whether the Java driver should be enabled. Currently, this setting is not functional.
+
+```yaml
+nomad_driver_enable_qemu: false
+```
+Indicates whether the QEMU driver should be enabled. Currently, this setting is not functional.
+
+```yaml
+nomad_driver_configuration:
+  raw_exec:
+    enabled: false
+```
+This block defines the configuration for Nomad drivers. The example shows the configuration for the Raw Exec driver, which is currently disabled.
+
+```yaml
+nomad_driver_extra_configuration: {}
+```
+A dictionary for any additional driver configuration options not covered by other variables. This should be used only for options not provided by existing variables and will be merged with the `nomad_driver_configuration`, taking precedence over existing settings.
+
+### Nomad Logging
+
+```yaml
+nomad_log_level: info
+```
+Sets the logging level for Nomad. Accepted values are `trace`, `debug`, `info`, `warn`, and `error`. See [Nomad documentation on log levels](https://developer.hashicorp.com/nomad/docs/configuration#log_level) for more details.
+
+```yaml
+nomad_enable_log_to_file: false
+```
+Enables logging to a file if set to `true`. When enabled, the settings in `nomad_log_to_file_configuration` will define the log file path, rotation frequency, and retention of logs.
+
+```yaml
+nomad_log_to_file_configuration:
+  log_file: "{{ nomad_logs_dir }}/nomad.log"
+  log_rotate_duration: 24h
+  log_rotate_max_files: 30
+```
+Specifies configuration for file-based logging:
+- **`log_file`**: Defines the path to the Nomad log file (e.g., `nomad_logs_dir/nomad.log`). See [Nomad log file configuration](https://developer.hashicorp.com/nomad/docs/configuration#log_file) for details.
+- **`log_rotate_duration`**: Sets the duration before log rotation occurs (e.g., `24h` for daily rotation).
+- **`log_rotate_max_files`**: Maximum number of rotated log files to retain.
+
+With `nomad_enable_log_to_file` set to `true`, these settings provide a default configuration for logging to a file, allowing Nomad to manage log files and rotation automatically.
+
+### ACL Configuration
+
+```yaml
+nomad_acl_configuration:
+  enabled: false
+  token_ttl: "30s"
+  policy_ttl: "60s"
+  role_ttl: "60s"
+```
+This variable corresponds to the ACL stanza in the Nomad configuration, defining the following settings:
+This configuration mirrors the structure outlined in the [Nomad ACL documentation](https://developer.hashicorp.com/nomad/docs/configuration/acl).
+
+### Internal TLS Configuration
+
+```yaml
+nomad_enable_tls: false
+```
+Indicates whether internal TLS should be enabled for the Nomad cluster.
+
+```yaml
+nomad_tls_configuration:
+  http: true
+  rpc: true
+  ca_file: "/etc/ssl/certs/ca-certificates.crt"
+  cert_file: "{{ nomad_certs_dir }}/cert.pem"
+  key_file: "{{ nomad_certs_dir }}/key.pem"
+  verify_server_hostname: true
+```
+This block defines the TLS configuration for the Nomad cluster. It includes options for enabling TLS for HTTP and RPC, paths to the CA file, certificate file, key file, and verification settings for the server hostname. For detailed information, refer to the [Nomad TLS documentation](https://developer.hashicorp.com/nomad/docs/configuration/tls).
+
+```yaml
+nomad_certificates_extra_files_dir: []
+```
+A list for additional certificate files that can be added to the `nomad_extra_files_list` variable. If used, `nomad_extra_files` should be set to true to ensure the certificates are copied to the target host.
+
+### Telemetry Configuration
+
+```yaml
+nomad_telemetry_configuration:
+  collection_interval: 10s
+  disable_hostname: false
+  use_node_name: false
+  publish_allocation_metrics: false
+  publish_node_metrics: false
+  prefix_filter: []
+  disable_dispatched_job_summary_metrics: false
+  prometheus_metrics: false
+```
+This block configures telemetry settings for Nomad. Each option adjusts different aspects of telemetry data collection and publication. For more information, refer to the [Nomad Telemetry documentation](https://developer.hashicorp.com/nomad/docs/configuration/telemetry).
+
+### Consul Integration Configuration
+
+```yaml
+nomad_enable_consul_integration: false
+```
+This variable enables the Consul integration for service registration in Nomad.
+
+```yaml
+nomad_consul_integration_configuration:
+  address: "127.0.0.1:8500"
+  auto_advertise: true
+  ssl: false
+  token: ""
+  tags: []
+```
+This block represents the **Consul** stanza, which configures the integration with Consul for service registration. For more details, refer to the [Nomad Consul documentation](https://developer.hashicorp.com/nomad/docs/configuration/consul).
+
+```yaml
+nomad_consul_integration_tls_configuration:
+  ca_file: "/etc/ssl/certs/ca-certificates.crt"
+```
+If `nomad_consul_integration_configuration.ssl` is defined and set to `true`, the **TLS configuration** will be merged with the `nomad_consul_integration_configuration` for defining TLS-specific settings.
+
+```yaml
+nomad_consul_integration_server_configuration:
+  server_auto_join: true
+```
+If `nomad_enable_server` is set to `true`, this configuration block will be merged with `nomad_consul_integration_configuration` to provide additional settings for the server's integration with Consul.
+
+```yaml
+nomad_consul_integration_client_configuration:
+  client_auto_join: true
+  grpc_address: "127.0.0.1:8502"
+```
+If `nomad_enable_client` is set to `true`, this block will be merged with `nomad_consul_integration_configuration` to define the client configuration for the Consul integration.
+
+```yaml
+nomad_consul_integration_client_tls_configuration:
+  grpc_ca_file: "/etc/ssl/certs/ca-certificates.crt"
+```
+If both the client is enabled and SSL is enabled, this configuration will be merged with `nomad_consul_integration_client_configuration` for the gRPC connection to Consul.
+
+Here's the refined **Nomad Vault Integration Configuration** section with the correct formatting and linking to the documentation:
+
+### Nomad Vault Integration Configuration
+
+```yaml
+nomad_enable_vault_integration: false
+```
+This variable enables the Vault integration in Nomad.
+
+```yaml
+nomad_vault_integration_configuration: {}
+```
+This block represents the **Vault** stanza, which configures the integration with HashiCorp Vault for managing secrets and sensitive data. For more details, refer to the [Nomad Vault documentation](https://developer.hashicorp.com/nomad/docs/configuration/vault).
+
+Dependencies
+------------
+
+None.
+
+Example Playbook
+----------------
+
+```yaml
+# calling the role inside a playbook with either the default or group_vars/host_vars
+- hosts: servers
+  roles:
+    - ednz_cloud.hashistack.nomad
+```
+
+License
+-------
+
+MIT / BSD
+
+Author Information
+------------------
+
+This role was created by Bertrand Lanson in 2023.

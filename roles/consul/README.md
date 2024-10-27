@@ -1,227 +1,297 @@
-<!-- DOCSIBLE START -->
+**Consul**
+=========
 
-# 📃 Role overview
+This role configures [HashiCorp consul](https://www.hashicorp.com/products/consul) on **Debian-based** distributions.
 
-## consul
+**Requirements**
+------------
+
+This role requires that the `unzip` package is installed on the target host.
+
+**Role Variables**
+--------------
+
+### Service Configuration
+
+```yaml
+consul_version: latest
+```
+Specifies the version of Consul to install. Default is `latest`, which installs the latest stable version. It is recommended to pin the consul version to install, as setting latest will cause the role to query the github API, andyou might run into rate limiting issues. A pinned version should look like `X.Y.Z`, in accordance with the consul's [release repository](https://releases.hashicorp.com/consul/) (just strip out the leading `consul_`)
+
+```yaml
+consul_start_service: true
+```
+Indicates whether the Consul service should start after installation. Defaults to `true`.
+
+```yaml
+consul_config_dir: "/etc/consul.d"
+```
+Path to the directory where Consul's configuration files are stored.
+
+```yaml
+consul_data_dir: "/opt/consul"
+```
+Specifies the directory where Consul will store its data.
+
+```yaml
+consul_certs_dir: "{{ consul_config_dir }}/tls"
+```
+Path to the directory where Consul's TLS certificates should be stored when using internal TLS.
+
+```yaml
+consul_logs_dir: "/var/log/consul"
+```
+Directory path where Consul's log files will be stored if logging to file is enabled.
+
+```yaml
+consul_extra_files: false
+```
+If `true`, allows additional files to be copied over to the target host by the role.
+
+```yaml
+consul_extra_files_list: []
+```
+A list of additional files to manage with the role if `consul_extra_files` is set to `true`. This is a list of objects like:
+
+```yaml
+- src: /path/on/deploy/machine
+  dest: /path/to/copy/over
+```
+
+Sources can be any type of file, directory or jinja2 templates. Destination should match the type of the source. Jinja2 templates inside of a directory that would be copied over are also templated, and their `.j2` extensions will be stripped out.
+
+Example:
+
+```yaml
+consul_extra_files_list:
+  - src: /local/path/to/tls/files
+    dest: "{{ consul_certs_dir }}"
+  - src: /another/single/file.j2
+    dest: /var/lib/file
+```
+
+```yaml
+consul_env_variables: {}
+```
+Environment variables to be set for the Consul service, defined as key-value pairs.
+
+### Extra Configuration
+
+```yaml
+consul_extra_configuration: {}
+```
+Dictionary for any additional Consul configuration options not covered by other variables. This should be used only for options not provided by existing variables.
+
+### General Configuration
+
+```yaml
+consul_domain: consul
+```
+The domain for Consul, typically set to `consul`.
+
+```yaml
+consul_datacenter: dc1
+```
+Specifies the datacenter for the Consul instance.
+
+```yaml
+consul_primary_datacenter: "{{ consul_datacenter }}"
+```
+Sets the primary datacenter, defaulting to the value of `consul_datacenter`.
+
+```yaml
+consul_gossip_encryption_key: "{{ 'mysupersecretgossipencryptionkey' | b64encode }}"
+```
+Sets the gossip encryption key for secure communication between Consul agents. This key must be a 32-byte base64-encoded string.
+
+```yaml
+consul_enable_script_checks: false
+```
+Indicates whether script checks are enabled for Consul.
+
+### Leave Configuration
+
+```yaml
+consul_leave_on_terminate: true
+```
+Specifies whether the consul agent should leave the cluster when it is terminated (e.g., SIGTERM). Defaults to `false`, indicating the agent will not leave the cluster upon termination.
+
+```yaml
+consul_rejoin_after_leave: true
+```
+Specifies whether the Consul agent should automatically rejoin the cluster after leaving.
+
+### Join Configuration
+
+```yaml
+consul_join_configuration:
+  retry_join:
+    - "{{ ansible_default_ipv4.address }}"
+  retry_interval: 30s
+  retry_max: 0
+```
+Specifies the addresses that the Consul agent should attempt to join upon starting, the interval between attempts to join the cluster, and the maximum number of join attempts before giving up. A value of `0` for `retry_max` indicates unlimited retries.
+
+### Server Configuration
+
+```yaml
+consul_enable_server: true
+```
+Enables the Consul server functionality.
+
+```yaml
+consul_bootstrap_expect: 1
+```
+Specifies the number of servers that are expected to bootstrap the cluster. In this example, `1` indicates that this server will be the only one in the cluster during the initial bootstrapping phase.
+
+### UI Configuration
+
+```yaml
+consul_ui_configuration:
+  enabled: "{{ consul_enable_server }}"
+```
+Enables the Consul UI based on whether the Consul server is enabled. If `consul_enable_server` is set to `true`, the UI will be accessible.
+
+### Address Configuration
+
+```yaml
+consul_bind_addr: "0.0.0.0"
+```
+Specifies the address that Consul will bind to for incoming connections.
+
+```yaml
+consul_advertise_addr: "{{ ansible_default_ipv4.address }}"
+```
+Defines the address that Consul will advertise to other members of the cluster.
+
+```yaml
+consul_address_configuration:
+  client_addr: "{{ consul_bind_addr }}"
+  bind_addr: "{{ consul_advertise_addr }}"
+  advertise_addr: "{{ consul_advertise_addr }}"
+```
+This block contains the address configuration for Consul. It will be merged into the global Consul configuration to facilitate setup and avoid repeating entries.
+
+### ACL Configuration
+
+```yaml
+consul_acl_configuration:
+  enabled: false
+  default_policy: "deny"
+  enable_token_persistence: true
+  # tokens:
+  #   agent: ""
+```
+This block matches the "acl" stanza from the [Consul documentation](https://developer.hashicorp.com/consul/docs/agent/config/config-files#acl).
+
+### Service Mesh Configuration
+
+```yaml
+consul_mesh_configuration:
+  enabled: false
+```
+This block matches the "connect" stanza from the [Consul documentation](https://developer.hashicorp.com/consul/docs/agent/config/config-files#connect).
+
+### DNS Configuration
+
+```yaml
+consul_dns_configuration:
+  allow_stale: true
+  enable_truncate: true
+  only_passing: true
+```
+This block matches the "dns_config" stanza from the [Consul documentation](https://developer.hashicorp.com/consul/docs/agent/config/config-files#dns_config).
+
+### Internal TLS Configuration
+
+```yaml
+consul_enable_tls: false
+```
+Enables TLS for Consul listeners if set to `true`.
+
+```yaml
+consul_tls_configuration:
+  defaults:
+    ca_file: "/etc/ssl/certs/ca-certificates.crt"
+    cert_file: "{{ consul_certs_dir }}/cert.pem"
+    key_file: "{{ consul_certs_dir }}/key.pem"
+    verify_incoming: false
+    verify_outgoing: true
+  internal_rpc:
+    verify_server_hostname: true
+```
+The `consul_tls_configuration` value matches the "tls" block from the [Consul documentation](https://developer.hashicorp.com/consul/docs/agent/config/config-files#tls-configuration-reference).
 
 
-
-Description: Install and configure hashicorp consul for debian-based distros.
-
-
-| Field                | Value           |
-|--------------------- |-----------------|
-| Readme update        | 26/08/2024 |
+```yaml
+consul_certificates_extra_files_dir: []
+```
+The `consul_certificates_extra_files_dir` values allows users to copy certificates by appending to `consul_extra_files_list`. `consul_extra_files` must be set to `true` if using this feature.
 
 
+### Telemetry Configuration
 
+```yaml
+consul_enable_prometheus_metrics: false
+```
+This variable enable prometheus metrics for the Consul server or agent.
 
+```yaml
+consul_prometheus_retention_time: 60s
+```
+This variable matches the `telemetry.prometheus_retention_time` from the [Consul documentation](https://developer.hashicorp.com/consul/docs/agent/config/config-files#telemetry-parameters). It defaults to `60s` and derives from the default `0s` because in case `consul_enable_prometheus_metrics` is `true`, this variable need to be greater than `0s` in order to enable prometheus metrics endpoint.
 
+```yaml
+consul_telemetry_configuration: {}
+```
+This block matches the "telemetry" stanza from the [Consul documentation](https://developer.hashicorp.com/consul/docs/agent/config/config-files#telemetry-parameters).
 
-### Defaults
+### Consul Logging
 
-**These are static variables with lower priority**
+```yaml
+consul_log_level: info
+```
+Sets the logging level for Consul. Accepted values are `trace`, `debug`, `info`, `warn`, and `error`. See [Consul documentation on log levels](https://developer.hashicorp.com/consul/docs/agent/config/cli-flags#_log_level) for more details.
 
-#### File: defaults/main.yml
+```yaml
+consul_enable_log_to_file: false
+```
+Enables logging to a file if set to `true`. When enabled, the settings in `consul_log_to_file_configuration` will define the log file path, rotation frequency, and retention of logs.
 
-| Var          | Type         | Value       |Required    | Title       |
-|--------------|--------------|-------------|-------------|-------------|
-| [consul_version](defaults/main.yml#L4)   | str   | `latest`  |  n/a  |  n/a |
-| [consul_start_service](defaults/main.yml#L5)   | bool   | `True`  |  n/a  |  n/a |
-| [consul_config_dir](defaults/main.yml#L6)   | str   | `/etc/consul.d`  |  n/a  |  n/a |
-| [consul_data_dir](defaults/main.yml#L7)   | str   | `/opt/consul`  |  n/a  |  n/a |
-| [consul_certs_dir](defaults/main.yml#L8)   | str   | `{{ consul_config_dir }}/tls`  |  n/a  |  n/a |
-| [consul_logs_dir](defaults/main.yml#L9)   | str   | `/var/log/consul`  |  n/a  |  n/a |
-| [consul_envoy_install](defaults/main.yml#L11)   | bool   | `False`  |  n/a  |  n/a |
-| [consul_envoy_version](defaults/main.yml#L12)   | str   | `latest`  |  n/a  |  n/a |
-| [consul_extra_files](defaults/main.yml#L14)   | bool   | `False`  |  n/a  |  n/a |
-| [consul_extra_files_list](defaults/main.yml#L15)   | list   | `[]`  |  n/a  |  n/a |
-| [consul_env_variables](defaults/main.yml#L17)   | dict   | `{}`  |  n/a  |  n/a |
-| [consul_extra_configuration](defaults/main.yml#L28)   | dict   | `{}`  |  n/a  |  n/a |
-| [consul_domain](defaults/main.yml#L34)   | str   | `consul`  |  n/a  |  n/a |
-| [consul_datacenter](defaults/main.yml#L35)   | str   | `dc1`  |  n/a  |  n/a |
-| [consul_primary_datacenter](defaults/main.yml#L36)   | str   | `{{ consul_datacenter }}`  |  n/a  |  n/a |
-| [consul_gossip_encryption_key](defaults/main.yml#L37)   | str   | `{{ 'mysupersecretgossipencryptionkey'\|b64encode }}`  |  n/a  |  n/a |
-| [consul_enable_script_checks](defaults/main.yml#L38)   | bool   | `False`  |  n/a  |  n/a |
-| [consul_leave_on_terminate](defaults/main.yml#L44)   | bool   | `True`  |  n/a  |  n/a |
-| [consul_rejoin_after_leave](defaults/main.yml#L45)   | bool   | `True`  |  n/a  |  n/a |
-| [consul_join_configuration](defaults/main.yml#L51)   | dict   | `{'retry_join': ['{{ ansible_default_ipv4.address }}'], 'retry_interval': '30s', 'retry_max': 0}`  |  n/a  |  n/a |
-| [consul_enable_server](defaults/main.yml#L61)   | bool   | `True`  |  n/a  |  n/a |
-| [consul_bootstrap_expect](defaults/main.yml#L62)   | int   | `1`  |  n/a  |  n/a |
-| [consul_ui_configuration](defaults/main.yml#L68)   | dict   | `{'enabled': '{{ consul_enable_server }}'}`  |  n/a  |  n/a |
-| [consul_bind_addr](defaults/main.yml#L75)   | str   | `0.0.0.0`  |  n/a  |  n/a |
-| [consul_advertise_addr](defaults/main.yml#L76)   | str   | `{{ ansible_default_ipv4.address }}`  |  n/a  |  n/a |
-| [consul_address_configuration](defaults/main.yml#L77)   | dict   | `{'client_addr': '{{ consul_bind_addr }}', 'bind_addr': '{{ consul_advertise_addr }}', 'advertise_addr': '{{ consul_advertise_addr }}'}`  |  n/a  |  n/a |
-| [consul_acl_configuration](defaults/main.yml#L86)   | dict   | `{'enabled': False, 'default_policy': 'deny', 'enable_token_persistence': True}`  |  n/a  |  n/a |
-| [consul_mesh_configuration](defaults/main.yml#L97)   | dict   | `{'enabled': False}`  |  n/a  |  n/a |
-| [consul_dns_configuration](defaults/main.yml#L104)   | dict   | `{'allow_stale': True, 'enable_truncate': True, 'only_passing': True}`  |  n/a  |  n/a |
-| [consul_enable_tls](defaults/main.yml#L113)   | bool   | `False`  |  n/a  |  n/a |
-| [consul_tls_configuration](defaults/main.yml#L114)   | dict   | `{'defaults': {'ca_file': '/etc/ssl/certs/ca-certificates.crt', 'cert_file': '{{ consul_certs_dir }}/cert.pem', 'key_file': '{{ consul_certs_dir }}/key.pem', 'verify_incoming': False, 'verify_outgoing': True}, 'internal_rpc': {'verify_server_hostname': True}}`  |  n/a  |  n/a |
-| [consul_certificates_extra_files_dir](defaults/main.yml#L124)   | list   | `[]`  |  n/a  |  n/a |
-| [consul_enable_prometheus_metrics](defaults/main.yml#L133)   | bool   | `False`  |  n/a  |  n/a |
-| [consul_prometheus_retention_time](defaults/main.yml#L134)   | str   | `60s`  |  n/a  |  n/a |
-| [consul_telemetry_configuration](defaults/main.yml#L135)   | dict   | `{}`  |  n/a  |  n/a |
-| [consul_log_level](defaults/main.yml#L141)   | str   | `info`  |  n/a  |  n/a |
-| [consul_enable_log_to_file](defaults/main.yml#L142)   | bool   | `False`  |  n/a  |  n/a |
-| [consul_log_to_file_configuration](defaults/main.yml#L143)   | dict   | `{'log_file': '{{ consul_logs_dir }}/consul.log', 'log_rotate_duration': '24h', 'log_rotate_max_files': 30}`  |  n/a  |  n/a |
+```yaml
+consul_log_to_file_configuration:
+  log_file: "{{ consul_logs_dir }}/consul.log"
+  log_rotate_duration: 24h
+  log_rotate_max_files: 30
+```
+Specifies configuration for file-based logging:
+- **`log_file`**: Defines the path to the Consul log file (e.g., `consul_logs_dir/consul.log`). See [Consul log file configuration](https://developer.hashicorp.com/consul/docs/agent/config/config-files#log-parameters) for details.
+- **`log_rotate_duration`**: Sets the duration before log rotation occurs (e.g., `24h` for daily rotation).
+- **`log_rotate_max_files`**: Maximum number of rotated log files to retain.
 
+With `consul_enable_log_to_file` set to `true`, these settings provide a default configuration for logging to a file, allowing Consul to manage log files and rotation automatically.
 
-### Vars
+Dependencies
+------------
 
-**These are variables with higher priority**
-#### File: vars/main.yml
+None.
 
-| Var          | Type         | Value       |Required    | Title       |
-|--------------|--------------|-------------|-------------|-------------|
-| [consul_user](vars/main.yml#L3)    | str   | `consul`  | n/a | n/a |
-| [consul_group](vars/main.yml#L4)    | str   | `consul`  | n/a | n/a |
-| [consul_binary_path](vars/main.yml#L5)    | str   | `/usr/local/bin/consul`  | n/a | n/a |
-| [consul_envoy_binary_path](vars/main.yml#L6)    | str   | `/usr/local/bin/envoy`  | n/a | n/a |
-| [consul_deb_architecture_map](vars/main.yml#L7)    | dict   | `{'x86_64': 'amd64', 'aarch64': 'arm64', 'armv7l': 'arm', 'armv6l': 'arm'}`  | n/a | n/a |
-| [consul_envoy_architecture_map](vars/main.yml#L12)    | dict   | `{'x86_64': 'x86_64', 'aarch64': 'aarch64'}`  | n/a | n/a |
-| [consul_architecture](vars/main.yml#L15)    | str   | `{{ consul_deb_architecture_map[ansible_architecture] \| default(ansible_architecture) }}`  | n/a | n/a |
-| [consul_envoy_architecture](vars/main.yml#L16)    | str   | `{{ consul_envoy_architecture_map[ansible_architecture] \| default(ansible_architecture) }}`  | n/a | n/a |
-| [consul_service_name](vars/main.yml#L17)    | str   | `consul`  | n/a | n/a |
-| [consul_github_api](vars/main.yml#L18)    | str   | `https://api.github.com/repos`  | n/a | n/a |
-| [consul_envoy_github_project](vars/main.yml#L19)    | str   | `envoyproxy/envoy`  | n/a | n/a |
-| [consul_github_project](vars/main.yml#L20)    | str   | `hashicorp/consul`  | n/a | n/a |
-| [consul_github_url](vars/main.yml#L21)    | str   | `https://github.com`  | n/a | n/a |
-| [consul_repository_url](vars/main.yml#L22)    | str   | `https://releases.hashicorp.com/consul`  | n/a | n/a |
-| [consul_configuration](vars/main.yml#L24)    | dict   | `{'domain': '{{ consul_domain }}', 'datacenter': '{{ consul_datacenter }}', 'primary_datacenter': '{{ consul_primary_datacenter }}', 'data_dir': '{{ consul_data_dir }}', 'encrypt': '{{ consul_gossip_encryption_key }}', 'server': '{{ consul_enable_server }}', 'ui_config': '{{ consul_ui_configuration }}', 'connect': '{{ consul_mesh_configuration }}', 'leave_on_terminate': '{{ consul_leave_on_terminate }}', 'rejoin_after_leave': '{{ consul_rejoin_after_leave }}', 'enable_script_checks': '{{ consul_enable_script_checks }}', 'enable_syslog': True, 'acl': '{{ consul_acl_configuration }}', 'dns_config': '{{ consul_dns_configuration }}', 'log_level': '{{ consul_log_level }}', 'ports': {'dns': 8600, 'server': 8300, 'serf_lan': 8301, 'serf_wan': 8302, 'sidecar_min_port': 21000, 'sidecar_max_port': 21255, 'expose_min_port': 21500, 'expose_max_port': 21755}}`  | n/a | n/a |
-| [consul_configuration_string](vars/main.yml#L50)    | str   | `<multiline value>`  | n/a | n/a |
-| [consul_server_configuration_string](vars/main.yml#L57)    | str   | `<multiline value>`  | n/a | n/a |
+Example Playbook
+----------------
 
+```yaml
+# calling the role inside a playbook with either the default or group_vars/host_vars
+- hosts: servers
+  roles:
+    - ednz_cloud.hashistack.consul
+```
 
-### Tasks
+License
+-------
 
+MIT / BSD
 
-#### File: tasks/recursive_copy_extra_dirs.yml
+Author Information
+------------------
 
-| Name | Module | Has Conditions |
-| ---- | ------ | --------- |
-| Consul \| Ensure destination directory exists | ansible.builtin.file | False |
-| Consul \| Create extra directory sources | ansible.builtin.file | True |
-| Consul \| Template extra directory sources | ansible.builtin.template | True |
-
-#### File: tasks/merge_variables.yml
-
-| Name | Module | Has Conditions |
-| ---- | ------ | --------- |
-| Consul \| Merge stringified configuration | vars | False |
-| Consul \| Merge server specific stringified configuration | vars | True |
-| Consul \| Merge join configuration | vars | False |
-| Consul \| Merge addresses configuration | vars | False |
-| Consul \| Merge TLS configuration | block | True |
-| Consul \| Merge TLS configuration | vars | False |
-| Consul \| Add certificates directory to extra_files_dir | ansible.builtin.set_fact | False |
-| Consul \| Merge extra configuration settings | vars | False |
-| Consul \| Merge log to file configuration | vars | True |
-| Consul \| Merge telemetry configuration | block | False |
-| Consul \| Merge prometheus metrics configuration | vars | True |
-| Consul \| Merge telemtry configuration | vars | False |
-
-#### File: tasks/main.yml
-
-| Name | Module | Has Conditions |
-| ---- | ------ | --------- |
-| Consul \| Set reload-check & restart-check variable | ansible.builtin.set_fact | False |
-| Consul \| Import merge_variables.yml | ansible.builtin.include_tasks | False |
-| Consul \| Import prerequisites.yml | ansible.builtin.include_tasks | False |
-| Consul \| Import install_envoy.yml | ansible.builtin.include_tasks | True |
-| Consul \| Import install.yml | ansible.builtin.include_tasks | False |
-| Consul \| Import configure.yml | ansible.builtin.include_tasks | False |
-| Consul \| Populate service facts | ansible.builtin.service_facts | False |
-| Consul \| Set restart-check variable | ansible.builtin.set_fact | True |
-| Consul \| Enable service: {{ consul_service_name }} | ansible.builtin.service | False |
-| Consul \| Reload systemd daemon | ansible.builtin.systemd | True |
-| Consul \| Start service: {{ consul_service_name }} | ansible.builtin.service | True |
-
-#### File: tasks/install.yml
-
-| Name | Module | Has Conditions |
-| ---- | ------ | --------- |
-| Consul \| Get latest release of consul | block | True |
-| Consul \| Get latest consul release from github api | ansible.builtin.uri | False |
-| Consul \| Set wanted consul version to latest tag | ansible.builtin.set_fact | False |
-| Consul \| Set wanted consul version to {{ consul_version }} | ansible.builtin.set_fact | True |
-| Consul \| Get current consul version | block | False |
-| Consul \| Stat consul version file | ansible.builtin.stat | False |
-| Consul \| Get current consul version | ansible.builtin.slurp | True |
-| Consul \| Download and install consul binary | block | True |
-| Consul \| Set consul package name to download | ansible.builtin.set_fact | False |
-| Consul \| Download checksum file for consul archive | ansible.builtin.get_url | False |
-| Consul \| Extract correct checksum from checksum file | ansible.builtin.command | False |
-| Consul \| Parse the expected checksum | ansible.builtin.set_fact | False |
-| Consul \| Download consul binary archive | ansible.builtin.get_url | False |
-| Consul \| Create temporary directory for archive decompression | ansible.builtin.file | False |
-| Consul \| Unpack consul archive | ansible.builtin.unarchive | False |
-| Consul \| Copy consul binary to {{ consul_binary_path }} | ansible.builtin.copy | False |
-| Consul \| Update consul version file | ansible.builtin.copy | False |
-| Consul \| Set restart-check variable | ansible.builtin.set_fact | False |
-| Consul \| Cleanup temporary directory | ansible.builtin.file | False |
-| Consul \| Copy systemd service file for consul | ansible.builtin.template | False |
-| Consul \| Set reload-check & restart-check variable | ansible.builtin.set_fact | True |
-
-#### File: tasks/install_envoy.yml
-
-| Name | Module | Has Conditions |
-| ---- | ------ | --------- |
-| Consul \| Get release for envoy:{{ consul_envoy_version }} | vars | False |
-| Consul \| Check if envoy is already installed | ansible.builtin.stat | False |
-| Consul \| Check current envoy version | ansible.builtin.command | True |
-| Consul \| Set facts for wanted envoy release | ansible.builtin.set_fact | True |
-| Consul \| Set facts for current envoy release | ansible.builtin.set_fact | True |
-| Consul \| Create envoy directory | ansible.builtin.file | False |
-| Consul \| Install envoy | block | True |
-| Consul \| Remove old compose binary if different | ansible.builtin.file | False |
-| Consul \| Download and install envoy version:{{ consul_envoy_version }} | ansible.builtin.get_url | False |
-| Consul \| Update version file | ansible.builtin.copy | False |
-
-#### File: tasks/prerequisites.yml
-
-| Name | Module | Has Conditions |
-| ---- | ------ | --------- |
-| Consul \| Create group {{ consul_group }} | ansible.builtin.group | False |
-| Consul \| Create user {{ consul_user }} | ansible.builtin.user | False |
-| Consul \| Create directory {{ consul_config_dir }} | ansible.builtin.file | False |
-| Consul \| Create directory {{ consul_data_dir}} | ansible.builtin.file | False |
-| Consul \| Create directory {{ consul_certs_dir }} | ansible.builtin.file | False |
-| Consul \| Create directory {{ consul_logs_dir }} | ansible.builtin.file | True |
-
-#### File: tasks/configure.yml
-
-| Name | Module | Has Conditions |
-| ---- | ------ | --------- |
-| Consul \| Create consul.env | ansible.builtin.template | False |
-| Consul \| Copy consul.json template | ansible.builtin.template | False |
-| Consul \| Set restart-check variable | ansible.builtin.set_fact | True |
-| Consul \| Copy extra configuration files | block | True |
-| Consul \| Get extra file types | ansible.builtin.stat | False |
-| Consul \| Set list for file sources | vars | True |
-| Consul \| Set list for directory sources | vars | True |
-| Consul \| Template extra file sources | ansible.builtin.template | True |
-| Consul \| Template extra directory sources | ansible.builtin.include_tasks | True |
-
-
-
-
-
-
-
-## Author Information
-Bertrand Lanson
-
-#### License
-
-license (BSD, MIT)
-
-#### Minimum Ansible Version
-
-2.10
-
-#### Platforms
-
-- **Ubuntu**: ['focal', 'jammy', 'noble']
-- **Debian**: ['bullseye', 'bookworm']
-
-<!-- DOCSIBLE END -->
+This role was created by Bertrand Lanson in 2023.
