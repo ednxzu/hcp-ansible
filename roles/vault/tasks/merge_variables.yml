@@ -33,6 +33,7 @@
           | unique
           | sort
           }}"
+      when: vault_enable_tls
 
 - name: "Vault | Merge service registration configuration"
   vars:
