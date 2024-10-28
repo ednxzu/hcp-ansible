@@ -1,7 +1,7 @@
 ---
 # hashistack deployment playbook
 - name: "Deploy"
-  hosts: "{{ target | default('all, !deployment') }}"
+  hosts: common
   strategy: linear
   gather_facts: true
   any_errors_fatal: true

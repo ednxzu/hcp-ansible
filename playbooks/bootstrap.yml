@@ -1,11 +1,11 @@
 ---
 # hashistack prepare playbook
 - name: "Bootstrap"
-  hosts: all, !deployment
+  hosts: common
   gather_facts: true
   become: true
   tasks:
-    - name: "Isntall unzip with package manager"
+    - name: "Install unzip with package manager"
       ansible.builtin.include_role:
         name: ednz_cloud.manage_apt_packages
       vars:
