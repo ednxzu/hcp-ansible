@@ -4,7 +4,7 @@ hashistack_ca_directory: "{{ hashistack_sub_configuration_directories['certifica
 hashistack_ca_use_cryptography: false
 hashistack_ca_action: "noop"
 hashistack_ca_domain: example.com
-hashistack_ca_directory_owner: root
+hashistack_ca_directory_owner: "{{ lookup('env', 'USER') }}"
 
 ##############################
 # Root Certificate Authority #
