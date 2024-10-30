@@ -1,4 +1,10 @@
 ---
-cni_plugins_version: "v1.5.1"
-cni_plugins_install_path: /opt/cni/bin
-cni_plugins_install_consul_cni: true
+###############
+# cni plugins #
+###############
+
+# hashistack_cni_plugins_version:
+# hashistack_cni_plugins_install_path:
+# hashistack_cni_plugins_install_consul_cni:
+# hashistack_cni_user:
+# hashistack_cni_group:
