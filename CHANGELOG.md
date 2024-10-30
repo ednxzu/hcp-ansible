@@ -1,3 +1,17 @@
+## v0.9.0 (2024-10-30)
+
+### Feat
+
+- **group_vars/cni**: allow overrides of the cni values like any other role
+- simplify hashistack_ca default SANs for nomad and consul
+
+### Fix
+
+- **group_vars/hashistack_ca**: update default owner for pkito avoid permission issues
+- rename default inventory file, delete old assets
+- **playbooks**: update execution scope of playbooks
+- **roles/vault**: do not merge TLS certificateextra files if tls is not enabled
+
 ## v0.8.2 (2024-10-06)
 
 ### Fix
