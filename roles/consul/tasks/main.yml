@@ -55,5 +55,6 @@
     state: reloaded
   throttle: 1
   when:
+    - consul_start_service
     - _consul_service_need_reload
     - not _consul_service_need_restart
