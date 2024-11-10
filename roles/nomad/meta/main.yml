@@ -2,7 +2,7 @@
 # meta file for nomad
 galaxy_info:
   namespace: "ednz_cloud"
-  role_name: "hashicorp_nomad"
+  role_name: "nomad"
   author: "Bertrand Lanson"
   description: "Install and configure hashicorp nomad for debian-based distros."
   license: "license (BSD, MIT)"
