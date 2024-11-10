@@ -2,6 +2,7 @@
 # task/main file for nomad
 - name: "Nomad | Set reload-check & restart-check variable"
   ansible.builtin.set_fact:
+    _nomad_service_need_daemon_reload: false
     _nomad_service_need_reload: false
     _nomad_service_need_restart: false
 
@@ -33,11 +34,23 @@
 - name: "Nomad | Reload systemd daemon"
   ansible.builtin.systemd:
     daemon_reload: true
-  when: _nomad_service_need_reload
+  when: _nomad_service_need_daemon_reload
 
 - name: "Nomad | Start service: {{ nomad_service_name }}"
   ansible.builtin.service:
     name: "{{ nomad_service_name }}"
     state: restarted
   throttle: 1
-  when: _nomad_service_need_restart
+  when:
+    - nomad_start_service
+    - _nomad_service_need_restart
+
+- name: "Nomad | Reload service: {{ nomad_service_name }}"
+  ansible.builtin.service:
+    name: "{{ nomad_service_name }}"
+    state: reloaded
+  throttle: 1
+  when:
+    - nomad_start_service
+    - _nomad_service_need_reload
+    - not _nomad_service_need_restart

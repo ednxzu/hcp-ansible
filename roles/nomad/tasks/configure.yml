@@ -24,6 +24,31 @@
   when: _nomad_env_file.changed or
     _nomad_config_file.changed
 
+- name: "Nomad | Gather initial checksums for certificate files"
+  ansible.builtin.stat:
+    path: "{{ item }}"
+    checksum_algorithm: sha1
+  loop: "{{ nomad_certificates_reload_watchlist }}"
+  when: nomad_enable_tls
+  register: _nomad_initial_cert_checksums
+
+- name: "Nomad | Normalize initial checksums"
+  ansible.builtin.set_fact:
+    # This needs to be optimized, but I have spent so much time on it not
+    # working that I will keep it as is for now, and we'll see later.
+    _nomad_initial_checksums_normalized: >-
+      {% filter trim %}
+      {% set checksums = [] %}
+      {% for item in _nomad_initial_cert_checksums.results %}
+        {% set _ = checksums.append({
+          'item': item.item,
+          'initial_checksum': (item.stat.checksum | default('absent'))
+        }) %}
+      {% endfor %}
+      {{ checksums }}
+      {% endfilter %}
+  when: nomad_enable_tls
+
 - name: "Nomad | Copy extra configuration files"
   when: nomad_extra_files
   block:
@@ -72,3 +97,44 @@
       loop_control:
         loop_var: dir_source_item
       when: _nomad_dir_sources is defined
+
+- name: "Nomad | Gather final checksums for certificate files"
+  ansible.builtin.stat:
+    path: "{{ item }}"
+    checksum_algorithm: sha1
+  loop: "{{ nomad_certificates_reload_watchlist }}"
+  when: nomad_enable_tls
+  register: _nomad_final_cert_checksums
+
+- name: "Consul | Normalize final checksums"
+  ansible.builtin.set_fact:
+    # This needs to be optimized, but I have spent so much time on it not
+    # working that I will keep it as is for now, and we'll see later.
+    _nomad_final_checksums_normalized: >-
+      {% filter trim %}
+      {% set checksums = [] %}
+      {% for item in _nomad_final_cert_checksums.results %}
+        {% set _ = checksums.append({
+          'item': item.item,
+          'final_checksum': (item.stat.checksum | default('absent'))
+        }) %}
+      {% endfor %}
+      {{ checksums }}
+      {% endfilter %}
+  when: nomad_enable_tls
+
+- name: "Consul | Merge initial and final checksum lists"
+  ansible.builtin.set_fact:
+    _nomad_checksums_list: >-
+      {{
+        _nomad_initial_checksums_normalized |
+        community.general.lists_mergeby(_nomad_final_checksums_normalized, 'item')
+      }}
+  when: nomad_enable_tls
+
+- name: "Consul | Determine if certificates have changed or were newly added"
+  ansible.builtin.set_fact:
+    _nomad_service_need_reload: true
+  when:
+    - nomad_enable_tls
+    - _nomad_checksums_list | json_query('[?initial_checksum!=final_checksum]') | list| length > 0

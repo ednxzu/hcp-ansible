@@ -15,6 +15,18 @@ nomad_github_project: hashicorp/nomad
 nomad_github_url: https://github.com
 nomad_repository_url: https://releases.hashicorp.com/nomad
 
+nomad_certificates_reload_watchlist: |
+  {% filter trim %}
+  {% set watchlist = [] %}
+  {% set config = nomad_configuration.get('tls', {}) %}
+  {% for key in ['ca_file', 'cert_file', 'key_file'] %}
+    {% if config.get(key) %}
+      {{ watchlist.append(config[key]) }}
+    {% endif %}
+  {% endfor %}
+  {{ watchlist | unique }}
+  {% endfilter %}
+
 nomad_configuration:
   datacenter: "{{ nomad_datacenter }}"
   region: "{{ nomad_region }}"

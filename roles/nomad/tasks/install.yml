@@ -136,6 +136,6 @@
 
 - name: "Nomad | Set reload-check & restart-check variable"
   ansible.builtin.set_fact:
-    _nomad_service_need_reload: true
+    _nomad_service_need_daemon_reload: true
     _nomad_service_need_restart: true
   when: _nomad_unit_file.changed # noqa: no-handler
