@@ -24,6 +24,31 @@
   when: _vault_env_file.changed or
     _vault_config_file.changed
 
+- name: "Vault | Gather initial checksums for certificate files"
+  ansible.builtin.stat:
+    path: "{{ item }}"
+    checksum_algorithm: sha1
+  loop: "{{ vault_certificates_reload_watchlist }}"
+  when: vault_enable_tls
+  register: _vault_initial_cert_checksums
+
+- name: "Vault | Normalize initial checksums"
+  ansible.builtin.set_fact:
+    # This needs to be optimized, but I have spent so much time on it not
+    # working that I will keep it as is for now, and we'll see later.
+    _vault_initial_checksums_normalized: >-
+      {% filter trim %}
+      {% set checksums = [] %}
+      {% for item in _vault_initial_cert_checksums.results %}
+        {% set _ = checksums.append({
+          'item': item.item,
+          'initial_checksum': (item.stat.checksum | default('absent'))
+        }) %}
+      {% endfor %}
+      {{ checksums }}
+      {% endfilter %}
+  when: vault_enable_tls
+
 - name: "Vault | Copy extra configuration files"
   when: vault_extra_files
   block:
@@ -72,3 +97,44 @@
       loop_control:
         loop_var: dir_source_item
       when: _vault_dir_sources is defined
+
+- name: "Vault | Gather final checksums for certificate files"
+  ansible.builtin.stat:
+    path: "{{ item }}"
+    checksum_algorithm: sha1
+  loop: "{{ vault_certificates_reload_watchlist }}"
+  when: vault_enable_tls
+  register: _vault_final_cert_checksums
+
+- name: "Vault | Normalize final checksums"
+  ansible.builtin.set_fact:
+    # This needs to be optimized, but I have spent so much time on it not
+    # working that I will keep it as is for now, and we'll see later.
+    _vault_final_checksums_normalized: >-
+      {% filter trim %}
+      {% set checksums = [] %}
+      {% for item in _vault_final_cert_checksums.results %}
+        {% set _ = checksums.append({
+          'item': item.item,
+          'final_checksum': (item.stat.checksum | default('absent'))
+        }) %}
+      {% endfor %}
+      {{ checksums }}
+      {% endfilter %}
+  when: vault_enable_tls
+
+- name: "Vault | Merge initial and final checksum lists"
+  ansible.builtin.set_fact:
+    _vault_checksums_list: >-
+      {{
+        _vault_initial_checksums_normalized |
+        community.general.lists_mergeby(_vault_final_checksums_normalized, 'item')
+      }}
+  when: vault_enable_tls
+
+- name: "Vault | Determine if certificates have changed or were newly added"
+  ansible.builtin.set_fact:
+    _vault_service_need_reload: true
+  when:
+    - vault_enable_tls
+    - _vault_checksums_list | json_query('[?initial_checksum!=final_checksum]') | list| length > 0

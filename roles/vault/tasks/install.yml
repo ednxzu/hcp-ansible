@@ -137,7 +137,7 @@
 
 - name: "Vault | Set reload-check & restart-check variable"
   ansible.builtin.set_fact:
-    _vault_service_need_reload: true
+    _vault_service_need_daemon_reload: true
     _vault_service_need_restart: true
   when: _vault_unit_file.changed # noqa: no-handler
 

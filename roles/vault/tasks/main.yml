@@ -2,6 +2,7 @@
 # task/main file for vault
 - name: "Vault | Set reload-check & restart-check variable"
   ansible.builtin.set_fact:
+    _vault_service_need_daemon_reload: false
     _vault_service_need_reload: false
     _vault_service_need_restart: false
 
@@ -33,13 +34,24 @@
 - name: "Vault | Reload systemd daemon"
   ansible.builtin.systemd:
     daemon_reload: true
-  when: _vault_service_need_reload
+  when: _vault_service_need_daemon_reload
 
 - name: "Vault | Start service: {{ vault_service_name }}"
   ansible.builtin.include_tasks: rolling_restart.yml
   when:
+    - vault_start_service
     - _vault_service_need_restart
     - "hostvars[host_item].inventory_hostname == inventory_hostname"
   with_items: "{{ ansible_play_batch }}"
   loop_control:
     loop_var: host_item
+
+- name: "Vault | Reload service: {{ vault_service_name }}"
+  ansible.builtin.service:
+    name: "{{ vault_service_name }}"
+    state: reloaded
+  throttle: 1
+  when:
+    - vault_start_service
+    - _vault_service_need_reload
+    - not _vault_service_need_restart
