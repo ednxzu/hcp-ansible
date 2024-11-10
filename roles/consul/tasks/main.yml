@@ -2,6 +2,7 @@
 # task/main file for consul
 - name: "Consul | Set reload-check & restart-check variable"
   ansible.builtin.set_fact:
+    _consul_service_need_daemon_reload: false
     _consul_service_need_reload: false
     _consul_service_need_restart: false
 
@@ -37,11 +38,22 @@
 - name: "Consul | Reload systemd daemon"
   ansible.builtin.systemd:
     daemon_reload: true
-  when: _consul_service_need_reload
+  when: _consul_service_need_daemon_reload
 
 - name: "Consul | Start service: {{ consul_service_name }}"
   ansible.builtin.service:
     name: "{{ consul_service_name }}"
     state: restarted
   throttle: 1
-  when: _consul_service_need_restart
+  when:
+    - consul_start_service
+    - _consul_service_need_restart
+
+- name: "Consul | Reload service: {{ consul_service_name }}"
+  ansible.builtin.service:
+    name: "{{ consul_service_name }}"
+    state: reloaded
+  throttle: 1
+  when:
+    - _consul_service_need_reload
+    - not _consul_service_need_restart

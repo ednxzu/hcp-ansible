@@ -21,6 +21,19 @@ consul_github_project: hashicorp/consul
 consul_github_url: https://github.com
 consul_repository_url: https://releases.hashicorp.com/consul
 
+consul_certificates_reload_watchlist: |
+  {% filter trim %}
+  {% set watchlist = [] %}
+  {% for block, config in (consul_configuration.tls | default({})).items() %}
+    {% for key in ['ca_file', 'cert_file', 'key_file'] %}
+      {% if config.get(key) %}
+        {{ watchlist.append(config[key]) }}
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
+  {{ watchlist | unique }}
+  {% endfilter %}
+
 consul_configuration:
   domain: "{{ consul_domain }}"
   datacenter: "{{ consul_datacenter }}"
