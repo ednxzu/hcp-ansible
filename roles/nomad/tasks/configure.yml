@@ -106,7 +106,7 @@
   when: nomad_enable_tls
   register: _nomad_final_cert_checksums
 
-- name: "Consul | Normalize final checksums"
+- name: "Nomad | Normalize final checksums"
   ansible.builtin.set_fact:
     # This needs to be optimized, but I have spent so much time on it not
     # working that I will keep it as is for now, and we'll see later.
@@ -123,7 +123,7 @@
       {% endfilter %}
   when: nomad_enable_tls
 
-- name: "Consul | Merge initial and final checksum lists"
+- name: "Nomad | Merge initial and final checksum lists"
   ansible.builtin.set_fact:
     _nomad_checksums_list: >-
       {{
@@ -132,7 +132,7 @@
       }}
   when: nomad_enable_tls
 
-- name: "Consul | Determine if certificates have changed or were newly added"
+- name: "Nomad | Determine if certificates have changed or were newly added"
   ansible.builtin.set_fact:
     _nomad_service_need_reload: true
   when:
