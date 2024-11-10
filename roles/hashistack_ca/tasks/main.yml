@@ -45,3 +45,15 @@
   when:
     - hashistack_ca_renew_leaf
     - "('consul_servers' in group_names) or ('consul_agents' in group_names)"
+
+- name: "Nomad leaf certificates | Import renew_nomad.yml"
+  ansible.builtin.include_tasks: renew/renew_nomad.yml
+  when:
+    - hashistack_ca_renew_leaf
+    - "('nomad_servers' in group_names) or ('nomad_clients' in group_names)"
+
+- name: "Vault leaf certificates | Import renew_vault.yml"
+  ansible.builtin.include_tasks: renew/renew_vault.yml
+  when:
+    - hashistack_ca_renew_leaf
+    - "'vault_servers' in group_names"

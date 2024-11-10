@@ -3,7 +3,7 @@
 hashistack_ca_directory: "/etc/hashistack/certificates"
 hashistack_ca_use_cryptography: false
 hashistack_ca_action: "noop"
-hashistack_ca_domain: example.com
+hashistack_ca_domain: "*"
 hashistack_ca_directory_owner: root
 
 ##############################
