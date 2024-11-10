@@ -2,7 +2,7 @@
 # defaults
 hashistack_ca_directory: "{{ hashistack_sub_configuration_directories['certificates'] }}"
 hashistack_ca_use_cryptography: false
-hashistack_ca_action: "noop"
+# hashistack_ca_action: "noop"
 hashistack_ca_domain: example.com
 hashistack_ca_directory_owner: "{{ lookup('env', 'USER') }}"
 
@@ -79,37 +79,52 @@ hashistack_ca_leaf_renew_threshold: 30d
 ############################
 hashistack_ca_consul_org_name: "{{ hashistack_ca_root_org_name }}"
 hashistack_ca_consul_common_name: "{{ inventory_hostname }}"
-hashistack_ca_consul_csr_sans:
-  - "DNS:{{ inventory_hostname }}"
-  - "DNS:consul.service.consul"
-  - "DNS:localhost"
-  - "IP:{{ api_interface_address }}"
-  - "IP:127.0.0.1"
-  - "{{ 'DNS:server.' ~ consul_datacenter ~ '.' ~ consul_domain if consul_enable_server else omit }}"
+hashistack_ca_consul_csr_sans: >
+  {{
+    [
+      "DNS:" + inventory_hostname,
+      "DNS:consul.service.consul",
+      "DNS:localhost",
+      "IP:" + api_interface_address,
+      "IP:127.0.0.1"
+    ]
+    + ([ "DNS:server." + consul_datacenter + "." + consul_domain ] if consul_enable_server else [])
+  }}
 
 ###########################
 # Nomad Leaf Certificates #
 ###########################
 hashistack_ca_nomad_org_name: "{{ hashistack_ca_root_org_name }}"
 hashistack_ca_nomad_common_name: "{{ inventory_hostname }}"
-hashistack_ca_nomad_csr_sans:
-  - "DNS:{{ inventory_hostname }}"
-  - "DNS:localhost"
-  - "IP:{{ api_interface_address }}"
-  - "IP:127.0.0.1"
-  - "{{ 'DNS:server.' ~ nomad_region ~ '.nomad' if nomad_enable_server else omit }}"
-  - "{{ 'DNS:nomad.service.consul' if (nomad_enable_server and enable_consul) else omit }}"
+hashistack_ca_nomad_csr_sans: >
+  {{
+    [
+      "DNS:" + inventory_hostname,
+      "DNS:localhost",
+      "IP:" + api_interface_address,
+      "IP:127.0.0.1"
+    ]
+    + ([ "DNS:server." + nomad_region + ".nomad" ] if nomad_enable_server else [])
+    + ([ "DNS:client." + nomad_region + ".nomad" ] if nomad_enable_client else [])
+    + ([ "DNS:nomad.service.consul" ] if (nomad_enable_server and enable_consul) else [])
+  }}
 
 ###########################
 # Vault Leaf Certificates #
 ###########################
 hashistack_ca_vault_org_name: "{{ hashistack_ca_root_org_name }}"
 hashistack_ca_vault_common_name: "{{ inventory_hostname }}"
-hashistack_ca_vault_csr_sans:
-  - "DNS:{{ inventory_hostname }}"
-  - "{{ 'DNS:active.vault.service.consul' if enable_consul else omit }}"
-  - "{{ 'DNS:standby.vault.service.consul' if enable_consul else omit }}"
-  - "{{ 'DNS:vault.service.consul' if enable_consul else omit }}"
-  - "DNS:localhost"
-  - "IP:{{ api_interface_address }}"
-  - "IP:127.0.0.1"
+hashistack_ca_vault_csr_sans: >
+  {{
+    [
+      "DNS:" + inventory_hostname,
+      "DNS:localhost",
+      "IP:" + api_interface_address,
+      "IP:127.0.0.1"
+    ]
+    + ([
+      "DNS:active.vault.service.consul",
+      "DNS:standby.vault.service.consul",
+      "DNS:vault.service.consul"
+      ] if enable_consul else [])
+  }}
