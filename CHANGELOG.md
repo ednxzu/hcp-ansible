@@ -1,3 +1,17 @@
+## v0.10.0 (2024-11-13)
+
+### Feat
+
+- add automatic reload of vault service for certificate reloading
+- enable certificate renewal for nomad and vault in hashistack_ca
+- add automatic reload of nomad service for certificate reloading
+- add automatic reload of consul service for certificate reloading
+
+### Fix
+
+- allow override of the hashistack_ca_action via extra-vars flag
+- only reload consul if the service is set to be started
+
 ## v0.9.0 (2024-10-30)
 
 ### Feat
