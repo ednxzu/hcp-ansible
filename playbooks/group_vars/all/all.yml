@@ -3,7 +3,7 @@
 # helper options #
 ##################
 
-manage_pip_packages_allow_break_system_packages: >-
+manage_pip_packages_break_system_packages: >-
   {{
     (ansible_distribution == 'Debian' and (ansible_distribution_version|int) >= 12)
     or (ansible_distribution == 'Ubuntu' and (ansible_distribution_major_version|int) >= 24)
