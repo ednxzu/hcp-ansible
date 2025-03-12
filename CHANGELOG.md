@@ -1,3 +1,10 @@
+## v0.10.1 (2025-03-12)
+
+### Fix
+
+- **roles/vault**: set vault log_level correctly according to variable
+- change variable for pip install role to break system packages following upstream change
+
 ## v0.10.0 (2024-11-13)
 
 ### Feat
