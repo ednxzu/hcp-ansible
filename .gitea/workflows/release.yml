@@ -1,18 +1,21 @@
 ---
-name: build-deploy
+name: release
 on:
   push:
     branches:
       - main
 
 jobs:
-  do-release:
+  get-credentials:
+    name: Get secrets from vault
     if: "!startsWith(github.event.head_commit.message, 'bump:')"
     runs-on: ubuntu-latest
-    name: Bump version and create changelog with commitizen
+    outputs:
+      GITEA_ACTIONS_USERNAME: ${{ steps.get-secrets.outputs.GITEA_ACTIONS_USERNAME }}
+      GITEA_ACTIONS_TOKEN: ${{ steps.get-secrets.outputs.GITEA_ACTIONS_TOKEN }}
     steps:
       - name: Get secrets from vault
-        id: import-secrets
+        id: get-secrets
         uses: hashicorp/vault-action@v3
         with:
           url: "https://vault.ednz.fr"
@@ -23,32 +26,14 @@ jobs:
             kv/data/applications/gitea/users/actions username | GITEA_ACTIONS_USERNAME ;
             kv/data/applications/gitea/users/actions token_write | GITEA_ACTIONS_TOKEN ;
 
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ steps.import-secrets.outputs.GITEA_ACTIONS_TOKEN }}
-
-      - name: Install commitizen
-        run: pip3 install commitizen
-        shell: bash
-        working-directory: ./
-
-      - name: Configure git credentials
-        uses: oleksiyrudenko/gha-git-credentials@v2
-        with:
-          global: true
-          name: "Gitea-Actions Bot"
-          email: "gitea-actions@ednz.fr"
-          actor: ${{ steps.import-secrets.outputs.GITEA_ACTIONS_USERNAME }}
-          token: ${{ steps.import-secrets.outputs.GITEA_ACTIONS_TOKEN }}
-
-      - name: Do release
-        run: cz -nr 21 bump --yes
-        shell: bash
-        working-directory: ./
-
-      - name: Push release
-        run: git push && git push --tags
-        shell: bash
-        working-directory: ./
+  do-release:
+    name: Do release
+    if: "!startsWith(github.event.head_commit.message, 'bump:')"
+    needs: get-credentials
+    uses: https://git.ednz.fr/github-actions/library/.gitea/workflows/cz-do-release.yml@main
+    with:
+      push_bot_name: "Gitea-Actions Bot"
+      push_bot_email: "gitea-actions@ednz.fr"
+    secrets:
+      GITEA_ACTIONS_USERNAME: ${{ needs.get-credentials.outputs.GITEA_ACTIONS_USERNAME }}
+      GITEA_ACTIONS_TOKEN: ${{ needs.get-credentials.outputs.GITEA_ACTIONS_TOKEN }}

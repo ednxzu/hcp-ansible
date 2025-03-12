@@ -11,25 +11,5 @@ on:
 
 jobs:
   commit-history-check:
-    name: Check commit compliance
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
-
-      - name: Install commitizen
-        run: pip3 install commitizen
-        shell: bash
-        working-directory: ./
-
-      - run: git log origin/${{ github.event.pull_request.base.ref }}..
-
-      - name: Verify commit message compliance
-        run: |
-          echo "cz check --rev-range origin/${{ gitea.event.pull_request.base.ref }}.."
-          cz check --rev-range origin/${{ gitea.event.pull_request.base.ref }}..
-        shell: bash
-        working-directory: ./
+    name: Commit History Check
+    uses: https://git.ednz.fr/github-actions/library/.gitea/workflows/cz-pull-request-check.yml@v0.1.0

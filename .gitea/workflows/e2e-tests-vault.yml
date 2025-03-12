@@ -39,7 +39,7 @@ jobs:
         test_os:
           ["debian11", "debian12", "ubuntu2004", "ubuntu2204", "ubuntu2404"]
         scenario: ["vault_default", "vault_with_raft_enabled"]
-    uses: ./.gitea/workflows/e2e-tests.yml
+    uses: https://git.ednz.fr/github-actions/library/.gitea/workflows/molecule-e2e-test.yml@v0.1.0
     with:
       role: vault
       scenario: ${{ matrix.scenario }}
