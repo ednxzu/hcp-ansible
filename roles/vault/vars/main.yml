@@ -30,7 +30,6 @@ vault_certificates_reload_watchlist: |
   {{ watchlist | unique }}
   {% endfilter %}
 
-
 vault_configuration:
   cluster_name: "{{ vault_cluster_name }}"
   cluster_addr: "{{ 'https' if vault_enable_tls else 'http'}}://{{ vault_cluster_addr }}:8201"
@@ -40,3 +39,4 @@ vault_configuration:
   disable_cache: "{{ vault_disable_cache }}"
   listener: "{{ vault_listener_configuration }}"
   storage: "{{ vault_storage_configuration }}"
+  log_level: "{{ vault_log_level }}"
