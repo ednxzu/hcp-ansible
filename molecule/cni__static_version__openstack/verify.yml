@@ -1,0 +1,59 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: "Test: binary /opt/cni/bin"
+      block:
+        - name: "Stat binary /opt/cni/bin"
+          ansible.builtin.stat:
+            path: "/opt/cni/bin"
+          register: stat_opt_cni_bin
+
+        - name: "Stat file /opt/cni/bin/.version"
+          ansible.builtin.stat:
+            path: "/opt/cni/bin/.version"
+          register: stat_opt_cni_bin_version
+
+        - name: "Stat file /opt/cni/bin/.consul-cni-version"
+          ansible.builtin.stat:
+            path: "/opt/cni/bin/.consul-cni-version"
+          register: stat_opt_cni_bin_consul_cni_version
+
+        - name: "Slurp file /opt/cni/bin/.version"
+          ansible.builtin.slurp:
+            src: "/opt/cni/bin/.version"
+          register: slurp_opt_cni_bin_version
+
+        - name: "Slurp file /opt/cni/bin/.consul-cni-version"
+          ansible.builtin.slurp:
+            src: "/opt/cni/bin/.consul-cni-version"
+          register: slurp_opt_cni_bin_consul_cni_version
+
+        - debug:
+            msg: "CNI Plugins Version: {{ slurp_opt_cni_bin_version.content | b64decode }}"
+
+        - debug:
+            msg: "Consul CNI Version: {{ slurp_opt_cni_bin_consul_cni_version.content | b64decode }}"
+
+        - name: "Verify binary /opt/cni/bin"
+          ansible.builtin.assert:
+            that:
+              - stat_opt_cni_bin.stat.exists
+              - stat_opt_cni_bin.stat.isdir
+              - stat_opt_cni_bin.stat.pw_name == 'nomad'
+              - stat_opt_cni_bin.stat.gr_name == 'nomad'
+              - stat_opt_cni_bin.stat.mode == '0755'
+              - stat_opt_cni_bin_version.stat.exists
+              - stat_opt_cni_bin_version.stat.isreg
+              - stat_opt_cni_bin_version.stat.pw_name == 'nomad'
+              - stat_opt_cni_bin_version.stat.gr_name == 'nomad'
+              - stat_opt_cni_bin_version.stat.mode == '0600'
+              - (slurp_opt_cni_bin_version.content|b64decode) == (cni_plugins_version|regex_replace('^v', ''))
+              - stat_opt_cni_bin_consul_cni_version.stat.exists
+              - stat_opt_cni_bin_consul_cni_version.stat.isreg
+              - stat_opt_cni_bin_consul_cni_version.stat.pw_name == 'nomad'
+              - stat_opt_cni_bin_consul_cni_version.stat.gr_name == 'nomad'
+              - stat_opt_cni_bin_consul_cni_version.stat.mode == '0600'
+              - (slurp_opt_cni_bin_consul_cni_version.content|b64decode) == (cni_plugins_version|regex_replace('^v', ''))

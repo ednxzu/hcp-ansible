@@ -30,7 +30,7 @@ jobs:
     name: Do release
     if: "!startsWith(github.event.head_commit.message, 'bump:')"
     needs: get-credentials
-    uses: https://git.ednz.fr/github-actions/library/.gitea/workflows/cz-do-release.yml@main
+    uses: https://git.ednz.fr/github-actions/library/.gitea/workflows/cz-do-release.yml@v0.3.0
     with:
       push_bot_name: "Gitea-Actions Bot"
       push_bot_email: "gitea-actions@ednz.fr"

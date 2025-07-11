@@ -1,0 +1,51 @@
+---
+dependency:
+  name: galaxy
+  options:
+    requirements-file: ./requirements.yml
+driver:
+  name: openstack
+platforms:
+  - name: molecule__cni__static_version__openstack.ednz.fr
+    description: Molecule test instance.
+    flavor: a2-ram4-disk20-perf1
+    image: ${MOLECULE_TEST_OS:-"Debian 12 bookworm"}
+    user: ${MOLECULE_TEST_USER:-"debian"}
+    auto_ip: false
+    network:
+      name: pcp-w3rxsrj-backend-network
+      create: false
+    security_group:
+      name: molecule__cni__static_version__openstack
+      create: true
+      description: Molecule test security group.
+      rules:
+        - proto: tcp
+          port: -1
+          port_min: 0
+          port_max: 0
+          cidr: 0.0.0.0/0
+          type: IPv4
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      remote_tmp: /tmp/.ansible
+  env:
+    ANSIBLE_ROLES_PATH: ../../roles/
+verifier:
+  name: ansible
+scenario:
+  name: cni__static_version__openstack
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - verify
+    - cleanup
+    - destroy

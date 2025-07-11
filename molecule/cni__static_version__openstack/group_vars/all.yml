@@ -1,0 +1,6 @@
+---
+cni_plugins_version: v1.5.1
+cni_plugins_install_path: /opt/cni/bin
+cni_plugins_install_consul_cni: true
+cni_user: nomad
+cni_group: nomad

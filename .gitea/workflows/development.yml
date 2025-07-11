@@ -8,4 +8,4 @@ on:
 jobs:
   commit-check:
     name: Check commit compliance
-    uses: https://git.ednz.fr/github-actions/library/.gitea/workflows/cz-commit-check.yml@v0.1.0
+    uses: https://git.ednz.fr/github-actions/library/.gitea/workflows/cz-commit-check.yml@v0.3.0
