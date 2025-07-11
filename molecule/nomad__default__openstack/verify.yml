@@ -155,16 +155,20 @@
           register: nomad_var_purge
 
         - name: "Command nomad server members"
-          ansible.builtin.command: "nomad server members"
+          ansible.builtin.command: "nomad server members -json"
           environment:
             NOMAD_ADDR: "http://{{ ansible_default_ipv4.address }}:4646"
           changed_when: false
           register: nomad_server_members
 
         - name: "Verify nomad interaction"
+          vars:
+            _nomad_server_members_json: "{{ nomad_server_members.stdout | from_json }}"
           ansible.builtin.assert:
             that:
-              - "'instance.global' in nomad_server_members.stdout"
+              - "(_nomad_server_members_json|length) == 1"
+              - "'nomad--default--openstack' in _nomad_server_members_json[0]['Name']"
+              - "_nomad_server_members_json[0]['Status'] == 'alive'"
               - "'\"Items\": {\n    \"foo\": \"bar\"\n  }' in nomad_var_put.stdout"
               - "'\"Items\": {\n    \"foo\": \"bar\"\n  }' in nomad_var_get.stdout"
               - nomad_var_purge.stdout == 'Successfully purged variable \"secret/foobar\"!'
