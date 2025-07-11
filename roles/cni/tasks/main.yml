@@ -8,3 +8,5 @@
 
 - name: "CNI Plugins | Import consul_cni_install.yml"
   ansible.builtin.include_tasks: consul_cni_install.yml
+  when:
+    - cni_plugins_install_consul_cni

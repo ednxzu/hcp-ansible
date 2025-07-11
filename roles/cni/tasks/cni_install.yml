@@ -67,4 +67,6 @@
       ansible.builtin.copy:
         content: "{{ cni_plugins_wanted_version }}"
         dest: "{{ cni_plugins_install_path }}/.version"
+        owner: "{{ cni_user }}"
+        group: "{{ cni_group }}"
         mode: "0600"
