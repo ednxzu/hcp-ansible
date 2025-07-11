@@ -1,10 +1,7 @@
 ---
 # requirements file for molecule
-roles:
-  - name: ednz_cloud.manage_repositories
-  - name: ednz_cloud.manage_apt_packages
-  - name: ednz_cloud.manage_pip_packages
-  - name: ednz_cloud.install_docker
-
 collections:
+  - name: https://github.com/ednz-cloud/ansible-collection-utils.git
+    type: git
+    version: v0.6.0
   - name: ednz_cloud.hashistack

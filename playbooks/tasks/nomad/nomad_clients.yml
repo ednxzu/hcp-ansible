@@ -3,7 +3,7 @@
   block:
     - name: "Nomad | Install docker driver"
       ansible.builtin.include_role:
-        name: ednz_cloud.install_docker
+        name: ednz_cloud.utils.install_docker
       when: nomad_driver_enable_docker
 
     - name: "Include ednz_cloud.hashistack.cni"

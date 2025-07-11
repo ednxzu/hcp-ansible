@@ -7,7 +7,7 @@
   tasks:
     - name: "Install unzip with package manager"
       ansible.builtin.include_role:
-        name: ednz_cloud.manage_apt_packages
+        name: ednz_cloud.utils.manage_apt_packages
       vars:
         manage_apt_packages_list:
           - name: unzip
@@ -16,7 +16,7 @@
 
     - name: "Install hvac library with pip"
       ansible.builtin.include_role:
-        name: ednz_cloud.manage_pip_packages
+        name: ednz_cloud.utils.manage_pip_packages
       vars:
         manage_pip_packages_install_prereqs: true
         manage_pip_packages_list:

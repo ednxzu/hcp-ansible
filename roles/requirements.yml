@@ -1,15 +1,6 @@
 ---
 # requirements file for ednz_cloud.hashistack
-roles:
-  - name: ednz_cloud.manage_repositories
-    src: https://github.com/ednz-cloud/manage_repositories.git
-    version: main
-  - name: ednz_cloud.manage_apt_packages
-    src: https://github.com/ednz-cloud/manage_apt_packages.git
-    version: main
-  - name: ednz_cloud.manage_pip_packages
-    src: https://github.com/ednz-cloud/manage_pip_packages.git
-    version: main
-  - name: ednz_cloud.install_docker
-    src: https://github.com/ednz-cloud/install_docker.git
-    version: main
+collections:
+  - name: https://github.com/ednz-cloud/ansible-collection-utils.git
+    type: git
+    version: v0.6.0
