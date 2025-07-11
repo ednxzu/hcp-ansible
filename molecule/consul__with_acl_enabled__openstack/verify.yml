@@ -170,7 +170,7 @@
         - name: "Verify consul interaction"
           ansible.builtin.assert:
             that:
-              - "'instance' in consul_members.stdout"
+              - "'molecule--consul--with-acl-enabled' in consul_members.stdout"
               - consul_kv_put.stdout == 'Success! Data written to: foo'
               - consul_kv_get.stdout == 'bar'
               - consul_kv_delete.stdout == 'Success! Deleted key: foo'
