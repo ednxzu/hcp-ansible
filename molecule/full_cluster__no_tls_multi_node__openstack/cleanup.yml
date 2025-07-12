@@ -1,0 +1,11 @@
+---
+- name: "Cleanup"
+  hosts: localhost
+  strategy: linear
+  gather_facts: true
+  become: true
+  tasks:
+    - name: "Delete secrets directory"
+      ansible.builtin.file:
+        path: "{{ lookup('env', 'PWD') }}/etc/hashistack/secrets"
+        state: absent

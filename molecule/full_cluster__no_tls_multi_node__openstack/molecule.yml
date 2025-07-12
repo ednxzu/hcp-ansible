@@ -1,0 +1,156 @@
+---
+dependency:
+  name: galaxy
+  options:
+    requirements-file: ./requirements.yml
+driver:
+  name: openstack
+platforms:
+  - name: hcp-srv-1.ednz.fr
+    description: Molecule test instance.
+    flavor: a2-ram4-disk20-perf1
+    image: ${MOLECULE_TEST_OS:-"Debian 12 bookworm"}
+    user: ${MOLECULE_TEST_USER:-"debian"}
+    auto_ip: false
+    network:
+      name: pcp-w3rxsrj-backend-network
+      create: false
+    security_group:
+      name: molecule__full_cluster__no_tls_multi_node__openstack
+      create: true
+      description: Molecule test security group.
+      rules:
+        - proto: tcp
+          port: -1
+          port_min: 0
+          port_max: 0
+          cidr: 0.0.0.0/0
+          type: IPv4
+    groups:
+      - deployment
+      - common
+      - vault_servers
+      - nomad_servers
+      - consul_servers
+  - name: hcp-srv-2.ednz.fr
+    description: Molecule test instance.
+    flavor: a2-ram4-disk20-perf1
+    image: ${MOLECULE_TEST_OS:-"Debian 12 bookworm"}
+    user: ${MOLECULE_TEST_USER:-"debian"}
+    auto_ip: false
+    network:
+      name: pcp-w3rxsrj-backend-network
+      create: false
+    security_group:
+      name: molecule__full_cluster__no_tls_multi_node__openstack
+      create: true
+      description: Molecule test security group.
+      rules:
+        - proto: tcp
+          port: -1
+          port_min: 0
+          port_max: 0
+          cidr: 0.0.0.0/0
+          type: IPv4
+    groups:
+      - deployment
+      - common
+      - vault_servers
+      - nomad_servers
+      - consul_servers
+  - name: hcp-srv-3.ednz.fr
+    description: Molecule test instance.
+    flavor: a2-ram4-disk20-perf1
+    image: ${MOLECULE_TEST_OS:-"Debian 12 bookworm"}
+    user: ${MOLECULE_TEST_USER:-"debian"}
+    auto_ip: false
+    network:
+      name: pcp-w3rxsrj-backend-network
+      create: false
+    security_group:
+      name: molecule__full_cluster__no_tls_multi_node__openstack
+      create: true
+      description: Molecule test security group.
+      rules:
+        - proto: tcp
+          port: -1
+          port_min: 0
+          port_max: 0
+          cidr: 0.0.0.0/0
+          type: IPv4
+    groups:
+      - deployment
+      - common
+      - vault_servers
+      - nomad_servers
+      - consul_servers
+  - name: hcp-nomad-1.ednz.fr
+    description: Molecule test instance.
+    flavor: a2-ram4-disk20-perf1
+    image: ${MOLECULE_TEST_OS:-"Debian 12 bookworm"}
+    user: ${MOLECULE_TEST_USER:-"debian"}
+    auto_ip: false
+    network:
+      name: pcp-w3rxsrj-backend-network
+      create: false
+    security_group:
+      name: molecule__full_cluster__no_tls_multi_node__openstack
+      create: true
+      description: Molecule test security group.
+      rules:
+        - proto: tcp
+          port: -1
+          port_min: 0
+          port_max: 0
+          cidr: 0.0.0.0/0
+          type: IPv4
+    groups:
+      - common
+      - nomad_clients
+      - consul_agents
+  - name: hcp-nomad-2.ednz.fr
+    description: Molecule test instance.
+    flavor: a2-ram4-disk20-perf1
+    image: ${MOLECULE_TEST_OS:-"Debian 12 bookworm"}
+    user: ${MOLECULE_TEST_USER:-"debian"}
+    auto_ip: false
+    network:
+      name: pcp-w3rxsrj-backend-network
+      create: false
+    security_group:
+      name: molecule__full_cluster__no_tls_multi_node__openstack
+      create: true
+      description: Molecule test security group.
+      rules:
+        - proto: tcp
+          port: -1
+          port_min: 0
+          port_max: 0
+          cidr: 0.0.0.0/0
+          type: IPv4
+    groups:
+      - common
+      - nomad_clients
+      - consul_agents
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      remote_tmp: /tmp/.ansible
+  env:
+    ANSIBLE_ROLES_PATH: ../../roles/
+verifier:
+  name: ansible
+scenario:
+  name: full_cluster__no_tls_multi_node__openstack
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - verify
+    - cleanup
+    - destroy

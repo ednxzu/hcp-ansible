@@ -1,0 +1,67 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: "Import variables"
+      ansible.builtin.import_role:
+        name: ednz_cloud.hashistack.hashistack
+
+    - name: Include ednz_cloud.hashistack.hashistack_tests for Consul
+      ansible.builtin.include_role:
+        name: ednz_cloud.hashistack.hashistack_tests
+      vars:
+        hashistack_tests_include_tests:
+          - consul-installation
+          - consul-api
+        # consul-installation variables
+        hashistack_tests_consul_config_directory: /etc/hashistack/consul.d
+        hashistack_tests_consul_data_directory: /opt/consul
+        hashistack_tests_consul_user: consul
+        hashistack_tests_consul_group: consul
+        hashistack_tests_consul_bin_path: /usr/local/bin/consul
+        hashistack_tests_consul_service_name: consul
+
+        hashistack_tests_consul_api_addr: "{{ hostvars[groups['consul_servers'][0]]['consul_api_addr'] }}"
+        # can be set to empty string if not using ACLs
+        hashistack_tests_consul_token: "{{ _credentials.consul.root_token.secret_id }}"
+        # can be set to localhost if api is reachable,
+        # or to the address of a consul server if api is not reachable from localhost
+        hashistack_tests_consul_api_calls_delegation: "{{ groups['consul_servers'][0] }}"
+        hashistack_tests_consul_member_count: "{{ (groups['consul_servers'] + groups['consul_agents']) | unique | length }}"
+
+      when:
+        - "'consul_servers' in group_names or 'consul_agents' in group_names"
+
+    - name: Include ednz_cloud.hashistack.hashistack_tests for Nomad
+      ansible.builtin.include_role:
+        name: ednz_cloud.hashistack.hashistack_tests
+      vars:
+        hashistack_tests_include_tests:
+          - nomad-installation
+        # nomad-installation variables
+        hashistack_tests_nomad_config_directory: /etc/hashistack/nomad.d
+        hashistack_tests_nomad_data_directory: /opt/nomad
+        hashistack_tests_nomad_user: nomad
+        hashistack_tests_nomad_group: nomad
+        hashistack_tests_nomad_bin_path: /usr/local/bin/nomad
+        hashistack_tests_nomad_service_name: nomad
+      when:
+        - "'nomad_servrs' in group_names or 'nomad_clients' in group_names"
+
+    - name: Include ednz_cloud.hashistack.hashistack_tests for Vault
+      ansible.builtin.include_role:
+        name: ednz_cloud.hashistack.hashistack_tests
+      vars:
+        hashistack_tests_include_tests:
+          - vault-installation
+        # vault-installation variables
+        hashistack_tests_vault_config_directory: /etc/hashistack/vault.d
+        hashistack_tests_vault_data_directory: /opt/vault
+        hashistack_tests_vault_user: vault
+        hashistack_tests_vault_group: vault
+        hashistack_tests_vault_bin_path: /usr/local/bin/vault
+        hashistack_tests_vault_service_name: vault
+      when:
+        - "'vault_servers' in group_names"

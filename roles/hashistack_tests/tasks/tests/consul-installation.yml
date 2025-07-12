@@ -1,0 +1,147 @@
+---
+# task/test/consul-installation file for hashistack_tests
+
+# Verifying required variables
+- name: "Test | Define required variables for this test"
+  set_fact:
+    _hashistack_tests_required_variables:
+      - hashistack_tests_consul_config_directory
+      - hashistack_tests_consul_data_directory
+      - hashistack_tests_consul_user
+      - hashistack_tests_consul_group
+      - hashistack_tests_consul_bin_path
+      - hashistack_tests_consul_service_name
+
+- name: "Test | Assert required variables are set"
+  assert:
+    that:
+      - item is defined
+    fail_msg: "Required variable '{{ item }}' is not defined."
+  loop: "{{ _hashistack_tests_required_variables }}"
+
+# Start of tests
+- name: "Test | consul user and group"
+  block:
+    - name: "Getent user {{ hashistack_tests_consul_user }}"
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ hashistack_tests_consul_user }}"
+      register: consul_user
+
+    - name: "Getent group {{ hashistack_tests_consul_group }}"
+      ansible.builtin.getent:
+        database: group
+        key: "{{ hashistack_tests_consul_group }}"
+      register: consul_group
+
+    - name: "Verify consul user and group"
+      ansible.builtin.assert:
+        that:
+          - not consul_user.failed
+          - not consul_group.failed
+          - "hashistack_tests_consul_user in consul_user.ansible_facts.getent_passwd.keys()"
+          - "'/bin/false' in consul_user.ansible_facts.getent_passwd[hashistack_tests_consul_user]"
+          - "hashistack_tests_consul_group in consul_group.ansible_facts.getent_group.keys()"
+
+- name: "Test | binary {{ hashistack_tests_consul_bin_path }}"
+  block:
+    - name: "Stat binary {{ hashistack_tests_consul_bin_path }}"
+      ansible.builtin.stat:
+        path: "{{ hashistack_tests_consul_bin_path }}"
+      register: stat_usr_local_bin_consul
+
+    - name: "Verify binary {{ hashistack_tests_consul_bin_path }}"
+      ansible.builtin.assert:
+        that:
+          - stat_usr_local_bin_consul.stat.exists
+          - stat_usr_local_bin_consul.stat.isreg
+          - stat_usr_local_bin_consul.stat.pw_name == 'root'
+          - stat_usr_local_bin_consul.stat.gr_name == 'root'
+          - stat_usr_local_bin_consul.stat.mode == '0755'
+
+- name: "Test | directory {{ hashistack_tests_consul_config_directory }}"
+  block:
+    - name: "Stat directory {{ hashistack_tests_consul_config_directory }}"
+      ansible.builtin.stat:
+        path: "{{ hashistack_tests_consul_config_directory }}"
+      register: stat_etc_consul_d
+
+    - name: "Stat file {{ hashistack_tests_consul_config_directory }}/consul.env"
+      ansible.builtin.stat:
+        path: "{{ hashistack_tests_consul_config_directory }}/consul.env"
+      register: stat_etc_consul_d_consul_env
+
+    - name: "Stat file {{ hashistack_tests_consul_config_directory }}/consul.json"
+      ansible.builtin.stat:
+        path: "{{ hashistack_tests_consul_config_directory }}/consul.json"
+      register: stat_etc_consul_d_consul_json
+
+    - name: "Slurp file {{ hashistack_tests_consul_config_directory }}/consul.json"
+      ansible.builtin.slurp:
+        src: "{{ hashistack_tests_consul_config_directory }}/consul.json"
+      register: slurp_etc_consul_d_consul_json
+
+    - name: "Verify directory {{ hashistack_tests_consul_config_directory }}"
+      ansible.builtin.assert:
+        that:
+          - stat_etc_consul_d.stat.exists
+          - stat_etc_consul_d.stat.isdir
+          - stat_etc_consul_d.stat.pw_name == hashistack_tests_consul_user
+          - stat_etc_consul_d.stat.gr_name == hashistack_tests_consul_group
+          - stat_etc_consul_d.stat.mode == '0755'
+          - stat_etc_consul_d_consul_env.stat.exists
+          - stat_etc_consul_d_consul_env.stat.isreg
+          - stat_etc_consul_d_consul_env.stat.pw_name == hashistack_tests_consul_user
+          - stat_etc_consul_d_consul_env.stat.gr_name == hashistack_tests_consul_group
+          - stat_etc_consul_d_consul_env.stat.mode == '0600'
+          - stat_etc_consul_d_consul_json.stat.exists
+          - stat_etc_consul_d_consul_json.stat.isreg
+          - stat_etc_consul_d_consul_json.stat.pw_name == hashistack_tests_consul_user
+          - stat_etc_consul_d_consul_json.stat.gr_name == hashistack_tests_consul_group
+          - stat_etc_consul_d_consul_json.stat.mode == '0600'
+          - slurp_etc_consul_d_consul_json.content != ''
+
+- name: "Test | directory {{ hashistack_tests_consul_data_directory }}"
+  block:
+    - name: "Stat directory {{ hashistack_tests_consul_data_directory }}"
+      ansible.builtin.stat:
+        path: "{{ hashistack_tests_consul_data_directory }}"
+      register: stat_opt_consul
+
+    - name: "Verify directory {{ hashistack_tests_consul_data_directory }}"
+      ansible.builtin.assert:
+        that:
+          - stat_opt_consul.stat.exists
+          - stat_opt_consul.stat.isdir
+          - stat_opt_consul.stat.pw_name == hashistack_tests_consul_user
+          - stat_opt_consul.stat.gr_name == hashistack_tests_consul_group
+          - stat_opt_consul.stat.mode == '0755'
+
+- name: "Test | service {{ hashistack_tests_consul_service_name }}"
+  block:
+    - name: "Get service {{ hashistack_tests_consul_service_name }}"
+      ansible.builtin.service_facts:
+
+    - name: "Stat file /etc/systemd/system/{{ hashistack_tests_consul_service_name }}.service"
+      ansible.builtin.stat:
+        path: "/etc/systemd/system/{{ hashistack_tests_consul_service_name }}.service"
+      register: stat_etc_systemd_system_consul_service
+
+    - name: "Slurp file /etc/systemd/system/{{ hashistack_tests_consul_service_name }}.service"
+      ansible.builtin.slurp:
+        src: "/etc/systemd/system/{{ hashistack_tests_consul_service_name }}.service"
+      register: slurp_etc_systemd_system_consul_service
+
+    - name: "Verify service {{ hashistack_tests_consul_service_name }}"
+      ansible.builtin.assert:
+        that:
+          - stat_etc_systemd_system_consul_service.stat.exists
+          - stat_etc_systemd_system_consul_service.stat.isreg
+          - stat_etc_systemd_system_consul_service.stat.pw_name == 'root'
+          - stat_etc_systemd_system_consul_service.stat.gr_name == 'root'
+          - stat_etc_systemd_system_consul_service.stat.mode == '0644'
+          - slurp_etc_systemd_system_consul_service.content != ''
+          - ansible_facts.services[hashistack_tests_consul_service_name~'.service'] is defined
+          - ansible_facts.services[hashistack_tests_consul_service_name~'.service']['source'] == 'systemd'
+          - ansible_facts.services[hashistack_tests_consul_service_name~'.service']['state'] == 'running'
+          - ansible_facts.services[hashistack_tests_consul_service_name~'.service']['status'] == 'enabled'

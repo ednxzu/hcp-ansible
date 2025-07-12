@@ -1,0 +1,26 @@
+---
+# meta file for hashistack_tests
+galaxy_info:
+  namespace: "ednz_cloud"
+  role_name: "hashistack_tests"
+  author: "Bertrand Lanson"
+  description: "Run tests against nomad, consul and vault installations."
+  license: "license (BSD, MIT)"
+  min_ansible_version: "2.10"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+  galaxy_tags:
+    - "ubuntu"
+    - "debian"
+    - "hashicorp"
+    - "nomad"
+
+dependencies: []

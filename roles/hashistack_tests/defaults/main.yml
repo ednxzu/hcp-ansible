@@ -1,0 +1,3 @@
+---
+# defaults file for hashistack_tests
+hashistack_tests_include_tests: []

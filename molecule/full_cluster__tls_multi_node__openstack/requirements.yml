@@ -1,0 +1,7 @@
+---
+# requirements file for molecule
+collections:
+  - name: https://github.com/ednz-cloud/ansible-collection-utils.git
+    type: git
+    version: v0.6.0
+  - name: ednz_cloud.hashistack

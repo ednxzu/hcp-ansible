@@ -1,0 +1,14 @@
+---
+- name: Include credentials generation playbook
+  ansible.builtin.import_playbook: ednz_cloud.hashistack.credentials.yml
+
+- name: Include bootstrap playbook
+  ansible.builtin.import_playbook: ednz_cloud.hashistack.bootstrap.yml
+
+- name: Include preflight playbook
+  ansible.builtin.import_playbook: ednz_cloud.hashistack.preflight.yml
+
+- name: Include certificates playbook
+  ansible.builtin.import_playbook: ednz_cloud.hashistack.certificates.yml
+  vars:
+    hashistack_ca_action: root_ca,int_ca,leaf_cert

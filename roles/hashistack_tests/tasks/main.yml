@@ -1,0 +1,5 @@
+---
+# task/main file for hashistack_tests
+- name: "Test | Include test tasks"
+  ansible.builtin.include_tasks: "tests/{{ item }}.yml"
+  loop: "{{ hashistack_tests_include_tests }}"

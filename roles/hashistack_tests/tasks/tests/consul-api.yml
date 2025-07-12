@@ -1,0 +1,45 @@
+---
+# task/test/consul-kv file for hashistack_tests
+
+# Verifying required variables
+- name: "Test | Define required variables for this test"
+  set_fact:
+    _hashistack_tests_required_variables:
+      - hashistack_tests_consul_api_addr
+      # can be set to empty string if not using ACLs
+      - hashistack_tests_consul_token
+      # can be set to localhost if api is reachable,
+      # or to the address of a consul server if api is not reachable from localhost
+      - hashistack_tests_consul_api_calls_delegation
+      - hashistack_tests_consul_member_count
+
+- name: "Test | Assert required variables are set"
+  assert:
+    that:
+      - item is defined
+    fail_msg: "Required variable '{{ item }}' is not defined."
+  loop: "{{ _hashistack_tests_required_variables }}"
+
+# Start of tests
+- debug:
+    msg: "{{ hashistack_tests_consul_api_addr }}"
+
+- name: "Test | consul api"
+  block:
+    - name: "Get consul members"
+      ansible.builtin.uri:
+        url: "{{ hashistack_tests_consul_api_addr }}/v1/agent/members"
+        method: GET
+        headers: >-
+          {{ {'X-Consul-Token': hashistack_tests_consul_token} if hashistack_tests_consul_token | length > 0 else omit }}
+        status_code: 200
+        return_content: yes
+      delegate_to: "{{ hashistack_tests_consul_api_calls_delegation }}"
+      register: consul_members
+
+    - name: "Verify consul members"
+      ansible.builtin.assert:
+        that:
+          - consul_members.status == 200
+          - (consul_members.json | length | int) == hashistack_tests_consul_member_count | int
+          - (consul_members.json | selectattr('Status', 'equalto', 1) | list | length | int) == hashistack_tests_consul_member_count | int

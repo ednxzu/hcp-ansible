@@ -9,3 +9,6 @@ consul_config.yml
 **/secrets/credentials.decrypt.yml
 **/secrets/vault.yml
 **/.ansible-vault
+
+# ignore local ansible test files
+.ansible

@@ -1,6 +1,4 @@
 ---
-# Molecule specific variables
-
 ###################
 # General options #
 ###################
@@ -9,24 +7,25 @@ enable_vault: "yes"
 enable_consul: "yes"
 enable_nomad: "yes"
 
-nomad_version: "1.8.3"
-# consul_version: "1.18.1"
-vault_version: "1.17.2"
+nomad_version: "1.8.1"
+consul_version: "1.18.1"
+vault_version: "1.16.2"
 
-api_interface: "eth1"
-# api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
+api_interface: "enp3s0"
+api_interface_address: "{{ ansible_facts[api_interface]['ipv4']['address'] }}"
 
 ###################
 # logging options #
 ###################
 
 enable_log_to_file: true
+
 ########################
 # internal tls options #
 ########################
 
-# enable_tls_internal: false
-# internal_tls_externally_managed_certs: false
+enable_tls_internal: false
+internal_tls_externally_managed_certs: false
 ##########
 # Consul #
 ##########
@@ -64,8 +63,7 @@ enable_log_to_file: true
 
 # hashistack_vault_enable_plugins: false
 
-# hashistack_vault_log_level: info
-
+hashistack_vault_log_level: debug
 #########
 # Nomad #
 #########
