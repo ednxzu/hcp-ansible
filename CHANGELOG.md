@@ -1,3 +1,18 @@
+## v0.11.0 (2025-07-12)
+
+### Feat
+
+- add molecule tests for full cluster deployment
+- **roles/vault**: add openstack e2e tests instead of docker based tests
+- **roles/nomad**: add openstack e2e tests instead of docker based tests
+- **roles/consul**: add openstack e2e tests instead of docker based tests
+- **roles/cni**: add molecule testing scenarios
+- adjust dependencies to new ednz_cloud.utils collection
+
+### Fix
+
+- **roles/cni**: set correct permissions on cni version file and only consul-cni and necessary
+
 ## v0.10.1 (2025-03-12)
 
 ### Fix
