@@ -74,7 +74,7 @@ jobs:
           vault_token: ${{ needs.retrieve-credentials.outputs.vault-token }}
 
       - name: Run end-to-end tests
-        uses: https://git.ednz.fr/github-actions/library/.gitea/actions/molecule-e2e-test@feat/e2e-tests-before-script
+        uses: https://git.ednz.fr/github-actions/library/.gitea/actions/molecule-e2e-test@v0.3.0
         with:
           role: full_cluster
           scenario: ${{ matrix.scenario }}
@@ -82,5 +82,3 @@ jobs:
           test_user: ${{ matrix.test_config.test_user }}
           is_openstack: "true"
           os_cloud: pcp-w3rxsrj-dc4-a
-          before_script: |
-            PWD=${{ gitea.workspace }}/molecule/${{ matrix.scenario }}
