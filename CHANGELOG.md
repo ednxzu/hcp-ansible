@@ -1,3 +1,9 @@
+## v0.11.1 (2025-07-13)
+
+### Fix
+
+- **roles/hashistack**: do not manually load playbook group_vars to prevent user variables override
+
 ## v0.11.0 (2025-07-12)
 
 ### Feat
