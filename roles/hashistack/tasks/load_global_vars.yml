@@ -1,11 +1,11 @@
 ---
 # task/load_global_vars file for hashistack
-- name: "Variables | Include all default variables"
-  ansible.builtin.include_vars:
-    dir: "{{ playbook_dir }}/group_vars/all/"
-    depth: 1
-    extensions: ["yml"]
-  delegate_to: localhost
+# - name: "Variables | Include all default variables"
+#   ansible.builtin.include_vars:
+#     dir: "{{ playbook_dir }}/group_vars/all/"
+#     depth: 1
+#     extensions: ["yml"]
+#   delegate_to: localhost
 
 - name: "Variables | Stat global configuration file"
   ansible.builtin.stat:
