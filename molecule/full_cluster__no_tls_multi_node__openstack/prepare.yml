@@ -2,14 +2,14 @@
 - name: Include credentials generation playbook
   ansible.builtin.import_playbook: ednz_cloud.hashistack.credentials.yml
   vars:
-    hashistack_configuration_directory: "{{ lookup('env', 'PWD') }}/molecule/full_cluster__tls_multi_node__openstack/etc/hashistack"
+    hashistack_configuration_directory: "{{ lookup('env', 'PWD') }}/molecule/full_cluster__no_tls_multi_node__openstack/etc/hashistack"
 
 - name: Include bootstrap playbook
   ansible.builtin.import_playbook: ednz_cloud.hashistack.bootstrap.yml
   vars:
-    hashistack_configuration_directory: "{{ lookup('env', 'PWD') }}/molecule/full_cluster__tls_multi_node__openstack/etc/hashistack"
+    hashistack_configuration_directory: "{{ lookup('env', 'PWD') }}/molecule/full_cluster__no_tls_multi_node__openstack/etc/hashistack"
 
 - name: Include preflight playbook
   ansible.builtin.import_playbook: ednz_cloud.hashistack.preflight.yml
   vars:
-    hashistack_configuration_directory: "{{ lookup('env', 'PWD') }}/molecule/full_cluster__tls_multi_node__openstack/etc/hashistack"
+    hashistack_configuration_directory: "{{ lookup('env', 'PWD') }}/molecule/full_cluster__no_tls_multi_node__openstack/etc/hashistack"
