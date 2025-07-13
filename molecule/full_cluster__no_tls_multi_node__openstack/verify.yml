@@ -2,4 +2,4 @@
 - name: Include verify
   ansible.builtin.import_playbook: ednz_cloud.hashistack.molecule_verify.yml
   vars:
-    hashistack_configuration_directory: "{{ lookup('env', 'PWD') }}/molecule/full_cluster__tls_multi_node__openstack/etc/hashistack"
+    hashistack_configuration_directory: "{{ lookup('env', 'PWD') }}/molecule/full_cluster__no_tls_multi_node__openstack/etc/hashistack"
