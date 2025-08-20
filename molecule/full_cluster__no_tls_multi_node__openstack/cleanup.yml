@@ -7,5 +7,5 @@
   tasks:
     - name: "Delete secrets directory"
       ansible.builtin.file:
-        path: "{{ lookup('env', 'PWD') }}/etc/hashistack/secrets"
+        path: "{{ lookup('env', 'PWD') }}/molecule/full_cluster__tls_multi_node__openstack/etc/hashistack/secrets"
         state: absent
