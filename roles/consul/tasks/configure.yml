@@ -28,7 +28,7 @@
   ansible.builtin.stat:
     path: "{{ item }}"
     checksum_algorithm: sha1
-  loop: "{{ consul_certificates_reload_watchlist }}"
+  loop: "{{ consul_certificates_reload_watchlist | from_json }}"
   when: consul_enable_tls
   register: _consul_initial_cert_checksums
 
@@ -37,7 +37,6 @@
     # This needs to be optimized, but I have spent so much time on it not
     # working that I will keep it as is for now, and we'll see later.
     _consul_initial_checksums_normalized: >-
-      {% filter trim %}
       {% set checksums = [] %}
       {% for item in _consul_initial_cert_checksums.results %}
         {% set _ = checksums.append({
@@ -45,8 +44,7 @@
           'initial_checksum': (item.stat.checksum | default('absent'))
         }) %}
       {% endfor %}
-      {{ checksums }}
-      {% endfilter %}
+      {{ checksums | to_json }}
   when: consul_enable_tls
 
 - name: "Consul | Copy extra configuration files"
@@ -102,7 +100,7 @@
   ansible.builtin.stat:
     path: "{{ item }}"
     checksum_algorithm: sha1
-  loop: "{{ consul_certificates_reload_watchlist }}"
+  loop: "{{ consul_certificates_reload_watchlist | from_json }}"
   when: consul_enable_tls
   register: _consul_final_cert_checksums
 
@@ -111,7 +109,6 @@
     # This needs to be optimized, but I have spent so much time on it not
     # working that I will keep it as is for now, and we'll see later.
     _consul_final_checksums_normalized: >-
-      {% filter trim %}
       {% set checksums = [] %}
       {% for item in _consul_final_cert_checksums.results %}
         {% set _ = checksums.append({
@@ -119,16 +116,15 @@
           'final_checksum': (item.stat.checksum | default('absent'))
         }) %}
       {% endfor %}
-      {{ checksums }}
-      {% endfilter %}
+      {{ checksums | to_json }}
   when: consul_enable_tls
 
 - name: "Consul | Merge initial and final checksum lists"
   ansible.builtin.set_fact:
     _consul_checksums_list: >-
       {{
-        _consul_initial_checksums_normalized |
-        community.general.lists_mergeby(_consul_final_checksums_normalized, 'item')
+        (_consul_initial_checksums_normalized | from_json) |
+        community.general.lists_mergeby((_consul_final_checksums_normalized | from_json), 'item')
       }}
   when: consul_enable_tls
 

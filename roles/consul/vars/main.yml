@@ -27,11 +27,11 @@ consul_certificates_reload_watchlist: |
   {% for block, config in (consul_configuration.tls | default({})).items() %}
     {% for key in ['ca_file', 'cert_file', 'key_file'] %}
       {% if config.get(key) %}
-        {{ watchlist.append(config[key]) }}
+        {% set _ = watchlist.append(config[key]) %}
       {% endif %}
     {% endfor %}
   {% endfor %}
-  {{ watchlist | unique }}
+  {{ watchlist | unique | to_json }}
   {% endfilter %}
 
 consul_configuration:

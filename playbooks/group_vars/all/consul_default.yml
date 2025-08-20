@@ -209,14 +209,14 @@ consul_tls_configuration: >-
     combine((hashistack_consul_tls_configuration | default({})), recursive=true)
   }}
 
-consul_certificates_extra_files_dir: >
-  {{
-    [] if internal_tls_externally_managed_certs | bool else
-    [{
-      'src': "{{ hashistack_sub_configuration_directories['certificates'] }}/consul/{{ inventory_hostname }}",
-      'dest': "{{ consul_certs_dir }}"
+consul_certificates_extra_files_dir: >-
+  {{ (
+    [] if internal_tls_externally_managed_certs | bool
+    else [{
+      'src': hashistack_sub_configuration_directories['certificates'] ~ '/consul/' ~ inventory_hostname,
+      'dest': consul_certs_dir
     }]
-  }}
+  ) | to_json }}
 
 ###########################
 # telemetry configuration #
