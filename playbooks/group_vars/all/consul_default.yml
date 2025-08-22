@@ -79,14 +79,10 @@ consul_rejoin_after_leave: "{{ hashistack_consul_rejoin_after_leave | default(ha
 ######################
 
 hashistack_default_consul_join_configuration:
-  retry_join: |
-    {{
-      groups['consul_servers'] |
-      map('extract', hostvars, ['consul_address_configuration', 'bind_addr']) |
-      list |
-      to_json |
-      from_json
-    }}
+  retry_join: "{{ groups['consul_servers'] |
+    map('extract', hostvars, ['consul_address_configuration', 'bind_addr']) |
+    list }}"
+
   retry_interval: 30s
   retry_max: 0
 consul_join_configuration: >-
@@ -216,7 +212,7 @@ consul_certificates_extra_files_dir: >-
       'src': hashistack_sub_configuration_directories['certificates'] ~ '/consul/' ~ inventory_hostname,
       'dest': consul_certs_dir
     }]
-  ) | to_json }}
+  ) }}
 
 ###########################
 # telemetry configuration #

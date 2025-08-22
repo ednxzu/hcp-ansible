@@ -55,7 +55,7 @@
       ansible.builtin.set_fact:
         consul_extra_files_list: "{{
           consul_extra_files_list +
-          (consul_certificates_extra_files_dir | from_json)
+          consul_certificates_extra_files_dir
           | unique
           | sort
           }}"
