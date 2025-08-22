@@ -37,16 +37,14 @@
     # This needs to be optimized, but I have spent so much time on it not
     # working that I will keep it as is for now, and we'll see later.
     _nomad_initial_checksums_normalized: >-
-      {% filter trim %}
-      {% set checksums = [] %}
-      {% for item in _nomad_initial_cert_checksums.results %}
-        {% set _ = checksums.append({
+      {%- set ns = namespace(checksums=[]) -%}
+      {%- for item in _nomad_initial_cert_checksums.results -%}
+        {%- set ns.checksums = ns.checksums + [{
           'item': item.item,
           'initial_checksum': (item.stat.checksum | default('absent'))
-        }) %}
-      {% endfor %}
-      {{ checksums }}
-      {% endfilter %}
+        }] -%}
+      {%- endfor -%}
+      {{ ns.checksums }}
   when: nomad_enable_tls
 
 - name: "Nomad | Copy extra configuration files"
@@ -111,16 +109,14 @@
     # This needs to be optimized, but I have spent so much time on it not
     # working that I will keep it as is for now, and we'll see later.
     _nomad_final_checksums_normalized: >-
-      {% filter trim %}
-      {% set checksums = [] %}
-      {% for item in _nomad_final_cert_checksums.results %}
-        {% set _ = checksums.append({
+      {%- set ns = namespace(checksums=[]) -%}
+      {%- for item in _nomad_final_cert_checksums.results -%}
+        {%- set ns.checksums = ns.checksums + [{
           'item': item.item,
           'final_checksum': (item.stat.checksum | default('absent'))
-        }) %}
-      {% endfor %}
-      {{ checksums }}
-      {% endfilter %}
+        }] -%}
+      {%- endfor -%}
+      {{ ns.checksums }}
   when: nomad_enable_tls
 
 - name: "Nomad | Merge initial and final checksum lists"
