@@ -26,7 +26,7 @@
   ansible.builtin.set_fact:
     consul_configuration: "{{
       consul_configuration |
-      combine(_config_to_merge|from_yaml, recursive=true)
+      combine(_config_to_merge, recursive=true)
       }}"
 
 - name: "Consul | Merge addresses configuration"
