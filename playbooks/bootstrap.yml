@@ -27,7 +27,7 @@
 
     - name: "Ensure /etc/localtime exists"
       ansible.builtin.file:
-        src: /etc/timezone
+        src: /usr/share/zoneinfo/Etc/UTC
         dest: /etc/localtime
         owner: root
         group: root
