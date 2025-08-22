@@ -222,14 +222,14 @@ nomad_tls_configuration: >-
     combine((hashistack_nomad_tls_configuration | default({})), recursive=true)
   }}
 
-nomad_certificates_extra_files_dir: >
-  {{
-    [] if internal_tls_externally_managed_certs | bool else
-    [{
-      'src': "{{ hashistack_sub_configuration_directories['certificates'] }}/nomad/{{ inventory_hostname }}",
-      'dest': "{{ nomad_certs_dir }}"
+nomad_certificates_extra_files_dir: >-
+  {{ (
+    [] if internal_tls_externally_managed_certs | bool
+    else [{
+      'src': hashistack_sub_configuration_directories['certificates'] ~ '/nomad/' ~ inventory_hostname,
+      'dest': nomad_certs_dir
     }]
-  }}
+  ) }}
 
 ###########################
 # telemetry configuration #

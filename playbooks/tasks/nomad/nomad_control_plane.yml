@@ -4,7 +4,7 @@
     - name: "Nomad | Create consul tokens for service registration"
       when:
         - nomad_init_server
-        - enable_consul
+        - enable_consul | bool
         - nomad_enable_consul_integration
       vars:
         _consul_host: "{{ hostvars[groups['consul_servers'][0]].api_interface_address }}"
