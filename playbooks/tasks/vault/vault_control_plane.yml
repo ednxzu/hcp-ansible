@@ -4,7 +4,7 @@
     - name: "Vault | Create consul token for service registration"
       when:
         - vault_init_server
-        - enable_consul
+        - enable_consul | bool
         - vault_enable_service_registration
       vars:
         _consul_vault_sr_host: "{{ hostvars[groups['consul_servers'][0]].api_interface_address }}"

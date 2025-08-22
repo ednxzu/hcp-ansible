@@ -83,13 +83,14 @@ hashistack_default_vault_storage_configuration:
     path: "{{ vault_data_dir }}"
     node_id: "{{ ansible_hostname }}"
     retry_join: >-
-      [
-      {% for host in groups['vault_servers'] %}
-        {
-          'leader_api_addr': '{{ "https" if vault_enable_tls else "http"}}://{{ hostvars[host].api_interface_address }}:8200'
-        }{% if not loop.last %},{% endif %}
-      {% endfor %}
-      ]
+      {%- set ns = namespace(results=[]) -%}
+        {%- for host in groups['vault_servers'] -%}
+          {%- set ns.results = ns.results + [ {
+            'leader_api_addr': (vault_enable_tls | ternary('https', 'http')) ~ '://' ~ hostvars[host].api_interface_address ~ ':8200'
+          } ] -%}
+        {%- endfor -%}
+      {{ ns.results }}
+
 vault_storage_configuration: "{{ hashistack_vault_storage_configuration | default(hashistack_default_vault_storage_configuration) }}"
 ##########################
 # listener configuration #
@@ -112,14 +113,14 @@ hashistack_default_vault_tls_listener_configuration:
       tls_disable_client_certs: true
 vault_tls_listener_configuration: "{{ hashistack_vault_tls_listener_configuration | default(hashistack_default_vault_tls_listener_configuration) }}"
 
-vault_certificates_extra_files_dir: >
-  {{
-    [] if internal_tls_externally_managed_certs | bool else
-    [{
-      'src': "{{ hashistack_sub_configuration_directories['certificates'] }}/vault/{{ inventory_hostname }}",
-      'dest': "{{ vault_certs_dir }}"
+vault_certificates_extra_files_dir: >-
+  {{ (
+    [] if internal_tls_externally_managed_certs | bool
+    else [{
+      'src': hashistack_sub_configuration_directories['certificates'] ~ '/vault/' ~ inventory_hostname,
+      'dest': vault_certs_dir
     }]
-  }}
+  ) }}
 
 vault_extra_listener_configuration: []
 
