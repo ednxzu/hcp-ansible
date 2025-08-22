@@ -48,7 +48,7 @@
       when:
         - enable_nomad | bool
 
-    - name: "Checking directory {{ hashistack_configuration_directory }}"  # noqa: run-once[task]
+    - name: "Checking directory {{ hashistack_configuration_directory }}" # noqa: run-once[task]
       delegate_to: localhost
       run_once: true
       block:
@@ -83,7 +83,7 @@
     - name: "Verify host clocks"
       when: preflight_enable_host_ntp_checks | bool
       block:
-        - name: "Checking for a running NTP daemon on hosts"  # noqa command-instead-of-module
+        - name: "Checking for a running NTP daemon on hosts" # noqa command-instead-of-module
           vars:
             preflight_host_ntp_daemons:
               - chrony
@@ -137,20 +137,8 @@
       ansible.builtin.fail:
         msg: >-
           /etc/localtime is not found. This file is used for system-wide time
-          settings and needs to be mounted to containers.
+          settings.
       when: not _etc_localtime.stat.exists
-
-    - name: "Ensure /etc/timezone exists"
-      ansible.builtin.stat:
-        path: /etc/timezone
-      register: _etc_timezone
-
-    - name: "Fail if /etc/timezone is absent"
-      ansible.builtin.fail:
-        msg: >-
-          /etc/timezone is not found. This file is used for system-wide timezone
-          settings and needs to be mounted to containers.
-      when: not _etc_timezone.stat.exists
 
     - name: "Checking the api_interface is present"
       ansible.builtin.fail:
