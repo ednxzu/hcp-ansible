@@ -15,7 +15,7 @@ vault_github_project: hashicorp/vault
 vault_github_url: https://github.com
 vault_repository_url: https://releases.hashicorp.com/vault
 
-vault_certificates_reload_watchlist: |
+vault_certificates_reload_watchlist: >-
   {%- set ns = namespace(watchlist=[]) -%}
   {%- for listener in vault_configuration.listener -%}
     {%- if listener.get('tcp') -%}
