@@ -9,7 +9,7 @@ platforms:
   - name: hcp-srv-1.ednz.fr
     description: Molecule test instance.
     flavor: a2-ram4-disk20-perf1
-    image: ${MOLECULE_TEST_OS:-"Debian 12 bookworm"}
+    image: ${MOLECULE_TEST_OS:-"Debian 13 trixie"}
     user: ${MOLECULE_TEST_USER:-"debian"}
     auto_ip: false
     network:
@@ -35,7 +35,7 @@ platforms:
   - name: hcp-srv-2.ednz.fr
     description: Molecule test instance.
     flavor: a2-ram4-disk20-perf1
-    image: ${MOLECULE_TEST_OS:-"Debian 12 bookworm"}
+    image: ${MOLECULE_TEST_OS:-"Debian 13 trixie"}
     user: ${MOLECULE_TEST_USER:-"debian"}
     auto_ip: false
     network:
@@ -61,7 +61,7 @@ platforms:
   - name: hcp-srv-3.ednz.fr
     description: Molecule test instance.
     flavor: a2-ram4-disk20-perf1
-    image: ${MOLECULE_TEST_OS:-"Debian 12 bookworm"}
+    image: ${MOLECULE_TEST_OS:-"Debian 13 trixie"}
     user: ${MOLECULE_TEST_USER:-"debian"}
     auto_ip: false
     network:
@@ -87,7 +87,7 @@ platforms:
   - name: hcp-nomad-1.ednz.fr
     description: Molecule test instance.
     flavor: a2-ram4-disk20-perf1
-    image: ${MOLECULE_TEST_OS:-"Debian 12 bookworm"}
+    image: ${MOLECULE_TEST_OS:-"Debian 13 trixie"}
     user: ${MOLECULE_TEST_USER:-"debian"}
     auto_ip: false
     network:
@@ -111,7 +111,7 @@ platforms:
   - name: hcp-nomad-2.ednz.fr
     description: Molecule test instance.
     flavor: a2-ram4-disk20-perf1
-    image: ${MOLECULE_TEST_OS:-"Debian 12 bookworm"}
+    image: ${MOLECULE_TEST_OS:-"Debian 13 trixie"}
     user: ${MOLECULE_TEST_USER:-"debian"}
     auto_ip: false
     network:

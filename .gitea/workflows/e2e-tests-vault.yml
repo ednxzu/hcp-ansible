@@ -48,12 +48,10 @@ jobs:
     strategy:
       matrix:
         test_config:
-          - test_os: "Debian 11 bullseye"
-            test_user: "debian"
           - test_os: "Debian 12 bookworm"
             test_user: "debian"
-          - test_os: "Ubuntu 20.04 LTS Focal Fossa"
-            test_user: "ubuntu"
+          - test_os: "Debian 13 trixie"
+            test_user: "debian"
           - test_os: "Ubuntu 22.04 LTS Jammy Jellyfish"
             test_user: "ubuntu"
           - test_os: "Ubuntu 24.04 LTS Noble Numbat"

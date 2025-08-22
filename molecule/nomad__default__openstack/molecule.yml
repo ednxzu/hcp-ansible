@@ -9,7 +9,7 @@ platforms:
   - name: molecule__nomad__default__openstack.ednz.fr
     description: Molecule test instance.
     flavor: a2-ram4-disk20-perf1
-    image: ${MOLECULE_TEST_OS:-"Debian 12 bookworm"}
+    image: ${MOLECULE_TEST_OS:-"Debian 13 trixie"}
     user: ${MOLECULE_TEST_USER:-"debian"}
     auto_ip: false
     network:
