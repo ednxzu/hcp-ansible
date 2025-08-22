@@ -1,3 +1,23 @@
+## v0.12.0 (2025-08-22)
+
+### Feat
+
+- **playbook/bootstrap**: make setting timezone optional
+- **playbooks/nomad**: adjust templating to comply with ansible 2.19
+- **roles/nomad**: adjust templating to comply with ansible 2.19
+- **playbooks/vault**: adjust deploy playbook for vault to conform with ansible 2.19 requirements
+- **roles/vault**: adjust templating to conform to ansible 2.19
+- **consul**: simplify templating and type conversions
+- **roles/consul**: improve templating to be compatible with ansible 2.19
+- **roles/consul**: avoid overriding permissions on recursive copy task
+
+### Fix
+
+- **playbook/preflight**: skip /etc/timezone check as it is getting phased out
+- **playbook/bootstrap**: fix missconfiguration in setting up /etc/localtime
+- **roles/consul**: crrect template syntax for merge join list to avoid deprecation warning
+- **roles/vault**: some templating tweaks for generating certificate watchlist
+
 ## v0.11.1 (2025-07-13)
 
 ### Fix
