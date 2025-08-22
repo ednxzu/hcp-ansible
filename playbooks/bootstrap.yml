@@ -27,8 +27,9 @@
 
     - name: "Ensure /etc/localtime exists"
       ansible.builtin.file:
-        src: /usr/share/zoneinfo/Etc/UTC
+        src: "/usr/share/zoneinfo/{{ hashistack_timezone }}"
         dest: /etc/localtime
         owner: root
         group: root
         state: link
+      when: hashistack_set_timezone | bool

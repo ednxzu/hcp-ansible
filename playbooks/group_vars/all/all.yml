@@ -23,6 +23,9 @@ hashistack_configuration_credentials_vars_file: "credentials.yml"
 hashistack_remote_config_dir: "/etc/hashistack"
 hashistack_remote_log_dir: "/var/log/hashistack"
 
+hashistack_set_timezone: true
+hashistack_timezone: "Etc/UTC"
+
 ###################
 # support options #
 ################# #
@@ -33,10 +36,9 @@ hashistack_supported_distributions:
 
 hashistack_supported_distribution_versions:
   debian:
-    - "11"
     - "12"
+    - "13"
   ubuntu:
-    - "20.04"
     - "22.04"
     - "24.04"
 
