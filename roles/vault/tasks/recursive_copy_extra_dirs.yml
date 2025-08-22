@@ -3,7 +3,6 @@
 - name: "Vault | Ensure destination directory exists"
   ansible.builtin.file:
     path: "{{ dir_source_item.dest }}"
-    recurse: true
     state: directory
     mode: "0755"
 

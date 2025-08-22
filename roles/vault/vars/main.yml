@@ -16,19 +16,17 @@ vault_github_url: https://github.com
 vault_repository_url: https://releases.hashicorp.com/vault
 
 vault_certificates_reload_watchlist: |
-  {% filter trim %}
-  {% set watchlist = [] %}
-  {% for listener in vault_configuration.listener %}
-    {% if listener.get('tcp') %}
-      {% for key in ['tls_key_file', 'tls_cert_file', 'tls_client_ca_file'] %}
-        {% if listener['tcp'].get(key) %}
-          {{ watchlist.append(listener['tcp'][key]) }}
-        {% endif %}
-      {% endfor %}
-    {% endif %}
-  {% endfor %}
-  {{ watchlist | unique }}
-  {% endfilter %}
+  {%- set ns = namespace(watchlist=[]) -%}
+  {%- for listener in vault_configuration.listener -%}
+    {%- if listener.get('tcp') -%}
+      {%- for key in ['tls_key_file', 'tls_cert_file', 'tls_client_ca_file'] -%}
+        {%- if listener['tcp'].get(key) -%}
+          {%- set ns.watchlist = ns.watchlist + [listener['tcp'][key]] -%}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
+  {%- endfor -%}
+  {{ ns.watchlist | unique }}
 
 vault_configuration:
   cluster_name: "{{ vault_cluster_name }}"
