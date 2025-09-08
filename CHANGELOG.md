@@ -1,3 +1,9 @@
+## v0.12.1 (2025-09-08)
+
+### Fix
+
+- **globals/nomad**: add server_join block when consul is disabled
+
 ## v0.12.0 (2025-08-22)
 
 ### Feat
