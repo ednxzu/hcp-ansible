@@ -33,6 +33,7 @@
 
       when:
         - "'consul_servers' in group_names or 'consul_agents' in group_names"
+        - enable_consul | bool
 
     - name: Include ednz_cloud.hashistack.hashistack_tests for Nomad
       ansible.builtin.include_role:
@@ -49,6 +50,7 @@
         hashistack_tests_nomad_service_name: nomad
       when:
         - "'nomad_servrs' in group_names or 'nomad_clients' in group_names"
+        - enable_nomad | bool
 
     - name: Include ednz_cloud.hashistack.hashistack_tests for Vault
       ansible.builtin.include_role:
@@ -65,3 +67,4 @@
         hashistack_tests_vault_service_name: vault
       when:
         - "'vault_servers' in group_names"
+        - enable_vault | bool

@@ -1,0 +1,16 @@
+---
+- name: "Cleanup"
+  hosts: localhost
+  strategy: linear
+  gather_facts: true
+  become: true
+  tasks:
+    - name: "Delete secrets directory"
+      ansible.builtin.file:
+        path: "{{ lookup('env', 'PWD') }}/molecule/nomad_cluster__tls_multi_node__openstack/etc/hashistack/secrets"
+        state: absent
+
+    - name: "Delete certificates directory"
+      ansible.builtin.file:
+        path: "{{ lookup('env', 'PWD') }}/molecule/nomad_cluster__tls_multi_node__openstack/etc/hashistack/certificates"
+        state: absent
