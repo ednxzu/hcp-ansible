@@ -78,11 +78,11 @@ hashistack_ca_leaf_renew_threshold: 30d
 # Consul Leaf Certificates #
 ############################
 hashistack_ca_consul_org_name: "{{ hashistack_ca_root_org_name }}"
-hashistack_ca_consul_common_name: "{{ inventory_hostname }}"
+hashistack_ca_consul_common_name: "{{ inventory_hostname|ednz_cloud.hashistack.ensure_domain(hashistack_ca_domain) }}"
 hashistack_ca_consul_csr_sans: >
   {{
     [
-      "DNS:" + inventory_hostname,
+      "DNS:" + (inventory_hostname|ednz_cloud.hashistack.ensure_domain(hashistack_ca_domain)),
       "DNS:consul.service.consul",
       "DNS:localhost",
       "IP:" + api_interface_address,
@@ -95,11 +95,11 @@ hashistack_ca_consul_csr_sans: >
 # Nomad Leaf Certificates #
 ###########################
 hashistack_ca_nomad_org_name: "{{ hashistack_ca_root_org_name }}"
-hashistack_ca_nomad_common_name: "{{ inventory_hostname }}"
+hashistack_ca_nomad_common_name: "{{ inventory_hostname|ednz_cloud.hashistack.ensure_domain(hashistack_ca_domain) }}"
 hashistack_ca_nomad_csr_sans: >
   {{
     [
-      "DNS:" + inventory_hostname,
+      "DNS:" + (inventory_hostname|ednz_cloud.hashistack.ensure_domain(hashistack_ca_domain)),
       "DNS:localhost",
       "IP:" + api_interface_address,
       "IP:127.0.0.1"
@@ -113,11 +113,11 @@ hashistack_ca_nomad_csr_sans: >
 # Vault Leaf Certificates #
 ###########################
 hashistack_ca_vault_org_name: "{{ hashistack_ca_root_org_name }}"
-hashistack_ca_vault_common_name: "{{ inventory_hostname }}"
+hashistack_ca_vault_common_name: "{{ inventory_hostname|ednz_cloud.hashistack.ensure_domain(hashistack_ca_domain) }}"
 hashistack_ca_vault_csr_sans: >
   {{
     [
-      "DNS:" + inventory_hostname,
+      "DNS:" + (inventory_hostname|ednz_cloud.hashistack.ensure_domain(hashistack_ca_domain)),
       "DNS:localhost",
       "IP:" + api_interface_address,
       "IP:127.0.0.1"
