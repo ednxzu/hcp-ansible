@@ -100,19 +100,38 @@ nomad_leave_on_terminate: "{{ hashistack_nomad_leave_on_terminate | default(hash
 # server configuration #
 ########################
 
+hashistack_base_nomad_server_join_configuration: >-
+  {{
+    {
+      "server_join": {
+        "retry_join": groups['nomad_servers'] | map('extract', hostvars, ['api_interface_address']) | list,
+        "retry_max": 3,
+        "retry_interval": "15s"
+      }
+    }
+    if not nomad_enable_consul_integration else {}
+  }}
+
 nomad_enable_server: "{{ ('nomad_servers' in group_names) | bool }}"
 nomad_server_bootstrap_expect: "{{ (groups['nomad_servers'] | length) }}"
-nomad_server_configuration:
+hashistack_base_nomad_server_configuration:
   enabled: "{{ nomad_enable_server }}"
   data_dir: "{{ nomad_data_dir }}/server"
   encrypt: "{{ _credentials.nomad.gossip_encryption_key }}"
+
+hashistack_default_nomad_server_configuration: "{{ hashistack_base_nomad_server_configuration | combine(hashistack_base_nomad_server_join_configuration) }}"
+nomad_server_configuration: >-
+  {{
+    hashistack_default_nomad_server_configuration |
+    combine((hashistack_nomad_server_configuration | default({})), recursive=true)
+  }}
 
 ##############################
 # client configuration #
 ##############################
 
 nomad_enable_client: "{{ ('nomad_clients' in group_names) | bool }}"
-nomad_client_configuration:
+hashistack_base_nomad_client_configuration:
   enabled: "{{ nomad_enable_client }}"
   state_dir: "{{ nomad_data_dir }}/client"
   cni_path: "{{ cni_plugins_install_path | default('/opt/cni/bin') }}"
@@ -120,10 +139,16 @@ nomad_client_configuration:
   bridge_network_subnet: "172.26.64.0/20"
   node_pool: >-
     {{
-      'ingress' if 'nomad_ingress' in group_names else
       'controller' if 'nomad_servers' in group_names else
       omit
     }}
+
+hashistack_default_nomad_client_configuration: "{{ hashistack_base_nomad_client_configuration | combine(hashistack_base_nomad_server_join_configuration) }}"
+nomad_client_configuration: >-
+  {{
+    hashistack_default_nomad_client_configuration |
+    combine((hashistack_nomad_client_configuration | default({})), recursive=true)
+  }}
 
 ####################
 # ui configuration #
