@@ -1,3 +1,9 @@
+## v0.13.1 (2025-09-09)
+
+### Fix
+
+- **ca**: include the correct root CA certificate file in leaf certificate
+
 ## v0.13.0 (2025-09-09)
 
 ### Feat
