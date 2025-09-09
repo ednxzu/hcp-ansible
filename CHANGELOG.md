@@ -1,3 +1,13 @@
+## v0.13.0 (2025-09-09)
+
+### Feat
+
+- add ensure_domain filter plugin
+
+### Fix
+
+- **globals/ca**: ensure certificates are generated for proper names
+
 ## v0.12.1 (2025-09-08)
 
 ### Fix
