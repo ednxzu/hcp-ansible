@@ -50,7 +50,7 @@
       block:
         - name: "Vault leaf certificates | Read content of root ca certificate"
           ansible.builtin.slurp:
-            src: "{{ hashistack_ca_root_key_path }}"
+            src: "{{ hashistack_ca_root_cert_path }}"
           register: _hashistack_ca_root_crt
 
         - name: "Vault leaf certificates | Read content of intermediate ca certificate"
