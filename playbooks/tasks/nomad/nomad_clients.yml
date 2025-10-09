@@ -13,3 +13,4 @@
     - name: "Nomad | Deploy Clients"
       ansible.builtin.include_role:
         name: ednz_cloud.hashistack.nomad
+      when: not nomad_enable_server
