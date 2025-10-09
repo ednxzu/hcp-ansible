@@ -4,6 +4,8 @@ collections:
   - name: https://github.com/ednz-cloud/ansible-collection-utils.git
     type: git
     version: v0.7.1
+  - name: community.crypto
+    version: 3.0.4
   - name: ednz_cloud.hashistack
   - name: openstack.cloud
     version: 2.4.1
