@@ -1,0 +1,21 @@
+---
+- name: Include credentials generation playbook
+  ansible.builtin.import_playbook: ednz_cloud.hashistack.credentials.yml
+  vars:
+    hashistack_configuration_directory: "{{ lookup('env', 'PWD') }}/molecule/nomad_cluster__tls_single_node__openstack/etc/hashistack"
+
+- name: Include bootstrap playbook
+  ansible.builtin.import_playbook: ednz_cloud.hashistack.bootstrap.yml
+  vars:
+    hashistack_configuration_directory: "{{ lookup('env', 'PWD') }}/molecule/nomad_cluster__tls_single_node__openstack/etc/hashistack"
+
+- name: Include preflight playbook
+  ansible.builtin.import_playbook: ednz_cloud.hashistack.preflight.yml
+  vars:
+    hashistack_configuration_directory: "{{ lookup('env', 'PWD') }}/molecule/nomad_cluster__tls_single_node__openstack/etc/hashistack"
+
+- name: Include certificates playbook
+  ansible.builtin.import_playbook: ednz_cloud.hashistack.certificates.yml
+  vars:
+    hashistack_ca_action: root_ca,int_ca,leaf_cert
+    hashistack_configuration_directory: "{{ lookup('env', 'PWD') }}/molecule/nomad_cluster__tls_single_node__openstack/etc/hashistack"
