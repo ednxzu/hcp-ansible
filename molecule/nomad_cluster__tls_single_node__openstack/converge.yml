@@ -1,0 +1,5 @@
+---
+- name: Include deploy playbook
+  ansible.builtin.import_playbook: ednz_cloud.hashistack.deploy.yml
+  vars:
+    hashistack_configuration_directory: "{{ lookup('env', 'PWD') }}/molecule/nomad_cluster__tls_single_node__openstack/etc/hashistack"

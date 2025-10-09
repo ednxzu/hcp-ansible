@@ -1,0 +1,59 @@
+---
+dependency:
+  name: galaxy
+  options:
+    role-file: molecule/requirements.yml
+    requirements-file: molecule/requirements.yml
+driver:
+  name: openstack
+platforms:
+  - name: nomad-server.ednz.fr
+    description: Molecule test instance.
+    flavor: a2-ram4-disk20-perf1
+    image: ${MOLECULE_TEST_OS:-"Debian 13 trixie"}
+    user: ${MOLECULE_TEST_USER:-"debian"}
+    auto_ip: false
+    network:
+      name: pcp-w3rxsrj-backend-network
+      create: false
+    security_group:
+      name: molecule__nomad_cluster__tls_multi_node__openstack
+      create: true
+      description: Molecule test security group.
+      rules:
+        - proto: tcp
+          port: -1
+          port_min: 0
+          port_max: 0
+          cidr: 0.0.0.0/0
+          type: IPv4
+    groups:
+      - deployment
+      - common
+      - nomad_servers
+      - nomad_clients
+      - consul_servers # to pass preflight only
+      - vault_servers # to pass preflight only
+      - consul_agents # to pass preflight only
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      remote_tmp: /tmp/.ansible
+  env:
+    ANSIBLE_ROLES_PATH: ../../roles/
+verifier:
+  name: ansible
+scenario:
+  name: nomad_cluster__tls_single_node__openstack
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - verify
+    - cleanup
+    - destroy
