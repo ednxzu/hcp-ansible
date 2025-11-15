@@ -12,4 +12,4 @@ on:
 jobs:
   commit-history-check:
     name: Commit History Check
-    uses: https://git.ednz.fr/github-actions/library/.gitea/workflows/cz-pull-request-check.yml@v0.1.0
+    uses: https://git.ednz.fr/github-actions/library/.gitea/workflows/cz-pull-request-check.yml@v0.4.1
