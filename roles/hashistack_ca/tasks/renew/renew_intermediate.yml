@@ -60,11 +60,13 @@
     - name: "Intermediate CA | Backup existing intermediate CA certificate"
       ansible.builtin.command:
         cmd: mv {{ hashistack_ca_intermediate_cert_path }} {{ hashistack_ca_intermediate_backup_dir }}/intermediate_ca_expire_{{ _hashistack_ca_intermediate_expiration_date }}.crt
+      run_once: true
       changed_when: false
 
     - name: "Intermediate CA | Backup existing intermediate CA key"
       ansible.builtin.command:
         cmd: mv {{ hashistack_ca_intermediate_key_path }} {{ hashistack_ca_intermediate_backup_dir }}/intermediate_ca_expire_{{ _hashistack_ca_intermediate_expiration_date }}.key
+      run_once: true
       changed_when: false
 
     - name: "Intermediate CA | Generate new intermediate CA if backups were successful"
