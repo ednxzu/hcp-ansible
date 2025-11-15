@@ -1,3 +1,9 @@
+## v0.13.2 (2025-11-15)
+
+### Fix
+
+- **roles/hashistack_ca**: only run backup for intermediate once on renewal
+
 ## v0.13.1 (2025-09-09)
 
 ### Fix
