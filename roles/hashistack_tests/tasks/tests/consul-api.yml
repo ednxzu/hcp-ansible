@@ -20,10 +20,6 @@
     fail_msg: "Required variable '{{ item }}' is not defined."
   loop: "{{ _hashistack_tests_required_variables }}"
 
-# Start of tests
-- debug:
-    msg: "{{ hashistack_tests_consul_api_addr }}"
-
 - name: "Test | consul api"
   block:
     - name: "Get consul members"
