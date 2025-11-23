@@ -84,6 +84,17 @@
           combine(_config_to_merge, recursive=true)
           }}"
 
+- name: "Nomad | Merge vault block into main configuration"
+  vars:
+    _config_to_merge:
+      vault: "{{ nomad_vault_integration_configuration }}"
+  ansible.builtin.set_fact:
+    nomad_configuration: "{{
+      nomad_configuration |
+      combine(_config_to_merge, recursive=true)
+      }}"
+  when: nomad_enable_vault_integration | bool
+
 - name: "Nomad | Merge TLS configuration"
   when: nomad_enable_tls | bool
   block:
