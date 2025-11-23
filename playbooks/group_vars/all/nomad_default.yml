@@ -364,7 +364,8 @@ nomad_consul_integration_client_policy: |
 hashistack_default_nomad_enable_vault_integration: false
 nomad_enable_vault_integration: "{{ hashistack_nomad_enable_vault_integration | default(hashistack_default_nomad_enable_vault_integration) }}"
 
-hashistack_default_nomad_vault_integration_configuration: {}
+hashistack_default_nomad_vault_integration_configuration:
+  enabled: "{{ nomad_enable_vault_integration | bool }}"
 nomad_vault_integration_configuration: >-
   {{
     hashistack_default_nomad_vault_integration_configuration |
