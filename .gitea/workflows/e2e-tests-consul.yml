@@ -64,13 +64,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Generate OpenStack cloud file
-        uses: https://git.ednz.fr/github-actions/library/.gitea/actions/generate-cloud-config@v0.3.0
+        uses: https://git.ednz.fr/github-actions/library/.gitea/actions/generate-cloud-config@v0.4.1
         with:
           vault_addr: https://vault.ednz.fr
           vault_token: ${{ needs.retrieve-credentials.outputs.vault-token }}
 
       - name: Run end-to-end tests
-        uses: https://git.ednz.fr/github-actions/library/.gitea/actions/molecule-e2e-test@v0.3.0
+        uses: https://git.ednz.fr/github-actions/library/.gitea/actions/molecule-e2e-test@v0.4.1
         with:
           role: consul
           scenario: ${{ matrix.scenario }}
