@@ -1,3 +1,9 @@
+## v0.13.3 (2025-11-25)
+
+### Fix
+
+- run nomad client tasks on servers when they are also clients
+
 ## v0.13.2 (2025-11-15)
 
 ### Fix
