@@ -13,6 +13,9 @@ on:
       - roles/vault/**
       - molecule/vault__**
 
+env:
+  OS_CLOUD: pcp-w3rxsrj-dc4-a
+
 jobs:
   retrieve-credentials:
     name: Retrieve Credentials
@@ -44,6 +47,11 @@ jobs:
   end_to_end_test:
     name: End to End Test
     runs-on: ubuntu-latest
+    container:
+      image: git.ednz.fr/container-factory/ansible-runner:act-latest
+      credentials:
+        username: ${{ needs.retrieve-credentials.outputs.registry-username }}
+        password: ${{ needs.retrieve-credentials.outputs.registry-token }}
     needs: retrieve-credentials
     strategy:
       matrix:
@@ -69,12 +77,11 @@ jobs:
           vault_addr: https://vault.ednz.fr
           vault_token: ${{ needs.retrieve-credentials.outputs.vault-token }}
 
-      - name: Run end-to-end tests
-        uses: https://git.ednz.fr/github-actions/library/.gitea/actions/molecule-e2e-test@v0.4.1
-        with:
-          role: vault
-          scenario: ${{ matrix.scenario }}
-          test_os: ${{ matrix.test_config.test_os }}
-          test_user: ${{ matrix.test_config.test_user }}
-          is_openstack: "true"
-          os_cloud: pcp-w3rxsrj-dc4-a
+      - name: Run Molecule tests
+        run: molecule test -s ${{ matrix.scenario }}
+        shell: bash
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "false"
+          ANSIBLE_FORCE_COLOR: "true"
+          MOLECULE_TEST_OS: ${{ matrix.test_config.test_os }}
+          MOLECULE_TEST_USER: ${{ matrix.test_config.test_user }}
