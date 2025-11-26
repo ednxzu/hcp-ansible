@@ -41,6 +41,7 @@
       vars:
         hashistack_tests_include_tests:
           - nomad-installation
+          - nomad-api
         # nomad-installation variables
         hashistack_tests_nomad_config_directory: /etc/hashistack/nomad.d
         hashistack_tests_nomad_data_directory: /opt/nomad
@@ -48,8 +49,17 @@
         hashistack_tests_nomad_group: nomad
         hashistack_tests_nomad_bin_path: /usr/local/bin/nomad
         hashistack_tests_nomad_service_name: nomad
+
+        hashistack_tests_nomad_api_addr: "{{ hostvars[groups['nomad_servers'][0]]['nomad_api_addr'] }}"
+        # can be set to empty string if not using ACLs
+        hashistack_tests_nomad_token: "{{ _credentials.nomad.root_token.secret_id }}"
+        # can be set to localhost if api is reachable,
+        # or to the address of a nomad server if api is not reachable from localhost
+        hashistack_tests_nomad_api_calls_delegation: "{{ groups['nomad_servers'][0] }}"
+        hashistack_tests_nomad_server_count: "{{ groups['nomad_servers'] | unique | length }}"
+
       when:
-        - "'nomad_servrs' in group_names or 'nomad_clients' in group_names"
+        - "'nomad_servers' in group_names or 'nomad_clients' in group_names"
         - enable_nomad | bool
 
     - name: Include ednz_cloud.hashistack.hashistack_tests for Vault
