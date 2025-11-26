@@ -3,4 +3,4 @@
 collections:
   - name: https://github.com/ednz-cloud/ansible-collection-utils.git
     type: git
-    version: v0.7.1
+    version: v0.10.0
