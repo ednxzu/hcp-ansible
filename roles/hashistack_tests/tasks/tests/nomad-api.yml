@@ -22,7 +22,6 @@
 
 - name: "Test | nomad api"
   block:
-    # PUT variable
     - name: "Nomad | Put variable"
       ansible.builtin.uri:
         url: "{{ hashistack_tests_nomad_api_addr }}/v1/var/secret/foobar"
@@ -38,7 +37,6 @@
       delegate_to: "{{ hashistack_tests_nomad_api_calls_delegation }}"
       register: nomad_var_put
 
-    # GET variable
     - name: "Nomad | Get variable"
       ansible.builtin.uri:
         url: "{{ hashistack_tests_nomad_api_addr }}/v1/var/secret/foobar"
@@ -50,7 +48,6 @@
       delegate_to: "{{ hashistack_tests_nomad_api_calls_delegation }}"
       register: nomad_var_get
 
-    # DELETE / purge variable
     - name: "Nomad | Purge variable"
       ansible.builtin.uri:
         url: "{{ hashistack_tests_nomad_api_addr }}/v1/var/secret/foobar"
@@ -62,28 +59,23 @@
       delegate_to: "{{ hashistack_tests_nomad_api_calls_delegation }}"
       register: nomad_var_purge
 
-    # Get server members
     - name: "Nomad | Get server members"
       ansible.builtin.uri:
-        url: "{{ hashistack_tests_nomad_api_addr }}/v1/agent/servers"
+        url: "{{ hashistack_tests_nomad_api_addr }}/v1/status/peers"
         method: GET
         headers:
           X-Nomad-Token: "{{ hashistack_tests_nomad_token | default(omit) }}"
         status_code: 200
         return_content: yes
       delegate_to: "{{ hashistack_tests_nomad_api_calls_delegation }}"
-      register: nomad_server_members
+      register: nomad_status_peers
 
-    - debug:
-        msg: "{{ nomad_server_members.json }}"
-
-    # Assertions
     - name: "Nomad | Verify API responses"
       ansible.builtin.assert:
         that:
           - nomad_var_put.status == 200
           - nomad_var_get.status == 200
           - nomad_var_purge.status == 204
-          - nomad_server_members.status == 200
+          - nomad_status_peers.status == 200
           - nomad_var_get.json.Items.foo == "bar"
-          - (nomad_server_members.json | length | int) == hashistack_tests_nomad_server_count | int
+          - (nomad_status_peers.json | length | int) == hashistack_tests_nomad_server_count | int
