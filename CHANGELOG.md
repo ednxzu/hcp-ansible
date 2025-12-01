@@ -1,3 +1,10 @@
+## v0.13.4 (2025-12-01)
+
+### Fix
+
+- **roles/nomad**: correctly merge vault integration config
+- **roles/nomad**: correctly merge vault integration config
+
 ## v0.13.3 (2025-11-25)
 
 ### Fix
